@@ -49,13 +49,6 @@ function LoginFormContent() {
       setErrorMsg(`Sign in error: ${decodeURIComponent(errorParam)}`);
     }
 
-    if (devOtpParam) {
-      setDevOtp(devOtpParam);
-      if (devOtpParam.length === 6) {
-        setOtpDigits(devOtpParam.split(''));
-      }
-    }
-
     if (emailParam) {
       setEmail(emailParam);
       if (stepParam === 'otp') {

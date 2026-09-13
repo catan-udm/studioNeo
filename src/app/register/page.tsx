@@ -68,7 +68,7 @@ function RegisterFormContent() {
       );
 
       setTimeout(() => {
-        router.push(`/login?email=${encodeURIComponent(email)}&step=otp${devOtpQuery}`);
+        router.push(`/login?email=${encodeURIComponent(email)}&step=otp`);
       }, 950);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred.';

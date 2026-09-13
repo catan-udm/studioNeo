@@ -46,12 +46,13 @@ export function cleanOrigin(value: string): string {
 export function getRPConfig(request: NextRequest) {
   const baseUrl = getBaseUrl(request);
   const baseDomain = cleanDomain(baseUrl);
+  const hostHeader = request.headers.get('host') || baseDomain;
+  const hostname = cleanDomain(hostHeader);
 
   const protocol =
     request.headers.get('x-forwarded-proto') ||
-    (hostHeader.includes('localhost') || hostHeader.includes('127.0.0.1') ? 'http' : 'https');
+    (baseUrl.startsWith('http://') ? 'http' : 'https');
   const originHeader = request.headers.get('origin');
-  const origin = originHeader ? cleanOrigin(originHeader) : cleanOrigin(baseUrl);
 
   // Detect local development environment
   const isLocal =
@@ -60,7 +61,9 @@ export function getRPConfig(request: NextRequest) {
     hostname.endsWith('.local');
 
   const defaultOrigin = `${protocol}://${hostHeader}`;
-  const origin = originHeader || (isLocal ? defaultOrigin : (process.env.NEXT_PUBLIC_APP_URL || defaultOrigin));
+  const origin = cleanOrigin(
+    originHeader || (isLocal ? defaultOrigin : process.env.NEXT_PUBLIC_APP_URL || baseUrl)
+  );
 
   // In local development, the Relying Party ID MUST be the local hostname (e.g. 'localhost')
   // per the WebAuthn specification; otherwise browsers reject with a SecurityError.
