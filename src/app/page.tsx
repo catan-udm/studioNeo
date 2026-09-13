@@ -51,7 +51,10 @@ export default function HomePage() {
 
   const fetchSession = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me', {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+      });
       const data = await res.json();
       if (data.authenticated) {
         setAuthenticated(true);
@@ -115,14 +118,18 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+    } catch (err) {
+      console.error('Failed to log out:', err);
+    } finally {
       setAuthenticated(false);
       setSubscriber(null);
       setPerks([]);
       setPasskeys([]);
-      window.location.reload();
-    } catch (err) {
-      console.error('Failed to log out:', err);
+      window.location.href = '/login?notice=LoggedOut';
     }
   };
 

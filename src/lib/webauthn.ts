@@ -139,7 +139,19 @@ export async function getPasskeyChallenge(
  */
 export async function clearPasskeyChallenge(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(CHALLENGE_COOKIE_NAME);
+  const isProd = process.env.NODE_ENV === 'production';
+  cookieStore.delete({
+    name: CHALLENGE_COOKIE_NAME,
+    path: '/',
+  });
+  cookieStore.set(CHALLENGE_COOKIE_NAME, '', {
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+    httpOnly: true,
+    secure: isProd,
+    sameSite: 'lax',
+  });
 }
 
 export default {

@@ -32,6 +32,8 @@ function LoginFormContent() {
 
     if (noticeParam === 'AccountDeleted') {
       setInfoMsg('Your account and all associated personal data have been permanently deleted.');
+    } else if (noticeParam === 'LoggedOut') {
+      setInfoMsg('You have been signed out successfully.');
     }
 
     if (emailParam) {

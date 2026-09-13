@@ -177,11 +177,41 @@ export async function getSessionUser(): Promise<SessionPayload | null> {
 }
 
 /**
- * Clears the session cookie on logout.
+ * Clears the session cookie on logout with explicit root path and immediate expiration.
  */
 export async function clearSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(AUTH_COOKIE_NAME);
+  const isProd = process.env.NODE_ENV === 'production';
+
+  // Explicitly delete with path: '/' to match how setSessionCookie created it
+  cookieStore.delete({
+    name: AUTH_COOKIE_NAME,
+    path: '/',
+  });
+  cookieStore.set(AUTH_COOKIE_NAME, '', {
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+    httpOnly: true,
+    secure: isProd,
+    sameSite: 'lax',
+  });
+
+  // Also clear fallback default name if configured differently
+  if (AUTH_COOKIE_NAME !== 'sanko_auth_session') {
+    cookieStore.delete({
+      name: 'sanko_auth_session',
+      path: '/',
+    });
+    cookieStore.set('sanko_auth_session', '', {
+      path: '/',
+      maxAge: 0,
+      expires: new Date(0),
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+    });
+  }
 }
 
 // ========================================================================

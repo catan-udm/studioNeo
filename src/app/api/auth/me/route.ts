@@ -4,11 +4,22 @@ import { queryRow, queryRows, transaction } from '@/lib/db';
 import { clearPasskeyChallenge } from '@/lib/webauthn';
 import { clearOAuthSessionCookie } from '@/lib/oauth';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+function jsonWithNoCache(data: unknown, status = 200) {
+  const res = NextResponse.json(data, { status });
+  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.headers.set('Pragma', 'no-cache');
+  res.headers.set('Expires', '0');
+  return res;
+}
+
 export async function GET() {
   try {
     const session = await getSessionUser();
     if (!session || !session.subscriberId) {
-      return NextResponse.json({ authenticated: false, subscriber: null, perks: [] });
+      return jsonWithNoCache({ authenticated: false, subscriber: null, perks: [] });
     }
 
     const subscriber = await queryRow<{
@@ -22,7 +33,7 @@ export async function GET() {
     );
 
     if (!subscriber) {
-      return NextResponse.json({ authenticated: false, subscriber: null, perks: [] });
+      return jsonWithNoCache({ authenticated: false, subscriber: null, perks: [] });
     }
 
     // Check if 2FA is active
@@ -76,7 +87,7 @@ export async function GET() {
       // Table may not exist yet
     }
 
-    return NextResponse.json({
+    return jsonWithNoCache({
       authenticated: true,
       subscriber: {
         id: subscriber.id,
@@ -92,9 +103,9 @@ export async function GET() {
     });
   } catch (error) {
     console.error('[API /api/auth/me] Error:', error);
-    return NextResponse.json(
+    return jsonWithNoCache(
       { error: 'Failed to retrieve session status' },
-      { status: 500 }
+      500
     );
   }
 }
