@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { startRegistration } from '@simplewebauthn/browser';
 
 interface Perk {
@@ -30,9 +32,11 @@ interface PasskeyRecord {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [subscriber, setSubscriber] = useState<Subscriber | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [perks, setPerks] = useState<Perk[]>([]);
   const [passkeys, setPasskeys] = useState<PasskeyRecord[]>([]);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
@@ -108,15 +112,17 @@ export default function HomePage() {
   }, [authenticated]);
 
   const handleLogout = async () => {
+    setIsSigningOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setAuthenticated(false);
       setSubscriber(null);
       setPerks([]);
       setPasskeys([]);
-      window.location.reload();
-    } catch (err) {
-      console.error('Failed to log out:', err);
+      setTimeout(() => {
+        router.push('/login?notice=LoggedOut');
+        router.refresh();
+      }, 550);
     }
   };
 
@@ -206,8 +212,39 @@ export default function HomePage() {
       const res = await fetch(`/api/assets/download/${slug}?format=json`);
       const data = await res.json();
       setJsonDetails(data);
-    } catch (err) {
-      console.error('Failed to inspect SAS token:', err);
+    } catch {
+      setActionMsg({ type: 'error', text: 'Failed to inspect SAS token.' });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!subscriber) return;
+    if (confirmDeleteEmail.trim().toLowerCase() !== subscriber.email.toLowerCase()) {
+      setDeleteError(`Email does not match. Please type ${subscriber.email} exactly.`);
+      return;
+    }
+
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmEmail: confirmDeleteEmail }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete account.');
+      }
+
+      router.push('/login?notice=AccountDeleted');
+      router.refresh();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete account.';
+      setDeleteError(msg);
+      setDeleteLoading(false);
     }
   };
 
@@ -237,12 +274,12 @@ export default function HomePage() {
           </header>
 
           <div className="cluster" style={{ justifyContent: 'center' }}>
-            <a href="/login" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
+            <Link href="/login" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
               Sign In with Multi-Method
-            </a>
-            <a href="/register" className="btn btn-secondary" style={{ padding: '0.75rem 2rem' }}>
+            </Link>
+            <Link href="/register" className="btn btn-secondary" style={{ padding: '0.75rem 2rem' }}>
               Register Subscriber Account
-            </a>
+            </Link>
           </div>
         </article>
 
@@ -268,6 +305,25 @@ export default function HomePage() {
 
   return (
     <main className="container stack" style={{ gap: '2rem' }}>
+      {/* Graceful Signout Overlay */}
+      {isSigningOut && (
+        <div className="signout-overlay" role="dialog" aria-modal="true" aria-label="Signing Out">
+          <div className="signout-card">
+            <div
+              className="spinner"
+              style={{
+                width: '2.5rem',
+                height: '2.5rem',
+                borderWidth: '3.5px',
+                color: 'var(--brand-primary)',
+              }}
+            />
+            <h3>Signing You Out Safely</h3>
+            <p>Clearing your session tokens and security credentials...</p>
+          </div>
+        </div>
+      )}
+
       {actionMsg && (
         <div
           className={`alert ${actionMsg.type === 'success' ? 'alert-success' : 'alert-error'}`}
@@ -301,8 +357,14 @@ export default function HomePage() {
             </p>
           </div>
 
-          <button onClick={handleLogout} className="btn btn-outline">
-            Sign Out
+          <button onClick={handleLogout} className="btn btn-outline" disabled={isSigningOut}>
+            {isSigningOut ? (
+              <>
+                <span className="spinner spinner-sm" /> Signing Out...
+              </>
+            ) : (
+              'Sign Out'
+            )}
           </button>
         </div>
       </section>
