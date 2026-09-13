@@ -115,6 +115,9 @@ export default function HomePage() {
     setIsSigningOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Failed to log out:', err);
+    } finally {
       setAuthenticated(false);
       setSubscriber(null);
       setPerks([]);
@@ -217,36 +220,6 @@ export default function HomePage() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!subscriber) return;
-    if (confirmDeleteEmail.trim().toLowerCase() !== subscriber.email.toLowerCase()) {
-      setDeleteError(`Email does not match. Please type ${subscriber.email} exactly.`);
-      return;
-    }
-
-    setDeleteLoading(true);
-    setDeleteError(null);
-
-    try {
-      const res = await fetch('/api/auth/me', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirmEmail: confirmDeleteEmail }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete account.');
-      }
-
-      router.push('/login?notice=AccountDeleted');
-      router.refresh();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete account.';
-      setDeleteError(msg);
-      setDeleteLoading(false);
-    }
-  };
 
   if (loading) {
     return (

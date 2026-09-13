@@ -14,23 +14,48 @@ export interface PasskeyChallengePayload {
 
 /**
  * Derives RP (Relying Party) ID and Origin from the incoming request or environment.
+ * Dynamically adapts for local development (localhost) so WebAuthn doesn't throw a SecurityError.
  */
 export function getRPConfig(request: NextRequest) {
   const hostHeader = request.headers.get('host') || 'localhost:3000';
   const hostname = hostHeader.split(':')[0]; // strip port
 
-  const protocol = request.headers.get('x-forwarded-proto') || (hostHeader.includes('localhost') ? 'http' : 'https');
+  const protocol =
+    request.headers.get('x-forwarded-proto') ||
+    (hostHeader.includes('localhost') || hostHeader.includes('127.0.0.1') ? 'http' : 'https');
   const originHeader = request.headers.get('origin');
 
+  // Detect local development environment
+  const isLocal =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.endsWith('.local');
+
   const defaultOrigin = `${protocol}://${hostHeader}`;
-  const origin = originHeader || process.env.NEXT_PUBLIC_APP_URL || defaultOrigin;
-  const rpID = process.env.WEBAUTHN_RP_ID || hostname;
+  const origin = originHeader || (isLocal ? defaultOrigin : (process.env.NEXT_PUBLIC_APP_URL || defaultOrigin));
+
+  // In local development, the Relying Party ID MUST be the local hostname (e.g. 'localhost')
+  // per the WebAuthn specification; otherwise browsers reject with a SecurityError.
+  const rpID = isLocal ? hostname : (process.env.WEBAUTHN_RP_ID || hostname);
   const rpName = process.env.WEBAUTHN_RP_NAME || 'Azure Cloud Studio';
+
+  const expectedOrigins = Array.from(
+    new Set([
+      origin,
+      defaultOrigin,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
+    ])
+  );
 
   return {
     rpID,
     rpName,
     origin,
+    expectedOrigins,
   };
 }
 

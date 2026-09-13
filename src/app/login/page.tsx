@@ -52,6 +52,9 @@ function LoginFormContent() {
 
     if (devOtpParam) {
       setDevOtp(devOtpParam);
+      if (devOtpParam.length === 6) {
+        setOtpDigits(devOtpParam.split(''));
+      }
     }
 
     if (emailParam) {
