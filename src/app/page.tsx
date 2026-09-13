@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { startRegistration } from '@simplewebauthn/browser';
 
 interface Perk {
@@ -31,6 +32,61 @@ interface PasskeyRecord {
   created_at: string;
 }
 
+interface GalleryItem {
+  id: number;
+  src: string;
+  alt: string;
+  color: string;
+}
+
+const galleryItems: GalleryItem[] = [
+  { id: 1, src: 'https://bikkostudio.blob.core.windows.net/gifs/1デビルじゃないもん.gif', alt: 'Not A Devil', color: '#c496ff' },
+  { id: 2, src: 'https://bikkostudio.blob.core.windows.net/gifs/2デビルじゃないもん.gif', alt: 'Not A Devil', color: '#f4cc7f' },
+  { id: 3, src: 'https://bikkostudio.blob.core.windows.net/gifs/3デビルじゃないもん.gif', alt: 'Not A Devil', color: '#ff9d96' },
+  { id: 4, src: 'https://bikkostudio.blob.core.windows.net/gifs/アニマル.gif', alt: 'Animal', color: '#ff3380' },
+  { id: 5, src: 'https://bikkostudio.blob.core.windows.net/gifs/ゴーストルール.gif', alt: 'Ghost Rule', color: '#737373' },
+  { id: 6, src: 'https://bikkostudio.blob.core.windows.net/gifs/サラマンダー.gif', alt: 'Salamander', color: '#ac332b' },
+  { id: 7, src: 'https://bikkostudio.blob.core.windows.net/gifs/シンデレラ.gif', alt: 'Cinderella', color: '#e2750d' },
+  { id: 8, src: 'https://bikkostudio.blob.core.windows.net/gifs/ゾンビ.gif', alt: 'Zombie', color: '#bffc3f' },
+  { id: 9, src: 'https://bikkostudio.blob.core.windows.net/gifs/パラサイト.gif', alt: 'Parasite', color: '#d99af0' },
+  { id: 10, src: 'https://bikkostudio.blob.core.windows.net/gifs/ヒバナ.gif', alt: 'Hibana', color: '#344553' },
+  { id: 11, src: 'https://bikkostudio.blob.core.windows.net/gifs/ラビットホール.gif', alt: 'Rabbit Hole', color: '#f2479d' },
+  { id: 12, src: 'https://bikkostudio.blob.core.windows.net/gifs/ヴァンパイア.gif', alt: 'Vampire', color: '#8d1409' },
+  { id: 13, src: 'https://bikkostudio.blob.core.windows.net/gifs/乙女解剖.gif', alt: 'Otome Dissection', color: '#7e7f77' },
+  { id: 14, src: 'https://bikkostudio.blob.core.windows.net/gifs/2nan.gif', alt: 'Project Volt', color: '#FCF6BD' },
+  { id: 15, src: 'https://bikkostudio.blob.core.windows.net/gifs/HERO.gif', alt: 'HERO', color: '#A9DEF9' },
+];
+
+interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  src: string;
+  alt: string;
+}
+
+function ImageWithFallback({ src, alt, className, style, ...rest }: ImageWithFallbackProps) {
+  const [didError, setDidError] = useState(false);
+
+  if (didError) {
+    return (
+      <div className={`gallery-image-fallback ${className || ''}`} style={style}>
+        <span role="img" aria-label="Error loading image">
+          Image unavailable
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      style={style}
+      {...rest}
+      onError={() => setDidError(true)}
+    />
+  );
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -46,6 +102,8 @@ export default function HomePage() {
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [jsonDetails, setJsonDetails] = useState<Record<string, unknown> | null>(null);
+  const [tiltOpacity, setTiltOpacity] = useState(1);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   const fetchSession = async () => {
     try {
@@ -82,6 +140,48 @@ export default function HomePage() {
   useEffect(() => {
     fetchSession();
   }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setIsDesktop(mediaQuery.matches);
+
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      let beta = event.beta || 0;
+      const gamma = event.gamma || 0;
+
+      beta = Math.max(-90, Math.min(90, beta));
+      const tiltX = Math.abs(gamma) / 45;
+      const tiltY = Math.abs(beta - 45) / 45;
+      const maxTilt = Math.min(1, Math.max(tiltX, tiltY));
+
+      setTiltOpacity(1 - maxTilt);
+    };
+
+    if (typeof DeviceOrientationEvent !== 'undefined' && !mediaQuery.matches) {
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, []);
+
+  const requestPermission = () => {
+    const orientationEvent =
+      typeof DeviceOrientationEvent !== 'undefined'
+        ? (DeviceOrientationEvent as typeof DeviceOrientationEvent & {
+            requestPermission?: () => Promise<string>;
+          })
+        : undefined;
+
+    if (
+      !isDesktop &&
+      orientationEvent &&
+      typeof orientationEvent.requestPermission === 'function'
+    ) {
+      orientationEvent.requestPermission().catch(console.error);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -231,45 +331,58 @@ export default function HomePage() {
 
   if (!authenticated || !subscriber) {
     return (
-      <main className="container stack" style={{ maxWidth: '720px', gap: '2rem' }}>
-        <article className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-          <header className="card-header">
-            <span className="badge badge-warning" style={{ marginBottom: '1rem' }}>
-              Authentication Required
-            </span>
-            <h1 style={{ fontSize: '2.25rem', marginBottom: '1rem' }}>
-              Azure Cloud Studio Portal
-            </h1>
-            <p style={{ fontSize: '1.1rem', maxWidth: '540px', margin: '0 auto 2rem' }}>
-              Enterprise multi-method passwordless authentication: WebAuthn Passkeys (Windows Hello,
-              Touch ID, Face ID), Social OAuth 2.0 (Google &amp; Microsoft), and Email OTP.
-            </p>
-          </header>
+      <main className="landing-page">
+        <header className="landing-header">
+          <Link href="/" className="landing-mark" aria-label="Bikko Studio home">
+            <Image src="/bikko-mark.png" alt="" width={87} height={77} />
+          </Link>
+          <nav className="landing-nav" aria-label="Main navigation">
+            <a href="#projects">Projects</a>
+            <a href="#about">About</a>
+            <a href="#menu">Menu</a>
+          </nav>
+        </header>
 
-          <div className="cluster" style={{ justifyContent: 'center' }}>
-            <Link href="/login" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
-              Sign In with Multi-Method
-            </Link>
-            <Link href="/register" className="btn btn-secondary" style={{ padding: '0.75rem 2rem' }}>
-              Register Subscriber Account
-            </Link>
-          </div>
-        </article>
+        <section className="landing-hero" aria-labelledby="landing-title">
+          <div className="code-art" onClick={requestPermission}>
+            <div className="code-art-grid">
+              {galleryItems.map((item) => {
+                const isSpan2 = item.id === 15;
 
-        <section className="grid grid-cols-2">
-          <div className="card">
-            <h3>FIDO2 / WebAuthn Passkeys</h3>
-            <p>
-              Hardware-backed phishing-resistant biometric authentication via <code>@simplewebauthn</code> with
-              replay counter detection and discoverable passkey support.
-            </p>
+                return (
+                  <div
+                    key={item.id}
+                    className={`code-art-tile ${isSpan2 ? 'code-art-tile-wide' : ''} ${
+                      isDesktop ? 'code-art-hover' : 'code-art-touch'
+                    }`}
+                  >
+                    <ImageWithFallback src={item.src} alt={item.alt} className="gallery-image" />
+                    <div
+                      className="code-art-overlay"
+                      style={{
+                        backgroundColor: item.color,
+                        ...(isDesktop ? {} : { opacity: tiltOpacity }),
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="card">
-            <h3>Enterprise Social OAuth 2.0</h3>
-            <p>
-              Direct PKCE (RFC 7636) authentication with Google and Microsoft Entra ID with automatic account
-              linking and single-sign-on.
-            </p>
+
+          <div className="landing-content">
+            <div className="landing-copy">
+              <h1 id="landing-title">bikko.studio</h1>
+              <p>Go ahead and say just a little more about what you do.</p>
+            </div>
+            <div className="landing-actions">
+              <Link href="/register" className="landing-button landing-button-primary">
+                Sign Up
+              </Link>
+              <Link href="/login" className="landing-button landing-button-secondary">
+                Sign In
+              </Link>
+            </div>
           </div>
         </section>
       </main>
