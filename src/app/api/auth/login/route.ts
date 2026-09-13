@@ -75,14 +75,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message:
-          dispatchResult.channel === 'acs'
-            ? 'A 6-digit login verification code has been dispatched to your email inbox.'
-            : 'Login code generated! (Logged to your server terminal console)',
+        message: 'A 6-digit login verification code has been dispatched to your email inbox.',
         email,
         expiresInMinutes: OTP_TTL_MINUTES,
         dispatchChannel: dispatchResult.channel,
-        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       },
       { status: 200 }
     );

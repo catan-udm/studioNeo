@@ -90,19 +90,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message:
-          dispatchResult.channel === 'acs'
-            ? isResendForPending
-              ? 'A verification code has been dispatched to complete your account registration.'
-              : 'A 6-digit verification code has been dispatched to your email inbox.'
-            : isResendForPending
-              ? 'Verification code re-generated to complete pending registration! (Logged to your server terminal console)'
-              : 'Verification code generated! (Logged to your server terminal console)',
+        message: isResendForPending
+          ? 'A verification code has been dispatched to complete your account registration.'
+          : 'A 6-digit verification code has been dispatched to your email inbox.',
         email,
         isPendingVerification: isResendForPending,
         expiresInMinutes: OTP_TTL_MINUTES,
         dispatchChannel: dispatchResult.channel,
-        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       },
       { status: 200 }
     );

@@ -43,6 +43,12 @@ export default function HomePage() {
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [jsonDetails, setJsonDetails] = useState<Record<string, unknown> | null>(null);
 
+  // Danger Zone / Account Deletion states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [confirmDeleteEmail, setConfirmDeleteEmail] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const fetchSession = async () => {
     try {
       const res = await fetch('/api/auth/me');
@@ -206,8 +212,38 @@ export default function HomePage() {
       const res = await fetch(`/api/assets/download/${slug}?format=json`);
       const data = await res.json();
       setJsonDetails(data);
-    } catch (err) {
-      console.error('Failed to inspect SAS token:', err);
+    } catch {
+      setActionMsg({ type: 'error', text: 'Failed to inspect SAS token.' });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!subscriber) return;
+    if (confirmDeleteEmail.trim().toLowerCase() !== subscriber.email.toLowerCase()) {
+      setDeleteError(`Email does not match. Please type ${subscriber.email} exactly.`);
+      return;
+    }
+
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmEmail: confirmDeleteEmail }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete account.');
+      }
+
+      window.location.href = '/login?notice=AccountDeleted';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete account.';
+      setDeleteError(msg);
+      setDeleteLoading(false);
     }
   };
 
@@ -573,6 +609,144 @@ export default function HomePage() {
             {JSON.stringify(jsonDetails, null, 2)}
           </pre>
         </section>
+      )}
+
+      {/* Danger Zone: GDPR & Privacy Account Deletion */}
+      <section
+        className="card stack"
+        style={{
+          border: '1px solid #ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.04)',
+          marginTop: '1.5rem',
+        }}
+      >
+        <header className="cluster-between">
+          <div>
+            <h3 style={{ color: '#ef4444', margin: 0 }}>Danger Zone: Permanent Account Deletion</h3>
+            <p className="hint" style={{ margin: '0.25rem 0 0 0' }}>
+              GDPR Right to be Forgotten. Irreversibly wipe your account, biometric passkeys, social logins, and stored data.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setConfirmDeleteEmail('');
+              setDeleteError(null);
+              setShowDeleteModal(true);
+            }}
+            className="btn"
+            style={{
+              backgroundColor: '#ef4444',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 600,
+              padding: '0.5rem 1.25rem',
+            }}
+          >
+            Delete Account
+          </button>
+        </header>
+      </section>
+
+      {/* Confirmation Modal */}
+      {showDeleteModal && subscriber && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-modal-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+        >
+          <div
+            className="card stack"
+            style={{
+              maxWidth: '480px',
+              width: '100%',
+              backgroundColor: 'var(--bg-card, #1e293b)',
+              border: '1px solid #ef4444',
+              borderRadius: 'var(--radius-lg, 12px)',
+              padding: '1.75rem',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+            }}
+          >
+            <h3 id="delete-modal-title" style={{ color: '#ef4444', marginTop: 0 }}>
+              Permanently Delete Account?
+            </h3>
+            <p style={{ fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--text-main)' }}>
+              This action <strong>cannot be undone</strong>. All your subscriber records, registered passkeys, linked OAuth accounts, and perk access will be permanently destroyed immediately.
+            </p>
+
+            <div className="stack" style={{ gap: '0.5rem', marginTop: '0.5rem' }}>
+              <label htmlFor="confirm-email-input" style={{ fontSize: '0.85rem' }}>
+                Please type your email (<strong>{subscriber.email}</strong>) to confirm:
+              </label>
+              <input
+                id="confirm-email-input"
+                type="email"
+                value={confirmDeleteEmail}
+                onChange={(e) => {
+                  setConfirmDeleteEmail(e.target.value);
+                  setDeleteError(null);
+                }}
+                placeholder={subscriber.email}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  border: '1px solid var(--border-subtle, #334155)',
+                  backgroundColor: 'var(--bg-subtle, #0f172a)',
+                  color: 'inherit',
+                  fontSize: '0.95rem',
+                }}
+              />
+            </div>
+
+            {deleteError && (
+              <div className="alert alert-error" style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem' }}>
+                {deleteError}
+              </div>
+            )}
+
+            <div className="cluster" style={{ justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="btn btn-outline"
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={
+                  deleteLoading ||
+                  confirmDeleteEmail.trim().toLowerCase() !== subscriber.email.toLowerCase()
+                }
+                className="btn"
+                style={{
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontWeight: 600,
+                  opacity:
+                    confirmDeleteEmail.trim().toLowerCase() !== subscriber.email.toLowerCase()
+                      ? 0.5
+                      : 1,
+                }}
+              >
+                {deleteLoading ? 'Deleting...' : 'Permanently Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

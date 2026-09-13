@@ -5,6 +5,7 @@ import {
   generatePKCE,
   generateState,
   setOAuthSessionCookie,
+  getOAuthRedirectUri,
 } from '@/lib/oauth';
 import { getSessionUser } from '@/lib/auth';
 import { execute } from '@/lib/db';
@@ -73,8 +74,8 @@ export async function GET(
       action,
     });
 
-    // 3. Compute callback URL
-    const redirectUri = `${request.nextUrl.origin}/api/auth/oauth/${provider}/callback`;
+    // 3. Compute canonical callback URL (respects APP_URL, SWA proxy headers, or sensible fallback)
+    const redirectUri = getOAuthRedirectUri(provider, request);
 
     // 4. Build authorization URL
     const authUrl = new URL(config.authUrl);

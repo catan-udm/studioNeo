@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/auth';
-import { queryRow, queryRows } from '@/lib/db';
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionUser, clearSessionCookie } from '@/lib/auth';
+import { queryRow, queryRows, transaction } from '@/lib/db';
+import { clearPasskeyChallenge } from '@/lib/webauthn';
+import { clearOAuthSessionCookie } from '@/lib/oauth';
 
 export async function GET() {
   try {
@@ -92,6 +94,86 @@ export async function GET() {
     console.error('[API /api/auth/me] Error:', error);
     return NextResponse.json(
       { error: 'Failed to retrieve session status' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Permanently deletes the authenticated user's account and all associated personal data.
+ * GDPR Right to be Forgotten compliant with confirmation verification.
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getSessionUser();
+    if (!session || !session.subscriberId) {
+      return NextResponse.json(
+        { error: 'Unauthorized. You must be signed in to delete your account.' },
+        { status: 401 }
+      );
+    }
+
+    let confirmEmail = '';
+    try {
+      const body = await request.json();
+      confirmEmail = body.confirmEmail?.trim().toLowerCase() || '';
+    } catch {
+      // Body may be missing or empty
+    }
+
+    if (!confirmEmail || confirmEmail !== session.email.toLowerCase()) {
+      return NextResponse.json(
+        {
+          error: `Confirmation failed. Please type your full email address (${session.email}) to confirm permanent deletion.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Atomic transaction: clean up any orders then delete subscriber (cascades to all child tables)
+    await transaction(async (conn) => {
+      // 1. Delete associated order items for any subscriber orders
+      try {
+        await conn.execute(
+          `DELETE oi FROM order_items oi
+           INNER JOIN orders o ON o.id = oi.order_id
+           WHERE o.subscriber_id = ?`,
+          [session.subscriberId]
+        );
+      } catch {
+        // Table may not exist or have orders
+      }
+
+      // 2. Delete orders
+      try {
+        await conn.execute('DELETE FROM orders WHERE subscriber_id = ?', [session.subscriberId]);
+      } catch {
+        // Table may not exist or have orders
+      }
+
+      // 3. Delete subscriber record (foreign keys cascade to webauthn_credentials,
+      // subscriber_oauth_accounts, auth_magic_tokens, totp_credentials, totp_backup_codes,
+      // perk_unlocks, customer_addresses, submissions)
+      await conn.execute('DELETE FROM subscribers WHERE id = ?', [session.subscriberId]);
+    });
+
+    // Clear session and challenge cookies
+    await clearSessionCookie();
+    await clearPasskeyChallenge();
+    await clearOAuthSessionCookie();
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Your account and all associated personal data have been permanently deleted.',
+      },
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    console.error('[API DELETE /api/auth/me] Error:', error);
+    const detail = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(
+      { error: `Failed to delete account: ${detail}` },
       { status: 500 }
     );
   }

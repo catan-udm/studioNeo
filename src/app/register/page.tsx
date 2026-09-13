@@ -64,9 +64,8 @@ function RegisterFormContent() {
         data.message || 'Registration initiated! Redirecting to verification...'
       );
 
-      const devOtpQuery = data.devOtp ? `&devOtp=${encodeURIComponent(data.devOtp)}` : '';
       setTimeout(() => {
-        router.push(`/login?email=${encodeURIComponent(email)}&step=otp${devOtpQuery}`);
+        router.push(`/login?email=${encodeURIComponent(email)}&step=otp`);
       }, 1000);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred.';

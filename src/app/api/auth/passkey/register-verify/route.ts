@@ -23,12 +23,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body: RegistrationResponseJSON = await request.json();
-    const { rpID, origin } = getRPConfig(request);
+    const { rpID, expectedOrigins } = getRPConfig(request);
 
     const verification = await verifyRegistrationResponse({
       response: body,
       expectedChallenge: challengePayload.challenge,
-      expectedOrigin: origin,
+      expectedOrigin: expectedOrigins,
       expectedRPID: rpID,
       requireUserVerification: false, // Allows both PIN/Biometrics and simple user presence
     });

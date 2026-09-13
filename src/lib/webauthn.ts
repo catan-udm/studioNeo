@@ -12,25 +12,69 @@ export interface PasskeyChallengePayload {
   expiresAt: number;
 }
 
+import { getBaseUrl } from '@/lib/oauth';
+
+/**
+ * Extracts a clean domain/hostname suitable for WebAuthn RP ID (no protocol, no port, no path).
+ */
+export function cleanDomain(value: string): string {
+  let str = (value || '').trim();
+  str = str.replace(/^[a-zA-Z]+:\/\//, '');
+  str = str.split('/')[0];
+  str = str.split(':')[0];
+  return str.toLowerCase();
+}
+
+/**
+ * Normalizes an origin URL string (no trailing slash, canonical protocol + host).
+ */
+export function cleanOrigin(value: string): string {
+  let str = (value || '').trim();
+  if (!str) return '';
+  try {
+    const url = new URL(str.includes('://') ? str : `https://${str}`);
+    return `${url.protocol}//${url.host}`.toLowerCase();
+  } catch {
+    return str.replace(/\/+$/, '').toLowerCase();
+  }
+}
+
 /**
  * Derives RP (Relying Party) ID and Origin from the incoming request or environment.
+ * Fully supports APP_URL and Azure Static Web Apps reverse proxy headers.
  */
 export function getRPConfig(request: NextRequest) {
-  const hostHeader = request.headers.get('host') || 'localhost:3000';
-  const hostname = hostHeader.split(':')[0]; // strip port
+  const baseUrl = getBaseUrl(request);
+  const baseDomain = cleanDomain(baseUrl);
 
-  const protocol = request.headers.get('x-forwarded-proto') || (hostHeader.includes('localhost') ? 'http' : 'https');
   const originHeader = request.headers.get('origin');
+  const origin = originHeader ? cleanOrigin(originHeader) : cleanOrigin(baseUrl);
 
-  const defaultOrigin = `${protocol}://${hostHeader}`;
-  const origin = originHeader || process.env.NEXT_PUBLIC_APP_URL || defaultOrigin;
-  const rpID = process.env.WEBAUTHN_RP_ID || hostname;
+  const rawRpId = process.env.WEBAUTHN_RP_ID?.trim();
+  const rpID = rawRpId ? cleanDomain(rawRpId) : (baseDomain || 'localhost');
   const rpName = process.env.WEBAUTHN_RP_NAME || 'Azure Cloud Studio';
+
+  const expectedOrigins = Array.from(
+    new Set(
+      [
+        origin,
+        cleanOrigin(baseUrl),
+        process.env.APP_URL ? cleanOrigin(process.env.APP_URL) : '',
+        process.env.NEXT_PUBLIC_APP_URL ? cleanOrigin(process.env.NEXT_PUBLIC_APP_URL) : '',
+        `https://${rpID}`,
+        `http://${rpID}`,
+        `http://${rpID}:3000`,
+        `http://${rpID}:8080`,
+        `http://${rpID}:4280`,
+      ].filter(Boolean)
+    )
+  );
 
   return {
     rpID,
     rpName,
     origin,
+    expectedOrigins,
   };
 }
 

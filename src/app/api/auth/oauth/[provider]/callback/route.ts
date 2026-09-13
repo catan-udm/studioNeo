@@ -5,6 +5,8 @@ import {
   clearOAuthSessionCookie,
   exchangeCodeForToken,
   fetchOAuthUserProfile,
+  getBaseUrl,
+  getOAuthRedirectUri,
 } from '@/lib/oauth';
 import { queryRow, execute, transaction } from '@/lib/db';
 import { createSessionToken, setSessionCookie } from '@/lib/auth';
@@ -14,11 +16,12 @@ export async function GET(
   context: { params: Promise<{ provider: string }> }
 ) {
   try {
+    const baseUrl = getBaseUrl(request);
     const { provider: rawProvider } = await context.params;
     const provider = rawProvider.toLowerCase() as OAuthProvider;
 
     if (provider !== 'google' && provider !== 'microsoft') {
-      return NextResponse.redirect(new URL('/login?error=InvalidProvider', request.url));
+      return NextResponse.redirect(new URL('/login?error=InvalidProvider', baseUrl));
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -29,13 +32,13 @@ export async function GET(
     if (errorParam) {
       console.error(`[OAuth Callback] Provider returned error: ${errorParam}`);
       return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(errorParam)}`, request.url)
+        new URL(`/login?error=${encodeURIComponent(errorParam)}`, baseUrl)
       );
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/login?error=MissingAuthorizationCode', request.url)
+        new URL('/login?error=MissingAuthorizationCode', baseUrl)
       );
     }
 
@@ -43,11 +46,11 @@ export async function GET(
     const oauthSession = await getOAuthSessionCookie();
     if (!oauthSession || oauthSession.state !== state || oauthSession.provider !== provider) {
       return NextResponse.redirect(
-        new URL('/login?error=InvalidOAuthStateOrExpired', request.url)
+        new URL('/login?error=InvalidOAuthStateOrExpired', baseUrl)
       );
     }
 
-    const redirectUri = `${request.nextUrl.origin}/api/auth/oauth/${provider}/callback`;
+    const redirectUri = getOAuthRedirectUri(provider, request);
 
     // 2. Exchange authorization code for access token
     const accessToken = await exchangeCodeForToken(
@@ -279,12 +282,13 @@ export async function GET(
     }
 
     // Redirect to destination
-    return NextResponse.redirect(new URL(result.redirectUrl, request.url));
+    return NextResponse.redirect(new URL(result.redirectUrl, baseUrl));
   } catch (error: unknown) {
     console.error('[API /api/auth/oauth/[provider]/callback] Error:', error);
     const detail = error instanceof Error ? error.message : 'Unknown OAuth Error';
+    const fallbackBaseUrl = getBaseUrl(request);
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(detail)}`, request.url)
+      new URL(`/login?error=${encodeURIComponent(detail)}`, fallbackBaseUrl)
     );
   }
 }

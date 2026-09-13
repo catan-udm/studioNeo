@@ -14,7 +14,6 @@ function LoginFormContent() {
   const [totpCode, setTotpCode] = useState('');
   const [backupCode, setBackupCode] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -24,15 +23,15 @@ function LoginFormContent() {
   useEffect(() => {
     const emailParam = searchParams.get('email');
     const stepParam = searchParams.get('step');
-    const devOtpParam = searchParams.get('devOtp');
     const errorParam = searchParams.get('error');
+    const noticeParam = searchParams.get('notice');
 
     if (errorParam) {
       setErrorMsg(`Sign in error: ${decodeURIComponent(errorParam)}`);
     }
 
-    if (devOtpParam) {
-      setDevOtp(devOtpParam);
+    if (noticeParam === 'AccountDeleted') {
+      setInfoMsg('Your account and all associated personal data have been permanently deleted.');
     }
 
     if (emailParam) {
@@ -126,10 +125,6 @@ function LoginFormContent() {
         throw new Error(data.error || 'Failed to send login code.');
       }
 
-      if (data.devOtp) {
-        setDevOtp(data.devOtp);
-      }
-
       setStep('otp');
       setInfoMsg(data.message || 'Verification code sent to your email.');
     } catch (err: unknown) {
@@ -207,7 +202,6 @@ function LoginFormContent() {
     setOtp('');
     setTotpCode('');
     setBackupCode('');
-    setDevOtp(null);
     setErrorMsg(null);
     setInfoMsg(null);
   };
@@ -362,25 +356,6 @@ function LoginFormContent() {
         <form onSubmit={handleVerifyOtp} noValidate={false} aria-label="Verify OTP Form">
           <fieldset>
             <legend>One-Time Password</legend>
-
-            {devOtp && (
-              <div
-                className="alert alert-info cluster-between"
-                style={{ marginBottom: '0.75rem', padding: '0.6rem 0.85rem' }}
-              >
-                <div>
-                  <strong>Dev Code:</strong> <code style={{ fontSize: '1.05rem', fontWeight: 'bold' }}>{devOtp}</code>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  style={{ padding: '0.2rem 0.65rem', fontSize: '0.75rem' }}
-                  onClick={() => setOtp(devOtp)}
-                >
-                  Quick Fill
-                </button>
-              </div>
-            )}
 
             <div className="field">
               <label htmlFor="otp-input">6-Digit Code</label>

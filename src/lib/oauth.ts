@@ -1,10 +1,82 @@
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
+import { NextRequest } from 'next/server';
 
 export type OAuthProvider = 'google' | 'microsoft';
 
 const OAUTH_COOKIE_NAME = 'oauth_session';
 const OAUTH_TTL_SECONDS = 600; // 10 minutes
+
+/**
+ * Resolves the canonical public base URL of the application.
+ * Precedence:
+ * 1. APP_URL (e.g. https://ashy-mushroom-07675a400.6.azurestaticapps.net)
+ * 2. NEXT_PUBLIC_APP_URL
+ * 3. BASE_URL
+ * 4. Reverse proxy headers forwarded by Azure Static Web Apps:
+ *    - X-Forwarded-Host (with X-Forwarded-Proto)
+ *    - X-Original-Host
+ * 5. Incoming Host header (ignoring raw internal container hostnames like 60c17d9af36d:8080)
+ * 6. Local development fallbacks (http://localhost:8080, http://localhost:4280 for SWA CLI, or http://localhost:3000)
+ */
+export function getBaseUrl(request?: NextRequest): string {
+  // 1. Check explicit environment variables (APP_URL, NEXT_PUBLIC_APP_URL, BASE_URL)
+  const envUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL;
+  if (envUrl && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+
+  if (request) {
+    // 2. Trust reverse proxy headers forwarded by Azure Static Web Apps
+    const forwardedHost =
+      request.headers.get('x-forwarded-host') ||
+      request.headers.get('x-original-host');
+    const forwardedProto =
+      request.headers.get('x-forwarded-proto') || 'https';
+
+    if (forwardedHost) {
+      // Pick first host if comma-separated
+      const primaryHost = forwardedHost.split(',')[0].trim();
+      return `${forwardedProto}://${primaryHost}`.replace(/\/+$/, '');
+    }
+
+    // 3. Inspect Host header
+    const host = request.headers.get('host');
+    if (host) {
+      const hostnameOnly = host.split(':')[0].trim();
+      // Detect Docker/Kubernetes container ID (e.g., 12+ hex characters without dots, e.g. 60c17d9af36d)
+      const isContainerHost =
+        /^[0-9a-f]{12,}$/i.test(hostnameOnly) ||
+        (!hostnameOnly.includes('.') && !hostnameOnly.includes('localhost'));
+
+      if (!isContainerHost) {
+        const proto =
+          request.headers.get('x-forwarded-proto') ||
+          (host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https');
+        return `${proto}://${host}`.replace(/\/+$/, '');
+      }
+    }
+  }
+
+  // 4. Sensible local fallback based on PORT or SWA CLI default
+  if (process.env.PORT) {
+    return `http://localhost:${process.env.PORT}`;
+  }
+  if (process.env.SWA_CLI_PORT) {
+    return `http://localhost:${process.env.SWA_CLI_PORT}`;
+  }
+
+  return 'http://localhost:3000';
+}
+
+/**
+ * Constructs the absolute OAuth callback redirect URI for a provider.
+ * Guaranteed to resolve to ${APP_URL}/api/auth/oauth/${provider}/callback in production.
+ */
+export function getOAuthRedirectUri(provider: OAuthProvider, request?: NextRequest): string {
+  const baseUrl = getBaseUrl(request);
+  return `${baseUrl}/api/auth/oauth/${provider}/callback`;
+}
 
 export interface OAuthSessionData {
   state: string;
