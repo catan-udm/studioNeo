@@ -41,33 +41,42 @@ export function cleanOrigin(value: string): string {
 
 /**
  * Derives RP (Relying Party) ID and Origin from the incoming request or environment.
- * Fully supports APP_URL and Azure Static Web Apps reverse proxy headers.
+ * Dynamically adapts for local development (localhost) so WebAuthn doesn't throw a SecurityError.
  */
 export function getRPConfig(request: NextRequest) {
   const baseUrl = getBaseUrl(request);
   const baseDomain = cleanDomain(baseUrl);
 
+  const protocol =
+    request.headers.get('x-forwarded-proto') ||
+    (hostHeader.includes('localhost') || hostHeader.includes('127.0.0.1') ? 'http' : 'https');
   const originHeader = request.headers.get('origin');
   const origin = originHeader ? cleanOrigin(originHeader) : cleanOrigin(baseUrl);
 
-  const rawRpId = process.env.WEBAUTHN_RP_ID?.trim();
-  const rpID = rawRpId ? cleanDomain(rawRpId) : (baseDomain || 'localhost');
+  // Detect local development environment
+  const isLocal =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.endsWith('.local');
+
+  const defaultOrigin = `${protocol}://${hostHeader}`;
+  const origin = originHeader || (isLocal ? defaultOrigin : (process.env.NEXT_PUBLIC_APP_URL || defaultOrigin));
+
+  // In local development, the Relying Party ID MUST be the local hostname (e.g. 'localhost')
+  // per the WebAuthn specification; otherwise browsers reject with a SecurityError.
+  const rpID = isLocal ? hostname : (process.env.WEBAUTHN_RP_ID || hostname);
   const rpName = process.env.WEBAUTHN_RP_NAME || 'Azure Cloud Studio';
 
   const expectedOrigins = Array.from(
-    new Set(
-      [
-        origin,
-        cleanOrigin(baseUrl),
-        process.env.APP_URL ? cleanOrigin(process.env.APP_URL) : '',
-        process.env.NEXT_PUBLIC_APP_URL ? cleanOrigin(process.env.NEXT_PUBLIC_APP_URL) : '',
-        `https://${rpID}`,
-        `http://${rpID}`,
-        `http://${rpID}:3000`,
-        `http://${rpID}:8080`,
-        `http://${rpID}:4280`,
-      ].filter(Boolean)
-    )
+    new Set([
+      origin,
+      defaultOrigin,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
+    ])
   );
 
   return {

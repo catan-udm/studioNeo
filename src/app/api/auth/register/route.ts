@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
         isPendingVerification: isResendForPending,
         expiresInMinutes: OTP_TTL_MINUTES,
         dispatchChannel: dispatchResult.channel,
+        // devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       },
       { status: 200 }
     );

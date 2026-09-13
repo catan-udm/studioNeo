@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { rpID, expectedOrigins } = getRPConfig(request);
+    const { rpID, origin, expectedOrigins } = getRPConfig(request);
 
     // Convert stored base64url public key to Uint8Array
     const publicKeyBytes = new Uint8Array(Buffer.from(credRecord.public_key, 'base64url'));
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     const verification = await verifyAuthenticationResponse({
       response: body,
       expectedChallenge: challengePayload.challenge,
-      expectedOrigin: expectedOrigins,
+      expectedOrigin: expectedOrigins || origin,
       expectedRPID: rpID,
       credential: {
         id: credRecord.credential_id,

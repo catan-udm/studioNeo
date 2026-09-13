@@ -39,6 +39,12 @@
   --radius-lg: 12px;
   --radius-full: 9999px;
 
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 280ms;
+  --duration-slow: 450ms;
+
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
@@ -79,7 +85,9 @@
 }
 
 /* 1. Box-Sizing & Margin Reset */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -101,15 +109,31 @@ body {
 }
 
 /* 2. Semantic Typography & Primitives */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: var(--text-primary);
   font-weight: 600;
   line-height: 1.25;
 }
 
-h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
-h2 { font-size: 1.35rem; margin-bottom: 0.5rem; }
-h3 { font-size: 1.15rem; margin-bottom: 0.25rem; }
+h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+  margin-bottom: 0.5rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.25rem;
+}
 
 p {
   color: var(--text-secondary);
@@ -126,7 +150,8 @@ a:hover {
   text-decoration: underline;
 }
 
-code, pre {
+code,
+pre {
   font-family: var(--font-mono);
   font-size: 0.875rem;
 }
@@ -134,12 +159,286 @@ code, pre {
 /* 3. Minimalist Layout Containers & Grids */
 .page-wrapper {
   flex: 1;
+  width: 100%;
+}
+
+.landing-page {
+  min-height: 100vh;
+  position: relative;
+  background: #fff;
+  color: #000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.landing-header {
+  height: 125px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 64px;
+}
+
+.landing-mark {
+  display: block;
+  width: 87px;
+  height: 77px;
+}
+
+.landing-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.landing-nav a {
+  color: #000;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.landing-nav a:hover {
+  text-decoration: underline;
+}
+
+.landing-hero {
+  width: min(1280px, 100%);
+  min-height: 375px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  padding: 0 64px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  transform: translate(-50%, -50%);
+}
+
+.landing-content {
+  flex: 1;
+  order: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  padding: 40px 0;
+}
+
+.landing-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.landing-copy h1 {
+  margin: 0;
+  color: #000;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -1.12px;
+  line-height: 1.1;
+}
+
+.landing-copy p {
+  width: 360px;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.45;
+}
+
+.landing-actions {
+  display: flex;
   align-items: center;
-  padding: 2rem 1rem;
+  gap: 16px;
+}
+
+.landing-button {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border: 1px solid #000;
+  border-radius: 12px;
+  color: #000;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.landing-button:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.landing-button-primary {
+  background: #000;
+  color: #fff;
+}
+
+.landing-button-secondary {
+  background: #fff;
+}
+
+.code-art {
+  order: 2;
+  width: 375px;
+  height: 375px;
+  flex: 0 0 375px;
+  cursor: pointer;
+}
+
+.code-art-grid {
+  display: grid;
   width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+.code-art-tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.code-art-tile-wide {
+  grid-column: span 2;
+}
+
+.gallery-image,
+.gallery-image-fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-image-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f1f1;
+  color: #555;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.code-art-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+.code-art-hover:hover .code-art-overlay {
+  opacity: 0;
+}
+
+.code-art-hover:hover .gallery-image {
+  transform: scale(1.04);
+}
+
+.gallery-image {
+  transition: transform 500ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-image,
+  .code-art-overlay {
+    transition: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .landing-header {
+    height: 71px;
+    padding: 16px 24px;
+    align-items: flex-start;
+  }
+
+  .landing-mark {
+    width: 44px;
+    height: 39px;
+  }
+
+  .landing-nav {
+    gap: 4px;
+    margin-top: 10px;
+  }
+
+  .landing-nav a {
+    font-size: 12px;
+  }
+
+  .landing-hero {
+    width: 100%;
+    min-height: 725px;
+    position: static;
+    margin: 107px auto 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    transform: none;
+  }
+
+  .code-art {
+    order: 1;
+    width: 100%;
+    height: 375px;
+    flex-basis: 375px;
+  }
+
+  .landing-content {
+    width: 100%;
+    order: 2;
+    padding: 0 24px 56px;
+    align-items: stretch;
+    gap: 32px;
+  }
+
+  .landing-copy {
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .landing-copy h1 {
+    font-size: 40px;
+    letter-spacing: -0.8px;
+  }
+
+  .landing-copy p {
+    width: 100%;
+    font-size: 18px;
+    letter-spacing: -0.09px;
+  }
+
+  .landing-actions {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .landing-button {
+    width: 100%;
+    min-height: 47px;
+    font-size: 16px;
+  }
 }
 
 .container {
@@ -160,6 +459,9 @@ code, pre {
 
 .auth-card {
   max-width: 440px;
+  animation: cardEnter 0.45s var(--ease-spring) both;
+  position: relative;
+  overflow: hidden;
 }
 
 .card-header {
@@ -277,7 +579,7 @@ input:user-valid:not(:placeholder-shown) {
   margin-top: 0.25rem;
 }
 
-input:user-invalid + .error-msg,
+input:user-invalid+.error-msg,
 .field:has(input:user-invalid) .error-msg {
   display: block;
 }
@@ -296,15 +598,24 @@ input:user-invalid + .error-msg,
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  gap: 0.5rem;
   padding: 0.65rem 1.25rem;
   font-size: 0.925rem;
   font-weight: 500;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition: transform var(--duration-fast) var(--ease-spring),
+              background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease,
+              opacity var(--duration-fast) ease;
   text-decoration: none;
   user-select: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.975);
 }
 
 .btn:disabled {
@@ -495,4 +806,356 @@ input:user-invalid + .error-msg,
 .btn-passkey:hover:not(:disabled) {
   background: linear-gradient(135deg, #334155, #1e293b);
   text-decoration: none;
+}
+
+/* ========================================================================
+   9. Seamless Transitions, Animations & Interactive Micro-Interactions
+   ======================================================================== */
+
+/* Card & Modal Entrance */
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes alertSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.25);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pingRing {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  70%, 100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 48;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* Step transition panels */
+.step-panel {
+  width: 100%;
+}
+
+.step-panel.slide-forward {
+  animation: slideInRight var(--duration-normal) var(--ease-spring) both;
+}
+
+.step-panel.slide-backward {
+  animation: slideInLeft var(--duration-normal) var(--ease-spring) both;
+}
+
+.step-panel.fade-scale {
+  animation: scaleFadeIn var(--duration-normal) var(--ease-spring) both;
+}
+
+/* Alert animation */
+.alert {
+  animation: alertSlideIn var(--duration-normal) var(--ease-spring) both;
+}
+
+/* Loading Spinners & Micro-Indicators */
+.spinner {
+  display: inline-block;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+
+.spinner-sm {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-width: 1.75px;
+}
+
+/* Segmented 6-Digit OTP Component */
+.otp-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.otp-digit-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.otp-box {
+  width: 44px;
+  height: 52px;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--duration-fast) ease,
+              box-shadow var(--duration-fast) ease,
+              transform var(--duration-fast) var(--ease-spring),
+              background-color var(--duration-fast) ease;
+}
+
+.otp-box:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+  background-color: var(--bg-surface);
+}
+
+.otp-box.filled {
+  border-color: var(--brand-primary);
+  background-color: var(--brand-primary-light);
+}
+
+.otp-shake {
+  animation: shake 0.45s ease-in-out both;
+}
+
+.otp-pulse-success {
+  animation: pulseGlow 0.6s ease-in-out both;
+}
+
+/* Biometric / Passkey Active Scanning Banner */
+.passkey-pulse-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--brand-primary-light);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  animation: scaleFadeIn var(--duration-normal) var(--ease-spring) both;
+}
+
+.passkey-beacon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: white;
+  flex-shrink: 0;
+}
+
+.passkey-beacon::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 2px solid var(--brand-primary);
+  animation: pingRing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Success Card with Animated Checkmark */
+.auth-success-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  animation: scaleFadeIn var(--duration-normal) var(--ease-spring) both;
+}
+
+.success-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--color-success-bg);
+  border: 2px solid var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: var(--color-success);
+  animation: scaleFadeIn 0.35s var(--ease-spring) both;
+}
+
+.success-icon-svg path {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: checkmarkDraw 0.6s 0.2s ease forwards;
+}
+
+/* Graceful Signout Modal & Backdrop Overlay */
+.signout-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease-out both;
+  padding: 1rem;
+}
+
+.signout-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2.5rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: scaleFadeIn 0.3s var(--ease-spring) both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.signout-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.signout-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* Navigation Links Smooth Polish */
+.nav-links a {
+  transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+  position: relative;
+}
+
+.nav-links a:hover {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+/* Resend Countdown Badge */
+.resend-countdown {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
