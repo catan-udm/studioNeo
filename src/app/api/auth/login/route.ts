@@ -28,8 +28,22 @@ export async function POST(request: NextRequest) {
 
     if (!subscriber) {
       return NextResponse.json(
-        { error: 'Subscriber account not found. Please register first.' },
+        {
+          error: 'No account found with this email address. Please register first.',
+          code: 'ACCOUNT_NOT_FOUND',
+        },
         { status: 404 }
+      );
+    }
+
+    if (subscriber.is_verified !== 1) {
+      return NextResponse.json(
+        {
+          error: 'This account registration is pending verification. Please complete registration first.',
+          code: 'ACCOUNT_UNVERIFIED',
+          email,
+        },
+        { status: 403 }
       );
     }
 
@@ -56,21 +70,33 @@ export async function POST(request: NextRequest) {
     );
 
     // 6. Dispatch OTP to subscriber
-    await sendOTPEmail(email, otp);
+    const dispatchResult = await sendOTPEmail(email, otp);
 
     return NextResponse.json(
       {
         success: true,
-        message: 'A 6-digit login verification code has been dispatched to your email.',
+        message:
+          dispatchResult.channel === 'acs'
+            ? 'A 6-digit login verification code has been dispatched to your email inbox.'
+            : 'Login code generated! (Logged to your server terminal console)',
         email,
         expiresInMinutes: OTP_TTL_MINUTES,
+        dispatchChannel: dispatchResult.channel,
+        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       },
       { status: 200 }
     );
   } catch (error: unknown) {
     console.error('[API /api/auth/login] Error:', error);
+    const detail = error instanceof Error ? error.message : String(error);
+    const code = (error as { code?: string })?.code;
     return NextResponse.json(
-      { error: 'An internal server error occurred while processing login.' },
+      {
+        error:
+          process.env.NODE_ENV === 'production'
+            ? 'An internal server error occurred while processing login.'
+            : `Database/Login Error [${code || 'UNKNOWN'}]: ${detail}`,
+      },
       { status: 500 }
     );
   }

@@ -29,23 +29,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Fetch or create subscriber record
-    let subscriber = await queryRow<{ id: number; email: string; is_verified: number }>(
+    // 1. Strict Existing Account Validation
+    const existingSubscriber = await queryRow<{ id: number; email: string; is_verified: number }>(
       'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
       [email]
     );
 
-    let subscriberId: number;
+    // If account already exists and is fully verified, reject registration
+    if (existingSubscriber && existingSubscriber.is_verified === 1) {
+      return NextResponse.json(
+        {
+          error: 'An account with this email address already exists. Please sign in instead.',
+          code: 'ACCOUNT_ALREADY_EXISTS',
+          email,
+        },
+        { status: 409 }
+      );
+    }
 
-    if (!subscriber) {
-      // Create new subscriber record with is_verified = 0
+    let subscriberId: number;
+    const isResendForPending = Boolean(existingSubscriber && existingSubscriber.is_verified === 0);
+
+    if (!existingSubscriber) {
+      // Create new subscriber record with is_verified = 0 (pending email OTP verification)
       const insertResult = await execute(
         'INSERT INTO subscribers (email, is_verified) VALUES (?, 0)',
         [email]
       );
       subscriberId = insertResult.insertId;
     } else {
-      subscriberId = subscriber.id;
+      // Resend code to complete pending verification
+      subscriberId = existingSubscriber.id;
     }
 
     // 2. Generate a cryptographically secure 6-digit numeric OTP
@@ -71,21 +85,38 @@ export async function POST(request: NextRequest) {
     );
 
     // 6. Transactional notification dispatch
-    await sendOTPEmail(email, otp);
+    const dispatchResult = await sendOTPEmail(email, otp);
 
     return NextResponse.json(
       {
         success: true,
-        message: 'A 6-digit verification code has been dispatched to your email address.',
+        message:
+          dispatchResult.channel === 'acs'
+            ? isResendForPending
+              ? 'A verification code has been dispatched to complete your account registration.'
+              : 'A 6-digit verification code has been dispatched to your email inbox.'
+            : isResendForPending
+              ? 'Verification code re-generated to complete pending registration! (Logged to your server terminal console)'
+              : 'Verification code generated! (Logged to your server terminal console)',
         email,
+        isPendingVerification: isResendForPending,
         expiresInMinutes: OTP_TTL_MINUTES,
+        dispatchChannel: dispatchResult.channel,
+        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       },
       { status: 200 }
     );
   } catch (error: unknown) {
     console.error('[API /api/auth/register] Error:', error);
+    const detail = error instanceof Error ? error.message : String(error);
+    const code = (error as { code?: string })?.code;
     return NextResponse.json(
-      { error: 'An internal server error occurred while processing registration.' },
+      {
+        error:
+          process.env.NODE_ENV === 'production'
+            ? 'An internal server error occurred while processing registration.'
+            : `Database/Registration Error [${code || 'UNKNOWN'}]: ${detail}`,
+      },
       { status: 500 }
     );
   }

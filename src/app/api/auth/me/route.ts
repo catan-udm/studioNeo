@@ -45,6 +45,35 @@ export async function GET() {
       [subscriber.id]
     );
 
+    // Fetch linked OAuth providers
+    let linkedOAuth: string[] = [];
+    let linkedAccounts: Array<{ provider: string; created_at: string }> = [];
+    try {
+      const oauthRows = await queryRows<{ provider: string; created_at: string }>(
+        'SELECT provider, created_at FROM subscriber_oauth_accounts WHERE subscriber_id = ?',
+        [subscriber.id]
+      );
+      linkedOAuth = oauthRows.map((r) => r.provider);
+      linkedAccounts = oauthRows.map((r) => ({
+        provider: r.provider,
+        created_at: r.created_at,
+      }));
+    } catch {
+      // Table may not exist yet
+    }
+
+    // Fetch passkeys count
+    let passkeyCount = 0;
+    try {
+      const passkeyRows = await queryRows<{ cnt: number }>(
+        'SELECT COUNT(*) as cnt FROM webauthn_credentials WHERE subscriber_id = ?',
+        [subscriber.id]
+      );
+      passkeyCount = Number(passkeyRows[0]?.cnt || 0);
+    } catch {
+      // Table may not exist yet
+    }
+
     return NextResponse.json({
       authenticated: true,
       subscriber: {
@@ -52,6 +81,9 @@ export async function GET() {
         email: subscriber.email,
         is_verified: subscriber.is_verified === 1,
         twoFactorActive: totp?.is_active === 1,
+        passkeyCount,
+        linkedOAuth,
+        linkedAccounts,
         created_at: subscriber.created_at,
       },
       perks: unlockedPerks,

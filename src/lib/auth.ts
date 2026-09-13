@@ -276,36 +276,73 @@ export function verifyTOTP(
   }
 }
 
-// ========================================================================
-// Transactional Dispatcher (Console Logger + Azure Communication Services Hook)
-// ========================================================================
+export interface DispatchResult {
+  dispatched: boolean;
+  channel: 'acs' | 'console';
+  error?: string;
+}
 
 /**
  * Dispatches an OTP verification email to the user.
- * In development / test, logs the token directly to the console.
- * Integrates cleanly with Azure Communication Services (ACS) when configured.
+ * - When AZURE_COMMUNICATION_CONNECTION_STRING is provided: sends a real transactional email via Azure Communication Services.
+ * - In local development: logs the code prominently to server console/stdout.
  */
-export async function sendOTPEmail(email: string, otp: string): Promise<void> {
+export async function sendOTPEmail(email: string, otp: string): Promise<DispatchResult> {
   const acsConnString = process.env.AZURE_COMMUNICATION_CONNECTION_STRING;
   const sender = process.env.ACS_SENDER_EMAIL || 'DoNotReply@yourdomain.azurecomm.net';
 
-  // Always log clear dispatch information to the server stdout for dev / audit
+  // Always log clear dispatch information to the server stdout for dev & audit
   console.log('------------------------------------------------------------');
   console.log(`[AUTH NOTIFICATION DISPATCH]`);
   console.log(`To: ${email}`);
   console.log(`Your 6-digit Verification Code: [ ${otp} ]`);
-  console.log(`Valid for: ${OTP_TTL_MINUTES} minutes (Expires: ${new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000).toISOString()})`);
+  console.log(
+    `Valid for: ${OTP_TTL_MINUTES} minutes (Expires: ${new Date(
+      Date.now() + OTP_TTL_MINUTES * 60 * 1000
+    ).toISOString()})`
+  );
   console.log('------------------------------------------------------------');
 
   if (acsConnString) {
     try {
-      // Lazy load Azure Communication Services Email SDK if present
-      // In production, instantiate EmailClient and send transactional message
-      console.log(`[Auth] Dispatching via Azure Communication Services to ${email} from ${sender}`);
-    } catch (err) {
-      console.error('[Auth] Failed to dispatch email via Azure Communication Services:', err);
+      const { EmailClient } = await import('@azure/communication-email');
+      const emailClient = new EmailClient(acsConnString);
+
+      console.log(`[Auth] Sending email via Azure Communication Services from ${sender} to ${email}...`);
+
+      const poller = await emailClient.beginSend({
+        senderAddress: sender,
+        content: {
+          subject: `${otp} is your verification code`,
+          plainText: `Your verification code is ${otp}. This code expires in ${OTP_TTL_MINUTES} minutes.`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h2 style="color: #0f172a; margin-top: 0;">Verification Code</h2>
+              <p style="color: #475569; font-size: 15px;">Enter the following 6-digit code to complete your sign-in:</p>
+              <div style="background-color: #f1f5f9; border-radius: 6px; padding: 16px; text-align: center; margin: 20px 0;">
+                <span style="font-family: monospace; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #2563eb;">${otp}</span>
+              </div>
+              <p style="color: #64748b; font-size: 13px;">This code will expire in ${OTP_TTL_MINUTES} minutes. If you did not request this, you can ignore this email.</p>
+            </div>
+          `,
+        },
+        recipients: {
+          to: [{ address: email }],
+        },
+      });
+
+      // Poll until message is accepted by Azure Communication Services
+      const result = await poller.pollUntilDone();
+      console.log(`[Auth] Email accepted by Azure Communication Services:`, result.status);
+      return { dispatched: true, channel: 'acs' };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('[Auth] Failed to send email via Azure Communication Services:', message);
+      return { dispatched: false, channel: 'acs', error: message };
     }
   }
+
+  return { dispatched: true, channel: 'console' };
 }
 
 export default {

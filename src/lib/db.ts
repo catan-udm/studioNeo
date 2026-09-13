@@ -46,12 +46,11 @@ function getSSLConfig(): PoolOptions['ssl'] {
  * Initializes and configures the connection pool for Azure MySQL Flexible Server.
  */
 function createConnectionPool(): Pool {
-  const host = process.env.DB_HOST || 'localhost';
-  const user = process.env.DB_USER || 'root';
-  const password = process.env.DB_PASSWORD || '';
-  const database = process.env.DB_NAME || 'experimental_studio_db';
+  const host = process.env.DB_HOST;
+  const user = process.env.DB_USER;
+  const password = process.env.DB_PASSWORD;
+  const database = process.env.DB_NAME;
   const port = Number(process.env.DB_PORT) || 3306;
-
   const connectionLimit = Number(process.env.DB_CONNECTION_LIMIT) || 10;
   const queueLimit = Number(process.env.DB_QUEUE_LIMIT) || 0;
   const waitForConnections = process.env.DB_WAIT_FOR_CONNECTIONS !== 'false';
