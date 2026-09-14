@@ -41,45 +41,40 @@ export function cleanOrigin(value: string): string {
 
 /**
  * Derives RP (Relying Party) ID and Origin from the incoming request or environment.
- * Dynamically adapts for local development (localhost) so WebAuthn doesn't throw a SecurityError.
+ * Fully supports APP_URL and Azure Static Web Apps reverse proxy headers.
  */
 export function getRPConfig(request: NextRequest) {
   const baseUrl = getBaseUrl(request);
   const baseDomain = cleanDomain(baseUrl);
-  const hostHeader = request.headers.get('host') || baseDomain;
-  const hostname = cleanDomain(hostHeader);
 
-  const protocol =
-    request.headers.get('x-forwarded-proto') ||
-    (baseUrl.startsWith('http://') ? 'http' : 'https');
   const originHeader = request.headers.get('origin');
+  const origin = originHeader ? cleanOrigin(originHeader) : cleanOrigin(baseUrl);
 
-  // Detect local development environment
-  const isLocal =
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname.endsWith('.local');
-
-  const defaultOrigin = `${protocol}://${hostHeader}`;
-  const origin = cleanOrigin(
-    originHeader || (isLocal ? defaultOrigin : process.env.NEXT_PUBLIC_APP_URL || baseUrl)
-  );
-
-  // In local development, the Relying Party ID MUST be the local hostname (e.g. 'localhost')
-  // per the WebAuthn specification; otherwise browsers reject with a SecurityError.
-  const rpID = isLocal ? hostname : (process.env.WEBAUTHN_RP_ID || hostname);
+  const rawRpId = process.env.WEBAUTHN_RP_ID?.trim();
+  const rpID = rawRpId ? cleanDomain(rawRpId) : (baseDomain || 'localhost');
   const rpName = process.env.WEBAUTHN_RP_NAME || 'Azure Cloud Studio';
 
   const expectedOrigins = Array.from(
-    new Set([
-      origin,
-      defaultOrigin,
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
-    ])
+    new Set(
+      [
+        origin,
+        cleanOrigin(baseUrl),
+        process.env.APP_URL ? cleanOrigin(process.env.APP_URL) : '',
+        process.env.NEXT_PUBLIC_APP_URL ? cleanOrigin(process.env.NEXT_PUBLIC_APP_URL) : '',
+        `https://${rpID}`,
+        `http://${rpID}`,
+        `http://${rpID}:3000`,
+        `http://${rpID}:3001`,
+        `http://${rpID}:8080`,
+        `http://${rpID}:4280`,
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:4280',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+        'http://127.0.0.1:4280',
+      ].filter(Boolean)
+    )
   );
 
   return {
