@@ -1,0 +1,47 @@
+/* ========================================================================
+   Subscriber Dashboard Local Styles (dashboard.css)
+   Scoped to subscriber profile, passkeys list, OAuth linking,
+   unlocked perk assets, and graceful signout modal.
+   ======================================================================== */
+
+/* Graceful Signout Modal & Backdrop Overlay */
+.signout-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease-out both;
+  padding: 1rem;
+}
+
+.signout-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2.5rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: scaleFadeIn 0.3s var(--ease-spring) both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.signout-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.signout-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
