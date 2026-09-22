@@ -6,7 +6,7 @@
 .landing-page {
   min-height: calc(100vh - 65px);
   position: relative;
-  background: #fff;
+  background: var(--bg-canvas);
   color: #000;
   font-family: var(--font-body);
 }
@@ -100,7 +100,7 @@
   align-items: center;
   justify-content: center;
   padding: 12px 16px;
-  border: 1px solid #000;
+  border: 1px solid var(--bg-canvas);
   border-radius: 12px;
   color: #000;
   font-size: 18px;
