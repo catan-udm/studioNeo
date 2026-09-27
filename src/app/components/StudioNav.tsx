@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import BikkoMark from './BikkoMark';
 import { usePageTransition } from './PageTransition';
 import { useSettings } from './SettingsProvider';
+import { getAuthenticatedSession, invalidateAuthCache } from '@/lib/clientAuthCache';
 
 const subscribeToReducedMotion = (callback: () => void) => {
   if (typeof window === 'undefined') return () => {};
@@ -45,17 +46,14 @@ export default function StudioNav() {
   const minimizeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const headerRef = useRef<HTMLElement>(null);
 
-  // Check current session status
+  // Check current session status with inflight deduplication and TTL cache
   const checkAuth = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me');
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.authenticated) {
-          setIsAuthenticated(true);
-          setUserEmail(data.subscriber?.email || 'Active Subscriber');
-          return;
-        }
+      const data = await getAuthenticatedSession();
+      if (data?.authenticated) {
+        setIsAuthenticated(true);
+        setUserEmail(data.subscriber?.email || 'Active Subscriber');
+        return;
       }
       setIsAuthenticated(false);
       setUserEmail(null);
@@ -169,12 +167,20 @@ export default function StudioNav() {
       popBackUpAndResetTimer();
     };
 
-    // Catch mouse moving towards top edge when minimized
+    // Catch mouse moving towards top edge when minimized (throttled via RAF to eliminate idle CPU churn)
+    let mouseTicking = false;
     const onMouseMove = (e: MouseEvent) => {
-      if (isMinimizedRef.current && e.clientY <= 24) {
-        setIsMinimized(false);
-        isHoveredRef.current = true;
-        clearMinimizeTimer();
+      if (!isMinimizedRef.current) return;
+      if (!mouseTicking) {
+        mouseTicking = true;
+        window.requestAnimationFrame(() => {
+          if (isMinimizedRef.current && e.clientY <= 28) {
+            setIsMinimized(false);
+            isHoveredRef.current = true;
+            clearMinimizeTimer();
+          }
+          mouseTicking = false;
+        });
       }
     };
 
@@ -246,6 +252,7 @@ export default function StudioNav() {
     } catch {
       // Proceed even if request fails
     } finally {
+      invalidateAuthCache();
       setIsAuthenticated(false);
       setUserEmail(null);
       setIsSigningOut(false);

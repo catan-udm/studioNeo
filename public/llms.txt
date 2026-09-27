@@ -1,0 +1,16 @@
+# bikko.studio
+
+> Creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey authentication.
+
+## Core Pages
+- [/](https://bikko.studio/): Kinetic motion grid showcase and studio overview.
+- [/projects](https://bikko.studio/projects): Curated project reel, technical cuts, and algorithmic motion designs.
+- [/gallery](https://bikko.studio/gallery): Interactive vector stems archive, subscriber vault, and algorithmic generative cels.
+- [/about](https://bikko.studio/about): Studio philosophy, engineering standards (ISO/IEC 40500, WebAuthn Level 3), and technology stack.
+- [/contact](https://bikko.studio/contact): Inquiries, commissions, and encrypted direct correspondence.
+
+## Technical Capabilities
+- Passkey-first biometric authentication via FIDO2 / WebAuthn Level 3.
+- Lossless mathematical SVG vector stem generation.
+- WCAG 2.1 AA / ISO/IEC 40500:2012 accessibility compliance.
+- Ultra-responsive dual-mode dynamic island navigation.

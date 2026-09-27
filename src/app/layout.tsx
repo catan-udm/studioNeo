@@ -184,8 +184,6 @@ export default function RootLayout({
         />
         <link rel="preconnect" href="https://bikkostudio.blob.core.windows.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://bikkostudio.blob.core.windows.net" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body>
         {/* ISO/IEC 40500 / WCAG 2.4.1 Skip Link */}
