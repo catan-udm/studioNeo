@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { projectsData, ProjectRow, ProjectMediaItem } from './projectsData';
 import './projects.css';
 
@@ -92,6 +93,9 @@ export default function ProjectsPage() {
             <span className="live-dot" /> Archive &amp; Key Works
           </span>
           <h1 className="projects-title">PROJECTS</h1>
+          <p className="projects-desc">
+            Experimental animated cuts, looped character stickers, and interactive media frames.
+          </p>
         </div>
 
         {/* Categories Bar */}
@@ -108,6 +112,13 @@ export default function ProjectsPage() {
             </button>
           ))}
         </nav>
+
+        {/* Link to Full 128-Work Gallery Archive */}
+        <div className="projects-gallery-cta">
+          <Link href="/gallery" className="projects-gallery-link-btn">
+            View Full Gallery Archive (128 Works) &rarr;
+          </Link>
+        </div>
       </header>
 
       {/* Projects List: Horizontal Row Filmstrips */}
@@ -238,6 +249,25 @@ export default function ProjectsPage() {
           ))
         )}
       </div>
+
+      {/* Minimalist Studio Heritage Footer */}
+      <footer className="projects-footer">
+        <div className="footer-links-row">
+          <Link href="/gallery" className="footer-link">Archive Index</Link>
+          <Link href="/collection" className="footer-link">Saved Collection</Link>
+          <Link href="/about" className="footer-link">Curatorial Statement</Link>
+          <Link href="/licensing" className="footer-link">Licensing &amp; Rights</Link>
+          <Link href="/membership" className="footer-link">Membership Tiers</Link>
+          <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
+          <Link href="/terms" className="footer-link">Terms of Service</Link>
+          <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+          <Link href="/contact" className="footer-link">Contact Studio</Link>
+        </div>
+        <div className="footer-bottom-copy">
+          <span>&copy; 2026 studioNeo Archive. All curation rights preserved.</span>
+          <span>bikko.studio visual engineering</span>
+        </div>
+      </footer>
 
       {/* Apple Glassmorphic Lightbox Modal */}
       {activeLightbox && currentMedia && (

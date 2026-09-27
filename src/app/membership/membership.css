@@ -1,0 +1,408 @@
+/* ========================================================================
+   Membership Tiers & Pricing Styles (membership.css)
+   Clean, modern high-contrast aesthetic matching studioNeo & bikko.studio
+   ======================================================================== */
+
+.membership-page {
+  min-height: 100vh;
+  background-color: #fafafa;
+  color: #000000;
+  font-family: var(--font-body), 'Montserrat', sans-serif;
+  padding-bottom: 6rem;
+}
+
+/* 1. Hero Header */
+.membership-hero {
+  padding: 4.5rem 2rem 2.5rem;
+  max-width: 840px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.membership-overline {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 1rem;
+}
+
+.membership-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+  color: #000000;
+  margin: 0 0 1.25rem;
+}
+
+.membership-lead {
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 auto 2.5rem;
+  max-width: 640px;
+}
+
+/* Billing Switcher */
+.billing-switcher-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.billing-switcher {
+  display: inline-flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.switcher-btn {
+  font-family: var(--font-body), 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switcher-btn.active {
+  background-color: #000000;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.discount-pill {
+  font-size: 9px;
+  font-weight: 700;
+  background-color: #22c55e;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+}
+
+/* 2. Pricing Tiers Grid */
+.membership-tiers-grid {
+  max-width: 1240px;
+  margin: 0 auto 5rem;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  align-items: stretch;
+}
+
+.tier-card {
+  position: relative;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  padding: 2.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.tier-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.07);
+}
+
+.tier-featured {
+  border: 2px solid #000000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.featured-ribbon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.tier-card-header {
+  margin-bottom: 1.5rem;
+}
+
+.tier-badge-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.tier-name {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #000000;
+  margin: 0 0 6px;
+}
+
+.tier-desc {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.45;
+  margin: 0;
+  min-height: 40px;
+}
+
+.tier-pricing-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.tier-price-amount {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1;
+}
+
+.tier-price-period {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+.tier-perks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 2.5rem;
+  flex-grow: 1;
+}
+
+.tier-perk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.perk-check {
+  color: #000000;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.perk-disabled {
+  opacity: 0.4;
+}
+
+.perk-cross {
+  color: rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+}
+
+.tier-action-wrap {
+  width: 100%;
+}
+
+.tier-cta-btn {
+  width: 100%;
+  text-align: center;
+  padding: 12px 24px;
+  font-size: 14px;
+}
+
+/* 3. Feature Comparison Table */
+.membership-matrix-section {
+  max-width: 1080px;
+  margin: 0 auto 5rem;
+  padding: 0 2rem;
+}
+
+.matrix-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.matrix-table-wrap {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.matrix-table th,
+.matrix-table td {
+  padding: 16px 20px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.matrix-table th {
+  background-color: #fafafa;
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-weight: 700;
+  color: #000000;
+}
+
+.featured-th {
+  background-color: #f4f4f5 !important;
+}
+
+.matrix-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* 4. FAQ Accordion */
+.membership-faq-section {
+  max-width: 800px;
+  margin: 0 auto 5rem;
+  padding: 0 2rem;
+}
+
+.faq-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.faq-accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-item {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.faq-item.open {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.faq-question-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000000;
+  cursor: pointer;
+  text-align: left;
+}
+
+.faq-arrow {
+  font-size: 18px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.faq-answer-block {
+  padding: 0 22px 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.faq-answer-block p {
+  margin: 0;
+}
+
+/* 5. Minimalist Footer */
+.membership-footer {
+  max-width: 1440px;
+  margin: 4rem auto 0;
+  padding: 3rem 2rem 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.membership-footer .footer-links-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.membership-footer .footer-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.membership-footer .footer-link:hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.membership-footer .footer-bottom-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .membership-tiers-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+}

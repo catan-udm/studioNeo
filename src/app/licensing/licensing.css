@@ -1,0 +1,238 @@
+/* ========================================================================
+   Licensing & Rights Page Styles (licensing.css)
+   Clean, modern high-contrast aesthetic matching studioNeo
+   ======================================================================== */
+
+.licensing-page {
+  min-height: 100vh;
+  background-color: #fafafa;
+  color: #000000;
+  font-family: var(--font-body), 'Montserrat', sans-serif;
+  padding-bottom: 6rem;
+}
+
+.licensing-header {
+  padding: 4.5rem 2rem 2.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.licensing-overline {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 1rem;
+}
+
+.licensing-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+  color: #000000;
+  margin: 0 0 1.25rem;
+}
+
+.licensing-lead {
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 auto;
+  max-width: 620px;
+}
+
+.licensing-container {
+  max-width: 980px;
+  margin: 0 auto 5rem;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.license-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  padding: 2.75rem 2.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.license-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  background-color: #000000;
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  margin-bottom: 1rem;
+}
+
+.license-card h2 {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #000000;
+  margin: 0 0 0.5rem;
+}
+
+.license-summary {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.65);
+  margin: 0 0 1.75rem;
+  line-height: 1.5;
+}
+
+.license-rights-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.license-rights-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.right-check {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.right-prohibited {
+  opacity: 0.55;
+}
+
+.right-cross {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Provenance Section */
+.provenance-section {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  padding: 2.75rem 2.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.provenance-section h2 {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.provenance-section p {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.55;
+  margin: 0 0 1.75rem;
+}
+
+.provenance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.provenance-item {
+  background-color: #f7f7f8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.provenance-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.provenance-val {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.licensing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+/* Footer */
+.licensing-footer {
+  max-width: 1440px;
+  margin: 4rem auto 0;
+  padding: 3rem 2rem 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.licensing-footer .footer-links-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.licensing-footer .footer-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.licensing-footer .footer-link:hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.licensing-footer .footer-bottom-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 768px) {
+  .provenance-grid {
+    grid-template-columns: 1fr;
+  }
+}

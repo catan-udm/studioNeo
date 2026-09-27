@@ -1,0 +1,222 @@
+/* ========================================================================
+   Privacy Notice & Cryptographic Security Styles (privacy.css)
+   Clean, modern high-contrast aesthetic with security callouts
+   ======================================================================== */
+
+.privacy-page {
+  min-height: 100vh;
+  background-color: #fafafa;
+  color: #000000;
+  font-family: var(--font-body), 'Montserrat', sans-serif;
+  padding-bottom: 7rem;
+}
+
+/* 1. Header */
+.privacy-hero {
+  padding: 4.5rem 1.5rem 3.5rem;
+  text-align: center;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.privacy-overline {
+  display: inline-block;
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.5);
+  margin-bottom: 12px;
+}
+
+.privacy-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  color: #000000;
+}
+
+.privacy-lead {
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.65);
+  margin: 0 0 24px;
+}
+
+.privacy-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-family: monospace;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* 2. Content Layout */
+.privacy-container {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.privacy-content-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.03);
+}
+
+@media (max-width: 640px) {
+  .privacy-content-card {
+    padding: 2rem 1.25rem;
+  }
+}
+
+.privacy-article-section {
+  margin-bottom: 2.75rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.privacy-article-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.privacy-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.privacy-section-num {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.privacy-section-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: #000000;
+}
+
+.privacy-article-section p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(0, 0, 0, 0.72);
+  margin: 0 0 14px;
+}
+
+.privacy-article-section ul {
+  margin: 12px 0 16px 18px;
+  padding: 0;
+  list-style: disc;
+}
+
+.privacy-article-section li {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: rgba(0, 0, 0, 0.75);
+  margin-bottom: 8px;
+}
+
+/* Security Specs Pill Grid */
+.privacy-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 20px 0 10px;
+}
+
+@media (max-width: 680px) {
+  .privacy-specs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.privacy-spec-card {
+  background: #f8f8fa;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 16px 14px;
+  text-align: center;
+}
+
+.privacy-spec-title {
+  display: block;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.privacy-spec-val {
+  display: block;
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #000000;
+}
+
+/* Footer Links */
+.privacy-footer {
+  max-width: 1440px;
+  margin: 4.5rem auto 0;
+  padding: 2.5rem 1.5rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.privacy-footer .footer-links-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+}
+
+.privacy-footer .footer-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.privacy-footer .footer-link:hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.privacy-footer .footer-bottom-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 840px;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.45);
+  flex-wrap: wrap;
+  gap: 10px;
+}

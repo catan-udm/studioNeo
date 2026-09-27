@@ -1,0 +1,432 @@
+/* ========================================================================
+   Collection Page Styles (collection.css)
+   Personal Archive Vault & Saved Vector Cels Showcase
+   ======================================================================== */
+
+.collection-page {
+  min-height: 100vh;
+  background-color: #fafafa;
+  color: #000000;
+  font-family: var(--font-body), 'Montserrat', sans-serif;
+  padding-bottom: 7rem;
+}
+
+/* 1. Header Section */
+.collection-hero {
+  padding: 4.5rem 1.5rem 2.5rem;
+  text-align: center;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.collection-overline {
+  display: inline-block;
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.5);
+  margin-bottom: 12px;
+}
+
+.collection-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  color: #000000;
+}
+
+.collection-lead {
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.65);
+  margin: 0 auto 28px;
+  max-width: 680px;
+}
+
+/* 2. Collection Metrics Bar */
+.collection-metrics-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 2rem;
+}
+
+.collection-metric-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 14px 24px;
+  min-width: 170px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.metric-num {
+  display: block;
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1.2;
+}
+
+.metric-label {
+  display: block;
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* 3. Toolbar & Filters */
+.collection-toolbar {
+  max-width: 1440px;
+  margin: 0 auto 2.5rem;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.collection-tabs {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.collection-tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  padding: 7px 18px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.collection-tab-btn:hover {
+  color: #000000;
+}
+
+.collection-tab-btn.active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.collection-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 4. Collection Cards Grid (Spacious Minimalist Grid) */
+.collection-grid-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.collection-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+
+@media (max-width: 1120px) {
+  .collection-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .collection-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Individual Collection Item Card */
+.collection-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.collection-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.collection-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.collection-card-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.collection-avatar-ring {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(45deg, #111111, #555555);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collection-avatar-initials {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #000000;
+  color: #ffffff;
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collection-author-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.collection-author-handle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.collection-item-tag {
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.collection-remove-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.collection-remove-btn:hover {
+  color: #d32f2f;
+  background: rgba(211, 47, 47, 0.08);
+}
+
+/* 1:1 Aspect Ratio Media Container */
+.collection-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #000000;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.collection-artwork-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Card Bottom Action Bar */
+.collection-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.collection-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.collection-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.collection-icon-btn:hover {
+  transform: scale(1.15);
+}
+
+.collection-icon-btn.liked {
+  color: #e0245e;
+}
+
+.collection-price-tag {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+}
+
+/* 5. Empty State */
+.collection-empty-card {
+  max-width: 600px;
+  margin: 3rem auto;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: 3.5rem 2rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.02);
+}
+
+.empty-icon-wrap {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1.5rem;
+  background: #f4f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.empty-title {
+  font-family: var(--font-heading), 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #000000;
+}
+
+.empty-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 auto 2rem;
+  max-width: 440px;
+}
+
+/* Toast */
+.collection-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(18, 18, 20, 0.94);
+  color: #ffffff;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 10px 22px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 550;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  animation: fadeInToast 0.25s ease forwards;
+}
+
+@keyframes fadeInToast {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Footer Links */
+.collection-footer {
+  max-width: 1440px;
+  margin: 4.5rem auto 0;
+  padding: 2.5rem 1.5rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.collection-footer .footer-links-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+}
+
+.collection-footer .footer-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.collection-footer .footer-link:hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.collection-footer .footer-bottom-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 840px;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.45);
+  flex-wrap: wrap;
+  gap: 10px;
+}

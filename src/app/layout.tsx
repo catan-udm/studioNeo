@@ -28,7 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${poppins.variable} ${montserrat.variable}`}>
+    <html
+      lang="en"
+      className={`${poppins.variable} ${montserrat.variable}`}
+      data-scroll-behavior="smooth"
+    >
       <body>
         <StudioNav />
         <div className="page-wrapper">{children}</div>

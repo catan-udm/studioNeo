@@ -645,3 +645,80 @@ input:user-invalid + .error-msg,
     scroll-behavior: auto !important;
   }
 }
+
+/* ========================================================================
+   Global Pill Button Primitives (matching studioNeo design system)
+   ======================================================================== */
+.btn-pill-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 9999px;
+  padding: 10px 24px;
+  font-family: var(--font-body), 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-pill-primary:hover {
+  background-color: #1f1f1f;
+  color: #ffffff;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn-pill-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 9999px;
+  padding: 10px 24px;
+  font-family: var(--font-body), 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-pill-secondary:hover {
+  background-color: #f4f4f5;
+  border-color: #000000;
+  color: #000000;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.btn-pill-secondary:active {
+  transform: scale(0.98);
+}
+
+.btn-pill-sm {
+  padding: 6px 16px;
+  font-size: 12px;
+}
+
+.btn-pill-lg {
+  padding: 14px 34px;
+  font-size: 15px;
+}

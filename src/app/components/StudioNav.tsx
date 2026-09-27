@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import BikkoMark from './BikkoMark';
 
-type TabKey = 'studio' | 'projects' | 'about' | 'dashboard';
+type TabKey = 'studio' | 'projects' | 'gallery' | 'about' | 'dashboard';
 
 export default function StudioNav() {
   const pathname = usePathname();
@@ -131,7 +131,7 @@ export default function StudioNav() {
   const isAuth = pathname === '/login' || pathname === '/register';
   const isDashboard = pathname === '/dashboard';
 
-  const [activeTab, setActiveTab] = useState<TabKey>('studio');
+  const [activeTab, setActiveTab] = useState<TabKey | null>('studio');
   const sliderRef = useRef<HTMLElement>(null);
   const tabRefs = useRef<{ [key in TabKey]?: HTMLAnchorElement | null }>({});
   const [indicatorStyle, setIndicatorStyle] = useState<{
@@ -146,21 +146,25 @@ export default function StudioNav() {
       ? 'about'
       : pathname === '/projects'
         ? 'projects'
-        : pathname === '/dashboard'
-          ? 'dashboard'
-          : pathname === '/'
-            ? 'studio'
-            : null;
+        : pathname === '/gallery'
+          ? 'gallery'
+          : pathname === '/dashboard'
+            ? 'dashboard'
+            : pathname === '/'
+              ? 'studio'
+              : null;
 
-    if (routeTab) {
-      const activeTabTask = window.setTimeout(() => setActiveTab(routeTab), 0);
-      return () => window.clearTimeout(activeTabTask);
-    }
+    const activeTabTask = window.setTimeout(() => setActiveTab(routeTab), 0);
+    return () => window.clearTimeout(activeTabTask);
   }, [pathname]);
 
   // Measure and align the Apple sliding capsule indicator
   // Normalizes by scale factor to eliminate ancestor transform distortion (e.g. scale(0.92) on mobile)
   const updateIndicator = useCallback(() => {
+    if (!activeTab) {
+      setIndicatorStyle({ left: 0, width: 0, opacity: 0 });
+      return;
+    }
     const activeEl = tabRefs.current[activeTab];
     const sliderEl = sliderRef.current;
     if (activeEl && sliderEl) {
@@ -294,6 +298,18 @@ export default function StudioNav() {
               </Link>
               <Link
                 ref={(el) => {
+                  tabRefs.current['gallery'] = el;
+                }}
+                href="/gallery"
+                prefetch={true}
+                className={`nav-pill ${activeTab === 'gallery' ? 'active' : ''}`}
+                aria-current={activeTab === 'gallery' ? 'page' : undefined}
+                onClick={(e) => handleTabClick(e, 'gallery', '/gallery')}
+              >
+                Gallery
+              </Link>
+              <Link
+                ref={(el) => {
                   tabRefs.current['about'] = el;
                 }}
                 href="/about"
@@ -328,6 +344,41 @@ export default function StudioNav() {
               className={`nav-static-actions ${isMenuOpen && !isScrolled ? 'is-open' : ''}`}
               aria-hidden={!isMenuOpen || isScrolled}
             >
+              <div className="nav-secondary-links-row">
+                <Link
+                  href="/collection"
+                  prefetch={true}
+                  className="nav-secondary-link"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Saved
+                </Link>
+                <Link
+                  href="/membership"
+                  prefetch={true}
+                  className="nav-secondary-link"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Membership
+                </Link>
+                <Link
+                  href="/licensing"
+                  prefetch={true}
+                  className="nav-secondary-link"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Licensing
+                </Link>
+                <Link
+                  href="/contact"
+                  prefetch={true}
+                  className="nav-secondary-link"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+              </div>
+
               {isAuthenticated ? (
                 <>
                   <Link
@@ -391,51 +442,99 @@ export default function StudioNav() {
               role="menu"
               aria-hidden={!isMenuOpen || !isScrolled}
             >
-              {isAuthenticated ? (
-                <div className="nav-dropdown-content">
-                  {userEmail && (
-                    <div className="nav-dropdown-user">
-                      <span className="nav-dropdown-badge">Subscriber</span>
-                      <span className="nav-dropdown-email">{userEmail}</span>
-                    </div>
-                  )}
+              <div className="nav-dropdown-content">
+                {isAuthenticated && userEmail && (
+                  <div className="nav-dropdown-user">
+                    <span className="nav-dropdown-badge">Subscriber</span>
+                    <span className="nav-dropdown-email">{userEmail}</span>
+                  </div>
+                )}
+
+                <div className="nav-dropdown-links-list">
                   <Link
-                    href="/dashboard"
+                    href="/collection"
                     prefetch={true}
-                    className="nav-dropdown-btn nav-dropdown-primary"
+                    className="nav-dropdown-item-link"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Dashboard
+                    Saved Collection
                   </Link>
-                  <button
-                    type="button"
-                    onClick={handleSignOut}
-                    disabled={isSigningOut}
-                    className="nav-dropdown-btn nav-dropdown-secondary"
+                  <Link
+                    href="/membership"
+                    prefetch={true}
+                    className="nav-dropdown-item-link"
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    {isSigningOut ? 'Signing out...' : 'Sign Out'}
-                  </button>
+                    Membership Tiers
+                  </Link>
+                  <Link
+                    href="/licensing"
+                    prefetch={true}
+                    className="nav-dropdown-item-link"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Licensing &amp; Rights
+                  </Link>
+                  <Link
+                    href="/terms"
+                    prefetch={true}
+                    className="nav-dropdown-item-link"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Terms &amp; Policies
+                  </Link>
+                  <Link
+                    href="/contact"
+                    prefetch={true}
+                    className="nav-dropdown-item-link"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Contact Studio
+                  </Link>
                 </div>
-              ) : (
-                <div className="nav-dropdown-content">
-                  <Link
-                    href="/login"
-                    prefetch={true}
-                    className="nav-dropdown-btn nav-dropdown-secondary"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/register"
-                    prefetch={true}
-                    className="nav-dropdown-btn nav-dropdown-primary"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
+
+                <div className="nav-dropdown-divider" />
+
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      prefetch={true}
+                      className="nav-dropdown-btn nav-dropdown-primary"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      disabled={isSigningOut}
+                      className="nav-dropdown-btn nav-dropdown-secondary"
+                    >
+                      {isSigningOut ? 'Signing out...' : 'Sign Out'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      prefetch={true}
+                      className="nav-dropdown-btn nav-dropdown-secondary"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/register"
+                      prefetch={true}
+                      className="nav-dropdown-btn nav-dropdown-primary"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
