@@ -430,3 +430,75 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* ========================================================================
+   Dark Mode Palette Harmonization for Collection Page
+   ======================================================================== */
+:root[data-theme="dark"] .collection-page {
+  background-color: var(--bg-canvas, #090d16);
+  color: var(--text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .collection-overline {
+  color: var(--text-muted, #9ca3af);
+}
+
+:root[data-theme="dark"] .collection-title {
+  color: var(--text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .collection-lead {
+  color: var(--text-secondary, #d1d5db);
+}
+
+:root[data-theme="dark"] .collection-metric-card {
+  background: var(--bg-surface, #111827);
+  border-color: var(--border-subtle, #374151);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .metric-num {
+  color: var(--text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .metric-label {
+  color: var(--text-muted, #9ca3af);
+}
+
+:root[data-theme="dark"] .collection-card {
+  background: var(--bg-surface, #111827);
+  border-color: var(--border-subtle, #374151);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .collection-card-header {
+  border-bottom-color: var(--border-subtle, #1f2937);
+}
+
+:root[data-theme="dark"] .collection-card-title {
+  color: var(--text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .collection-card-meta {
+  color: var(--text-muted, #9ca3af);
+}
+
+:root[data-theme="dark"] .collection-card-actions {
+  border-top-color: var(--border-subtle, #1f2937);
+}
+
+:root[data-theme="dark"] .collection-footer {
+  border-top-color: var(--border-subtle, #374151);
+}
+
+:root[data-theme="dark"] .collection-footer .footer-link {
+  color: var(--text-muted, #9ca3af);
+}
+
+:root[data-theme="dark"] .collection-footer .footer-link:hover {
+  color: var(--text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .collection-footer .footer-bottom-copy {
+  color: var(--text-muted, #6b7280);
+}

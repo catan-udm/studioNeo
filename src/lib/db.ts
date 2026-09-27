@@ -5,7 +5,6 @@ import fs from 'fs';
  * Global declaration for preserving database pool across Next.js HMR reloads.
  */
 declare global {
-  // eslint-disable-next-line no-var
   var __mysqlPool: Pool | undefined;
 }
 
@@ -107,7 +106,7 @@ export function getPool(): Pool {
  */
 export async function queryRows<T = Record<string, unknown>>(
   sql: string,
-  params: any[] = []
+  params: unknown[] = []
 ): Promise<T[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(sql, params);
@@ -119,7 +118,7 @@ export async function queryRows<T = Record<string, unknown>>(
  */
 export async function queryRow<T = Record<string, unknown>>(
   sql: string,
-  params: any[] = []
+  params: unknown[] = []
 ): Promise<T | null> {
   const rows = await queryRows<T>(sql, params);
   return rows.length > 0 ? rows[0] : null;
@@ -130,10 +129,13 @@ export async function queryRow<T = Record<string, unknown>>(
  */
 export async function execute(
   sql: string,
-  params: any[] = []
+  params: unknown[] = []
 ): Promise<ResultSetHeader> {
   const pool = getPool();
-  const [result] = await pool.execute<ResultSetHeader>(sql, params);
+  const [result] = await pool.execute<ResultSetHeader>(
+    sql,
+    params as Parameters<typeof pool.execute>[1]
+  );
   return result;
 }
 

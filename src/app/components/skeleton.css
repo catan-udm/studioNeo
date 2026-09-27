@@ -1,0 +1,84 @@
+/* ------------------------------------------------------------------------
+   Universal Skeleton Loading Styles (HCI Minimalism)
+   ------------------------------------------------------------------------ */
+
+/* Base Shimmer Element */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  will-change: transform;
+  display: inline-block;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  animation: skeletonShimmerWave 1.6s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmerWave {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .skeleton-shimmer {
+    background-color: rgba(255, 255, 255, 0.07);
+  }
+  .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.12) 50%,
+      transparent 100%
+    );
+  }
+}
+
+/* Primitive Geometric Helpers */
+.sk-circle {
+  border-radius: 50% !important;
+}
+
+.sk-pill {
+  border-radius: 9999px !important;
+}
+
+/* Crossfade transitions for smooth reveal */
+.skeleton-container-fade {
+  animation: skeletonFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes skeletonFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Essential Loading Feedback: Skeletons retain loading shimmer for system status visibility */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-container-fade {
+    animation: none;
+  }
+  .skeleton-shimmer::after {
+    animation: skeletonShimmerWave 1.8s ease-in-out infinite;
+  }
+}
+
+:root[data-motion="reduced"] .skeleton-shimmer::after {
+  animation: skeletonShimmerWave 1.8s ease-in-out infinite !important;
+}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import {
   OAuthProvider,
   getOAuthSessionCookie,
@@ -8,7 +9,7 @@ import {
   getBaseUrl,
   getOAuthRedirectUri,
 } from '@/lib/oauth';
-import { queryRow, execute, transaction } from '@/lib/db';
+import { transaction } from '@/lib/db';
 import { createSessionToken, setSessionCookie } from '@/lib/auth';
 
 export async function GET(
@@ -63,8 +64,6 @@ export async function GET(
     // 3. Fetch user profile from provider
     const profile = await fetchOAuthUserProfile(provider, accessToken);
 
-    const isLinkingFlow = oauthSession.action === 'link' && Boolean(oauthSession.subscriberId);
-
     // 4. Resolve or create subscriber and link account
     const result = await transaction(async (conn) => {
       // -------------------------------------------------------------
@@ -72,7 +71,7 @@ export async function GET(
       // -------------------------------------------------------------
       if (oauthSession.action === 'link') {
         const targetId = Number(oauthSession.subscriberId);
-        const [targetRows] = await conn.query<any[]>(
+        const [targetRows] = await conn.query<RowDataPacket[]>(
           'SELECT id, email, is_verified FROM subscribers WHERE id = ? LIMIT 1',
           [targetId]
         );
@@ -87,7 +86,7 @@ export async function GET(
         const targetSub = targetRows[0];
 
         // Check if this external identity is already connected to an account
-        const [existingOAuth] = await conn.query<any[]>(
+        const [existingOAuth] = await conn.query<RowDataPacket[]>(
           'SELECT subscriber_id FROM subscriber_oauth_accounts WHERE provider = ? AND provider_user_id = ? LIMIT 1',
           [provider, profile.providerUserId]
         );
@@ -102,11 +101,11 @@ export async function GET(
             );
 
             // Clean up old stub if it has no perks or other credentials
-            const [otherOAuth] = await conn.query<any[]>(
+            const [otherOAuth] = await conn.query<RowDataPacket[]>(
               'SELECT id FROM subscriber_oauth_accounts WHERE subscriber_id = ?',
               [prevOwnerId]
             );
-            const [otherPerks] = await conn.query<any[]>(
+            const [otherPerks] = await conn.query<RowDataPacket[]>(
               'SELECT id FROM perk_unlocks WHERE subscriber_id = ?',
               [prevOwnerId]
             );
@@ -139,7 +138,7 @@ export async function GET(
       // -------------------------------------------------------------
       if (oauthSession.action === 'register') {
         // Strict check: Is this provider ID already registered?
-        const [oauthRows] = await conn.query<any[]>(
+        const [oauthRows] = await conn.query<RowDataPacket[]>(
           'SELECT subscriber_id FROM subscriber_oauth_accounts WHERE provider = ? AND provider_user_id = ? LIMIT 1',
           [provider, profile.providerUserId]
         );
@@ -154,12 +153,12 @@ export async function GET(
         }
 
         // Strict check: Does an account already exist with this email?
-        const [subRows] = await conn.query<any[]>(
+        const [subRows] = await conn.query<RowDataPacket[]>(
           'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
           [profile.email]
         );
 
-        if (subRows && subRows.length > 0 && subRows[0].is_verified === 1) {
+        if (subRows && subRows.length > 0 && (subRows[0].is_verified as number) === 1) {
           return {
             redirectUrl: `/login?error=${encodeURIComponent(
               'An account with this email address already exists. Please sign in instead.'
@@ -171,11 +170,11 @@ export async function GET(
         let newSubId: number;
         if (subRows && subRows.length > 0) {
           // Verify previously pending registration
-          newSubId = subRows[0].id;
+          newSubId = subRows[0].id as number;
           await conn.execute('UPDATE subscribers SET is_verified = 1 WHERE id = ?', [newSubId]);
         } else {
           // Create new verified subscriber
-          const [insertResult] = await conn.execute<any>(
+          const [insertResult] = await conn.execute<ResultSetHeader>(
             'INSERT INTO subscribers (email, is_verified) VALUES (?, 1)',
             [profile.email]
           );
@@ -201,24 +200,24 @@ export async function GET(
       // -------------------------------------------------------------
       // FLOW C: Sign-In Mode (Explicit /login)
       // -------------------------------------------------------------
-      const [oauthRows] = await conn.query<any[]>(
+      const [oauthRows] = await conn.query<RowDataPacket[]>(
         'SELECT subscriber_id FROM subscriber_oauth_accounts WHERE provider = ? AND provider_user_id = ? LIMIT 1',
         [provider, profile.providerUserId]
       );
 
       if (oauthRows && oauthRows.length > 0) {
         const subId = oauthRows[0].subscriber_id as number;
-        const [subRows] = await conn.query<any[]>(
+        const [subRows] = await conn.query<RowDataPacket[]>(
           'SELECT id, email, is_verified FROM subscribers WHERE id = ? LIMIT 1',
           [subId]
         );
 
         if (subRows && subRows.length > 0) {
-          if (subRows[0].is_verified !== 1) {
+          if ((subRows[0].is_verified as number) !== 1) {
             return {
               redirectUrl: `/register?error=${encodeURIComponent(
                 'This account registration is pending verification. Please complete registration first.'
-              )}&email=${encodeURIComponent(subRows[0].email)}`,
+              )}&email=${encodeURIComponent(subRows[0].email as string)}`,
               issueSession: false,
             };
           }
@@ -233,7 +232,7 @@ export async function GET(
       }
 
       // Check if subscriber exists with this email for auto-linking on sign-in
-      const [subRows] = await conn.query<any[]>(
+      const [subRows] = await conn.query<RowDataPacket[]>(
         'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
         [profile.email]
       );

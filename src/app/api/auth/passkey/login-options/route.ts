@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
 
     const { rpID } = getRPConfig(request);
 
-    let allowCredentials: Array<{ id: string; transports?: any }> | undefined = undefined;
+    type AuthenticatorTransport = 'ble' | 'cable' | 'hybrid' | 'internal' | 'nfc' | 'smart-card' | 'usb';
+    let allowCredentials: Array<{ id: string; transports?: AuthenticatorTransport[] }> | undefined = undefined;
     let subscriberId: number | undefined = undefined;
 
     if (email) {

@@ -1,0 +1,344 @@
+/* ========================================================================
+   Full Settings Page Styles (settings.css)
+   Airy, minimalist editorial aesthetics with responsive card layouts
+   ======================================================================== */
+
+.settings-page {
+  min-height: 100vh;
+  padding: 3rem 1.5rem 6rem;
+  max-width: 980px;
+  margin: 0 auto;
+  font-family: var(--font-body), sans-serif;
+  color: var(--text-primary);
+}
+
+.settings-hero {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.settings-hero-overline {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.settings-hero-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+.settings-hero-desc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Settings Card Container */
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.settings-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1rem;
+}
+
+.settings-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: var(--text-primary);
+}
+
+.settings-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Theme Selection Visual Cards */
+.theme-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.theme-card-option {
+  border: 2px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 1rem;
+  background: var(--bg-subtle);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.theme-card-option:hover {
+  border-color: var(--text-muted);
+  transform: translateY(-2px);
+}
+
+.theme-card-option.active {
+  border-color: var(--brand-primary);
+  background: var(--bg-surface);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.12);
+}
+
+.theme-card-preview {
+  width: 100%;
+  height: 64px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.theme-card-preview.preview-light {
+  background: #ffffff;
+  color: #090d16;
+}
+
+.theme-card-preview.preview-dark {
+  background: #090d16;
+  color: #ffffff;
+}
+
+.theme-card-preview.preview-system {
+  background: linear-gradient(135deg, #ffffff 50%, #090d16 50%);
+  color: #3b82f6;
+}
+
+.theme-card-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.theme-card-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* UI Scale Stepper & Specimen */
+.scale-controls-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.scale-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.18s ease;
+}
+
+.scale-btn:hover {
+  background: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.scale-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  border-color: var(--text-primary);
+}
+
+.scale-btn-sub {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* Interactive Specimen Box */
+.settings-specimen {
+  background: var(--bg-subtle);
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.settings-specimen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.specimen-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--brand-primary);
+  color: #ffffff;
+}
+
+.specimen-h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: var(--text-primary);
+}
+
+.specimen-p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.specimen-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Motion & Physics Toggle */
+.motion-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .motion-toggle-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .motion-toggle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.motion-btn {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.18s ease;
+}
+
+.motion-btn:hover {
+  background: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.motion-btn.active {
+  background: var(--brand-primary);
+  color: #ffffff;
+  border-color: var(--brand-primary);
+}
+
+/* Storage & Cache Row */
+.storage-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-subtle);
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+}
+
+.storage-stats-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.storage-stats-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.storage-stats-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 2rem 1rem 5rem;
+  }
+  .settings-card {
+    padding: 1.25rem 1.25rem;
+  }
+  .theme-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .scale-controls-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .motion-toggle-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .motion-toggle-grid {
+    grid-template-columns: 1fr;
+  }
+}

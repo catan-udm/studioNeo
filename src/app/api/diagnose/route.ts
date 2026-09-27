@@ -3,6 +3,16 @@ import net from 'net';
 import dns from 'dns';
 import mysql from 'mysql2/promise';
 
+interface DiagnosticResult {
+  timestamp: string;
+  config: Record<string, unknown>;
+  dns: { status: string; resolvedIp?: string; error?: string };
+  tcp: { status: string; error?: string };
+  mysqlAuth: { status: string; version?: string; code?: string; error?: string };
+  schema: { status: string; missingTables?: string[]; existingTables?: string[]; error?: string };
+  actionableAdvice: string[];
+}
+
 export async function GET() {
   const host = process.env.DB_HOST || '';
   const port = Number(process.env.DB_PORT) || 3306;
@@ -11,7 +21,7 @@ export async function GET() {
   const password = process.env.DB_PASSWORD || '';
   const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false';
 
-  const diagnostics: Record<string, any> = {
+  const diagnostics: DiagnosticResult = {
     timestamp: new Date().toISOString(),
     config: {
       DB_HOST: host || '(NOT SET)',

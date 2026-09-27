@@ -29,7 +29,7 @@ export function cleanDomain(value: string): string {
  * Normalizes an origin URL string (no trailing slash, canonical protocol + host).
  */
 export function cleanOrigin(value: string): string {
-  let str = (value || '').trim();
+  const str = (value || '').trim();
   if (!str) return '';
   try {
     const url = new URL(str.includes('://') ? str : `https://${str}`);

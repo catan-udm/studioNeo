@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import '../landing.css';
 import '../auth.css';
 import { startAuthentication } from '@simplewebauthn/browser';
@@ -88,34 +87,38 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
 
   // Initialize query parameters
   useEffect(() => {
-    const emailParam = searchParams.get('email');
-    const stepParam = searchParams.get('step');
-    const errorParam = searchParams.get('error');
-    const noticeParam = searchParams.get('notice');
+    const timer = setTimeout(() => {
+      const emailParam = searchParams.get('email');
+      const stepParam = searchParams.get('step');
+      const errorParam = searchParams.get('error');
+      const noticeParam = searchParams.get('notice');
 
-    if (emailParam) {
-      setEmail(emailParam);
-    }
-
-    if (errorParam) {
-      const decoded = decodeURIComponent(errorParam);
-      setErrorMsg(decoded);
-      if (decoded.toLowerCase().includes('already exists') || decoded.toLowerCase().includes('already registered')) {
-        setAccountExists(true);
+      if (emailParam) {
+        setEmail(emailParam);
       }
-    }
 
-    if (noticeParam === 'LoggedOut') {
-      setInfoMsg('You have been signed out safely.');
-    } else if (noticeParam === 'PleaseSignIn') {
-      setInfoMsg('Please sign in to access your subscriber dashboard.');
-    }
+      if (errorParam) {
+        const decoded = decodeURIComponent(errorParam);
+        setErrorMsg(decoded);
+        if (decoded.toLowerCase().includes('already exists') || decoded.toLowerCase().includes('already registered')) {
+          setAccountExists(true);
+        }
+      }
 
-    if (stepParam === 'otp') {
-      setStep('otp');
-      setResendCountdown(30);
-      setInfoMsg('Please enter the 6-digit verification code sent to your email.');
-    }
+      if (noticeParam === 'LoggedOut') {
+        setInfoMsg('You have been signed out safely.');
+      } else if (noticeParam === 'PleaseSignIn') {
+        setInfoMsg('Please sign in to access your subscriber dashboard.');
+      }
+
+      if (stepParam === 'otp') {
+        setStep('otp');
+        setResendCountdown(30);
+        setInfoMsg('Please enter the 6-digit verification code sent to your email.');
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [searchParams]);
 
   // Resend Countdown Timer
@@ -380,11 +383,11 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
           {/* Unified Auth Card with In-Place Text Swaps */}
           <div className="bikko-auth-wrapper">
             <div className="auth-header auth-swap-text">
-              <h2>
+              <h1>
                 {step === 'email' && (mode === 'login' ? 'Welcome Back' : 'Create an Account')}
                 {step === 'otp' && (mode === 'login' ? 'Enter Verification Code' : 'Verify Your Email')}
                 {step === '2fa' && 'Two-Factor Authentication'}
-              </h2>
+              </h1>
               <p>
                 {step === 'email' &&
                   (mode === 'login'
@@ -443,6 +446,9 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                   <div className="auth-form-section">
                     <form onSubmit={handleEmailSubmit} className="auth-form">
                       <div className="auth-field">
+                        <label htmlFor="auth-email" className="sr-only">
+                          Email address
+                        </label>
                         <input
                           type="email"
                           id="auth-email"
@@ -592,6 +598,9 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                 <div className="auth-form-section" style={{ width: '100%' }}>
                   <form onSubmit={handleVerifyOtp} className="auth-form">
                     <div className="auth-field">
+                      <label htmlFor="auth-otp" className="sr-only">
+                        6-digit verification code
+                      </label>
                       <input
                         type="text"
                         id="auth-otp"
@@ -681,6 +690,9 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                   <form onSubmit={handleVerifyOtp} className="auth-form">
                     {!useBackupCode ? (
                       <div className="auth-field">
+                        <label htmlFor="auth-totp" className="sr-only">
+                          6-digit authenticator app code
+                        </label>
                         <input
                           type="text"
                           id="auth-totp"
@@ -704,6 +716,9 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                       </div>
                     ) : (
                       <div className="auth-field">
+                        <label htmlFor="auth-backup" className="sr-only">
+                          Backup security code
+                        </label>
                         <input
                           type="text"
                           id="auth-backup"
@@ -822,7 +837,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
           <div className="terms-card">
             <div className="terms-header">
               <div>
-                <h3 id="terms-modal-title">Terms &amp; Privacy Notice</h3>
+                <h2 id="terms-modal-title">Terms &amp; Privacy Notice</h2>
                 <p>Subscriber agreements and privacy policy for Bikko Studio</p>
               </div>
               <button
@@ -837,7 +852,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
 
             <div className="terms-body">
               <section className="terms-section">
-                <h4>1. Terms of Service</h4>
+                <h3>1. Terms of Service</h3>
                 <p>
                   Welcome to Bikko Studio. By registering a subscriber account, you agree to comply with
                   these Terms of Service:
@@ -863,7 +878,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
               </section>
 
               <section className="terms-section">
-                <h4>2. Privacy Notice &amp; Data Protection</h4>
+                <h3>2. Privacy Notice &amp; Data Protection</h3>
                 <p>
                   We are committed to privacy-first, minimal data collection practices under global standards:
                 </p>

@@ -204,7 +204,11 @@
 }
 
 .contact-info-card h3,
-.contact-quick-links-card h3 {
+.contact-info-card h2,
+.info-card h3,
+.info-card h2,
+.contact-quick-links-card h3,
+.contact-quick-links-card h2 {
   font-family: var(--font-heading), 'Poppins', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;

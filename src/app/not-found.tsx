@@ -5,6 +5,7 @@ import BikkoMark from './components/BikkoMark';
 export default function NotFound() {
   return (
     <main
+      id="main-content"
       style={{
         minHeight: '80vh',
         display: 'flex',
