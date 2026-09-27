@@ -1,11 +1,27 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import BikkoMark from './BikkoMark';
 import { usePageTransition } from './PageTransition';
 import { useSettings } from './SettingsProvider';
+
+const subscribeToReducedMotion = (callback: () => void) => {
+  if (typeof window === 'undefined') return () => {};
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  mq.addEventListener?.('change', callback);
+  return () => {
+    mq.removeEventListener?.('change', callback);
+  };
+};
+
+const getReducedMotionSnapshot = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+};
+
+const getReducedMotionServerSnapshot = () => false;
 
 type TabKey = 'studio' | 'projects' | 'gallery' | 'about' | 'dashboard';
 
@@ -13,7 +29,7 @@ export default function StudioNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { isNavigating, startNavigation } = usePageTransition();
-  const { openSettings } = useSettings();
+  const { openSettings, motion } = useSettings();
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -22,8 +38,12 @@ export default function StudioNav() {
 
   // Scroll state for water droplet detach / rejoin
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const isNavigatingRef = useRef(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const isHoveredRef = useRef<boolean>(false);
+  const minimizeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   // Check current session status
   const checkAuth = useCallback(async () => {
@@ -53,15 +73,82 @@ export default function StudioNav() {
     return () => window.clearTimeout(authTask);
   }, [checkAuth]);
 
-  // Scroll listener for liquid droplet detachment to floating island
+  // Dynamic Island Minimization state & logic (for non-reduced motion views, during dynamic-island mode only)
+
+  // Subscribe to system reduced motion preference using useSyncExternalStore
+  const isSystemReduced = useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot
+  );
+
+  const isReducedMotion = motion === 'reduced' || (motion === 'system' && isSystemReduced);
+  const isNavMinimized = isScrolled && !isReducedMotion && isMinimized;
+
+  const isReducedMotionRef = useRef(isReducedMotion);
+  const isMenuOpenRef = useRef(isMenuOpen);
+  const isScrolledRef = useRef(isScrolled);
+  const isMinimizedRef = useRef(isMinimized);
+  const lastScrollYRef = useRef<number>(0);
+
+  useEffect(() => {
+    isReducedMotionRef.current = isReducedMotion;
+    isMenuOpenRef.current = isMenuOpen;
+    isScrolledRef.current = isScrolled;
+    isMinimizedRef.current = isMinimized;
+  }, [isReducedMotion, isMenuOpen, isScrolled, isMinimized]);
+
+  const clearMinimizeTimer = useCallback(() => {
+    if (minimizeTimerRef.current) {
+      clearTimeout(minimizeTimerRef.current);
+      minimizeTimerRef.current = null;
+    }
+  }, []);
+
+  const startMinimizeTimer = useCallback((delay = 5000) => {
+    clearMinimizeTimer();
+    if (!isScrolledRef.current || isReducedMotionRef.current || isMenuOpenRef.current || isHoveredRef.current) {
+      return;
+    }
+    minimizeTimerRef.current = setTimeout(() => {
+      if (isScrolledRef.current && !isReducedMotionRef.current && !isMenuOpenRef.current && !isHoveredRef.current) {
+        setIsMinimized(true);
+      }
+    }, delay);
+  }, [clearMinimizeTimer, setIsMinimized]);
+
+  // Scroll, wheel, touch, and top-edge mousemove listeners: pop the navbar back up instantly if scrolling or hovering again
   useEffect(() => {
     let ticking = false;
+    lastScrollYRef.current = typeof window !== 'undefined' ? window.scrollY : 0;
+
+    const popBackUpAndResetTimer = () => {
+      // If currently minimized, immediately pop back up into view
+      if (isMinimizedRef.current) {
+        setIsMinimized(false);
+      }
+      // Re-arm the minimize timer once active scrolling stops
+      if (isScrolledRef.current && !isReducedMotionRef.current && !isMenuOpenRef.current && !isHoveredRef.current) {
+        startMinimizeTimer(5000);
+      }
+    };
 
     const onScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrolled = isNavigatingRef.current ? false : currentScrollY > 40;
+
+      // Pop the navbar back up if user scrolls while in dynamic-island mode
+      if (currentScrollY !== lastScrollYRef.current) {
+        popBackUpAndResetTimer();
+      }
+      lastScrollYRef.current = currentScrollY;
+
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const scrolled = isNavigatingRef.current ? false : window.scrollY > 40;
           setIsScrolled((prev) => {
+            if (prev && !scrolled) {
+              setIsMinimized(false);
+            }
             return prev === scrolled ? prev : scrolled;
           });
           ticking = false;
@@ -70,7 +157,32 @@ export default function StudioNav() {
       }
     };
 
+    // Catch wheel gestures (trackpad or mouse wheel) even on boundary states
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > 0.5 || Math.abs(e.deltaX) > 0.5) {
+        popBackUpAndResetTimer();
+      }
+    };
+
+    // Catch touch gestures on mobile / tablet
+    const onTouchMove = () => {
+      popBackUpAndResetTimer();
+    };
+
+    // Catch mouse moving towards top edge when minimized
+    const onMouseMove = (e: MouseEvent) => {
+      if (isMinimizedRef.current && e.clientY <= 24) {
+        setIsMinimized(false);
+        isHoveredRef.current = true;
+        clearMinimizeTimer();
+      }
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+
     // Check initial scroll state
     const initialStateTask = window.requestAnimationFrame(() => {
       if (window.scrollY > 40) setIsScrolled(true);
@@ -79,8 +191,51 @@ export default function StudioNav() {
     return () => {
       window.cancelAnimationFrame(initialStateTask);
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('mousemove', onMouseMove);
     };
-  }, []);
+  }, [startMinimizeTimer, clearMinimizeTimer]);
+
+  // Handle idle minimization timer (only schedules when in dynamic-island mode and not reduced motion)
+  useEffect(() => {
+    if (isScrolled && !isReducedMotion && !isMenuOpen && !isHoveredRef.current) {
+      startMinimizeTimer(5000);
+    } else {
+      clearMinimizeTimer();
+    }
+    return () => clearMinimizeTimer();
+  }, [isScrolled, isReducedMotion, isMenuOpen, startMinimizeTimer, clearMinimizeTimer]);
+
+  // Mouse & Focus handlers to prevent minimization while the navbar is in use
+  const handleNavMouseEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    clearMinimizeTimer();
+    setIsMinimized(false);
+  }, [clearMinimizeTimer, setIsMinimized]);
+
+  const handleNavMouseLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    if (isScrolled && !isReducedMotion && !isMenuOpen) {
+      startMinimizeTimer(2500);
+    }
+  }, [isScrolled, isReducedMotion, isMenuOpen, startMinimizeTimer]);
+
+  const handleNavFocus = useCallback(() => {
+    isHoveredRef.current = true;
+    clearMinimizeTimer();
+    setIsMinimized(false);
+  }, [clearMinimizeTimer, setIsMinimized]);
+
+  const handleNavBlur = useCallback((e: React.FocusEvent) => {
+    const nextTarget = e.relatedTarget as Node | null;
+    if (headerRef.current && !headerRef.current.contains(nextTarget)) {
+      isHoveredRef.current = false;
+      if (isScrolled && !isReducedMotion && !isMenuOpen) {
+        startMinimizeTimer(2500);
+      }
+    }
+  }, [isScrolled, isReducedMotion, isMenuOpen, startMinimizeTimer]);
 
   // Handle Sign Out
   const handleSignOut = async () => {
@@ -363,8 +518,13 @@ export default function StudioNav() {
   return (
     <>
       <header
-        className={`studio-nav-header ${isScrolled ? 'is-scrolled' : ''}`}
+        ref={headerRef}
+        className={`studio-nav-header ${isScrolled ? 'is-scrolled' : ''} ${isNavMinimized ? 'is-minimized' : ''}`}
         role="banner"
+        onMouseEnter={handleNavMouseEnter}
+        onMouseLeave={handleNavMouseLeave}
+        onFocusCapture={handleNavFocus}
+        onBlurCapture={handleNavBlur}
       >
         <div className="studio-nav-inner">
           {/* Island 1: Logo Bubble */}
@@ -385,7 +545,7 @@ export default function StudioNav() {
               }}
             >
               <div className="studio-nav-logo-wrap">
-                <BikkoMark width={44} height={38} />
+                <BikkoMark width={32} height={28} />
               </div>
             </Link>
           </div>
@@ -558,6 +718,35 @@ export default function StudioNav() {
             </div>
           </div>
         </div>
+
+        {/* Dynamic Island Minimized Top Indicator Bar (non-reduced motion, scrolled dynamic-island mode only) */}
+        {isScrolled && !isReducedMotion && (
+          <button
+            type="button"
+            className={`nav-minimized-trigger ${isNavMinimized ? 'is-visible' : ''}`}
+            aria-label="Expand navigation bar"
+            title="Expand navigation bar"
+            tabIndex={isNavMinimized ? 0 : -1}
+            aria-hidden={!isNavMinimized}
+            onMouseEnter={() => {
+              setIsMinimized(false);
+              isHoveredRef.current = true;
+              clearMinimizeTimer();
+            }}
+            onClick={() => {
+              setIsMinimized(false);
+              isHoveredRef.current = true;
+              clearMinimizeTimer();
+            }}
+            onFocus={() => {
+              setIsMinimized(false);
+              isHoveredRef.current = true;
+              clearMinimizeTimer();
+            }}
+          >
+            <span className="nav-minimized-bar" />
+          </button>
+        )}
       </header>
     </>
   );

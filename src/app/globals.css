@@ -148,6 +148,44 @@
   transform: translateX(-50%) translateY(0) !important;
 }
 
+:root[data-motion="interactive"] .nav-static-actions,
+:root[data-motion="interactive"] .nav-static-actions.is-open,
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn,
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-icon-btn {
+  transform: none !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions {
+  transition: opacity 0.18s ease, max-width 0.18s ease, margin 0.18s ease !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn {
+  transition: opacity 0.18s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-menu-auth .burger-icon-btn,
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-menu-section .burger-icon-btn,
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-menu-divider {
+  transition-delay: 0s !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn:hover,
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn:active,
+:root[data-motion="interactive"] .nav-static-actions .burger-signup-btn:hover,
+:root[data-motion="interactive"] .hamburger-btn:hover,
+:root[data-motion="interactive"] .hamburger-btn:active {
+  transform: none !important;
+}
+
+:root[data-motion="interactive"] .hamburger-btn .hamburger-line {
+  transition: transform 0.18s ease, opacity 0.18s ease !important;
+}
+
+:root[data-motion="interactive"] .studio-nav-header:not(.is-scrolled) .studio-nav-center.nav-menu-open {
+  transform: translate(-50%, -50%) !important;
+  transition: opacity 0.18s ease !important;
+}
+
 :root[data-motion="interactive"] .settings-modal-dialog {
   transform: none !important;
   animation: settingsModalFadeIn 0.2s ease forwards !important;
@@ -171,6 +209,7 @@
   animation-duration: 0.001ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
+  transition-delay: 0s !important;
   scroll-behavior: auto !important;
 }
 
@@ -184,6 +223,21 @@
   animation-duration: revert !important;
   animation-iteration-count: infinite !important;
   transition-duration: revert !important;
+}
+
+/* Explicitly retain floating island navbar detachment under reduced motion */
+:root[data-motion="reduced"] .studio-nav-header,
+:root[data-motion="reduced"] .studio-nav-header::before,
+:root[data-motion="reduced"] .bubble-island,
+:root[data-motion="reduced"] .studio-nav-left,
+:root[data-motion="reduced"] .studio-nav-center,
+:root[data-motion="reduced"] .studio-nav-slider,
+:root[data-motion="reduced"] .nav-burger-bubble,
+:root[data-motion="reduced"] .studio-nav-logo-wrap svg,
+:root[data-motion="reduced"] .nav-slider-indicator {
+  transition-duration: revert !important;
+  transition-delay: revert !important;
+  animation-duration: revert !important;
 }
 
 :root[data-motion="reduced"] .skeleton-shimmer::after {
@@ -202,6 +256,7 @@
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 
@@ -214,6 +269,21 @@
     animation-duration: revert !important;
     animation-iteration-count: infinite !important;
     transition-duration: revert !important;
+  }
+
+  /* Explicitly retain floating island navbar detachment under system reduced motion */
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .studio-nav-header,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .studio-nav-header::before,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .bubble-island,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .studio-nav-left,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .studio-nav-center,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .studio-nav-slider,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .nav-burger-bubble,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .studio-nav-logo-wrap svg,
+  :root:not([data-motion="full"]):not([data-motion="interactive"]) .nav-slider-indicator {
+    transition-duration: revert !important;
+    transition-delay: revert !important;
+    animation-duration: revert !important;
   }
 
   :root:not([data-motion="full"]):not([data-motion="interactive"]) .skeleton-shimmer::after {

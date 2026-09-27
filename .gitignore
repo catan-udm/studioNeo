@@ -43,5 +43,7 @@ next-env.d.ts
 
 # Bot Scripts
 /scripts
+
+# Test artifacts
 /test-artifacts
 /scratch

@@ -6,6 +6,7 @@ import StudioNav from './components/StudioNav';
 import { PageTransitionProvider, PageTransitionContent } from './components/PageTransition';
 import { SettingsProvider } from './components/SettingsProvider';
 import SettingsModal from './components/SettingsModal';
+import ServiceWorkerRegister from './components/ServiceWorkerRegister';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800'],
@@ -86,6 +87,16 @@ export const metadata: Metadata = {
     description:
       'Algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkeys.',
   },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/manifest.webmanifest',
 };
 
 // Global Schema.org Structured Data (ISO 8601 timestamps, ISO 639-1 language, ISO 3166-1 country code)
@@ -98,7 +109,7 @@ const structuredData = {
       name: 'bikko.studio',
       alternateName: 'studioNeo Atelier',
       url: 'https://bikko.studio',
-      logo: 'https://bikko.studio/favicon.ico',
+      logo: 'https://bikko.studio/icon.svg',
       description:
         'Creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey authentication.',
       foundingDate: '2026-01-01',
@@ -171,12 +182,17 @@ export default function RootLayout({
             `,
           }}
         />
+        <link rel="preconnect" href="https://bikkostudio.blob.core.windows.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://bikkostudio.blob.core.windows.net" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body>
         {/* ISO/IEC 40500 / WCAG 2.4.1 Skip Link */}
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
+        <ServiceWorkerRegister />
         <SettingsProvider>
           <PageTransitionProvider>
             <StudioNav />

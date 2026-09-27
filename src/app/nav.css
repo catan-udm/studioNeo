@@ -64,6 +64,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 46px;
+  height: 46px;
   pointer-events: auto;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0);
@@ -72,8 +74,7 @@
     border-color 0.35s ease,
     box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
     backdrop-filter 0.35s ease,
-    width 0.35s ease,
-    height 0.35s ease;
+    opacity 0.28s ease;
   position: relative;
   z-index: 5;
 }
@@ -82,6 +83,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
   text-decoration: none;
   color: var(--text-primary);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -97,15 +100,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
-  height: 44px;
+  width: 100%;
+  height: 100%;
 }
 
 .studio-nav-logo-wrap svg {
-  width: 44px;
-  height: 38px;
-  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 32px;
+  height: 28px;
+  display: block;
+  flex-shrink: 0;
 }
 
 /* ========================================================================
@@ -171,13 +174,11 @@
 }
 
 .studio-nav-header.is-scrolled .studio-nav-left .studio-nav-logo-wrap {
-  width: 26px;
-  height: 24px;
-}
-
-.studio-nav-header.is-scrolled .studio-nav-left .studio-nav-logo-wrap svg {
-  width: 26px;
-  height: 24px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .studio-nav-header.is-scrolled .studio-nav-left:hover {
@@ -228,7 +229,7 @@
 
 @media (max-width: 860px) {
   .studio-nav-center {
-    left: 50vw;
+    left: 50%;
   }
 
   .studio-nav-header.is-scrolled .studio-nav-center {
@@ -899,7 +900,8 @@
     box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
     backdrop-filter 0.35s ease,
     width 0.35s ease,
-    height 0.35s ease;
+    height 0.35s ease,
+    opacity 0.28s ease;
 }
 
 /* Island 3 Detached State */
@@ -926,6 +928,178 @@
       0 16px 32px -2px rgba(0, 0, 0, 0.65),
       0 32px 64px -6px rgba(0, 0, 0, 0.75),
       inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  }
+}
+
+/* ========================================================================
+   Dynamic Island Minimized Mode (Auto-hide when not in use)
+   - Applies ONLY during dynamic island mode (.is-scrolled.is-minimized)
+   - Never applies on static navbar mode (!is-scrolled)
+   - Never applies under reduced motion (:root[data-motion="reduced"])
+   ======================================================================== */
+
+.studio-nav-header.is-scrolled.is-minimized .studio-nav-left {
+  transform: translateY(-56px) scale(0.92);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.studio-nav-header.is-scrolled.is-minimized .studio-nav-center {
+  transform: translate(-50%, -50%) translateY(-56px) scale(0.92);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.studio-nav-header.is-scrolled.is-minimized .nav-burger-bubble {
+  transform: translateY(-56px) scale(0.92);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.studio-nav-header.is-scrolled.is-minimized .nav-burger-popover {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Minimized Top Indicator Bar & Frosted Capsule Dock */
+.nav-minimized-trigger {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  width: 280px;
+  height: 24px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-top: none;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.08),
+    inset 0 -1px 0.5px rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  z-index: 1001;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s ease,
+    visibility 0.28s ease,
+    width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.25s ease,
+    box-shadow 0.28s ease;
+}
+
+:root[data-theme="dark"] .nav-minimized-trigger,
+:root[data-resolved-theme="dark"] .nav-minimized-trigger {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: none;
+  box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0.5px rgba(255, 255, 255, 0.1);
+}
+
+.nav-minimized-trigger.is-visible {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nav-minimized-bar {
+  display: block;
+  width: 180px;
+  height: 5px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.45);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.7);
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    box-shadow 0.28s ease;
+}
+
+:root[data-theme="dark"] .nav-minimized-bar,
+:root[data-resolved-theme="dark"] .nav-minimized-bar {
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.4);
+}
+
+.nav-minimized-trigger:hover,
+.nav-minimized-trigger:focus-visible {
+  width: 340px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 24px -2px rgba(37, 99, 235, 0.22),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="dark"] .nav-minimized-trigger:hover,
+:root[data-resolved-theme="dark"] .nav-minimized-trigger:focus-visible {
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 8px 24px -2px rgba(37, 99, 235, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.nav-minimized-trigger:hover .nav-minimized-bar,
+.nav-minimized-trigger:focus-visible .nav-minimized-bar {
+  width: 230px;
+  height: 5px;
+  background: var(--brand-primary, #2563eb);
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.65),
+    0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.nav-minimized-trigger:focus-visible {
+  outline: 2px solid var(--brand-primary, #2563eb);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+@media (max-width: 1024px) {
+  .nav-minimized-trigger {
+    width: 230px;
+    height: 24px;
+  }
+  .nav-minimized-bar {
+    width: 150px;
+  }
+  .nav-minimized-trigger:hover,
+  .nav-minimized-trigger:focus-visible {
+    width: 270px;
+    height: 26px;
+  }
+  .nav-minimized-trigger:hover .nav-minimized-bar,
+  .nav-minimized-trigger:focus-visible .nav-minimized-bar {
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-minimized-trigger {
+    width: 180px;
+    height: 22px;
+  }
+  .nav-minimized-bar {
+    width: 115px;
+  }
+  .nav-minimized-trigger:hover,
+  .nav-minimized-trigger:focus-visible {
+    width: 210px;
+    height: 24px;
+  }
+  .nav-minimized-trigger:hover .nav-minimized-bar,
+  .nav-minimized-trigger:focus-visible .nav-minimized-bar {
+    width: 140px;
   }
 }
 
@@ -991,17 +1165,121 @@
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* Accessibility: Respect Reduced Motion */
+/* Accessibility: Respect Reduced Motion (Retains floating island detachment animation) */
 @media (prefers-reduced-motion: reduce) {
+  /* Static mode and popover burger menus: instant toggle without sliding/stagger */
+  .nav-static-actions,
+  .nav-static-actions.is-open,
+  .nav-static-actions .burger-icon-btn,
+  .nav-static-actions.is-open .burger-icon-btn,
+  .nav-static-actions .burger-menu-divider,
+  .nav-burger-popover,
+  .hamburger-btn,
+  .hamburger-btn .hamburger-line,
+  .burger-icon-tooltip {
+    transition: none !important;
+    animation: none !important;
+    transition-delay: 0s !important;
+  }
 
-  .studio-nav-header::before,
-  .studio-nav-left,
-  .studio-nav-center,
-  .studio-nav-slider,
-  .nav-burger-bubble,
-  .nav-docked-actions {
-    transition: opacity 0.2s ease !important;
+  .nav-static-actions,
+  .nav-static-actions.is-open,
+  .nav-static-actions .burger-icon-btn,
+  .nav-static-actions.is-open .burger-icon-btn,
+  .nav-static-actions .burger-icon-btn:hover,
+  .nav-static-actions .burger-icon-btn:active,
+  .nav-static-actions .burger-signup-btn:hover,
+  .hamburger-btn:hover,
+  .hamburger-btn:active {
     transform: none !important;
+  }
+
+  .nav-static-actions.is-open .burger-menu-auth .burger-icon-btn,
+  .nav-static-actions.is-open .burger-menu-section .burger-icon-btn,
+  .nav-static-actions.is-open .burger-menu-divider {
+    transition-delay: 0s !important;
+    transition: none !important;
+  }
+
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center.nav-menu-open {
+    transform: translate(-50%, -50%) !important;
+    transition: none !important;
+  }
+
+  /* Retain smooth floating island detachment physics when scrolling */
+  .studio-nav-header::before {
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .studio-nav-left {
+    transition: transform 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+      background-color 0.35s ease,
+      border-color 0.35s ease,
+      box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+      backdrop-filter 0.35s ease,
+      width 0.35s ease,
+      height 0.35s ease !important;
+  }
+
+  .studio-nav-center {
+    transition: transform 0.48s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .nav-burger-bubble {
+    transition: transform 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+      background-color 0.35s ease,
+      border-color 0.35s ease,
+      box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+      backdrop-filter 0.35s ease,
+      width 0.35s ease,
+      height 0.35s ease !important;
+  }
+
+  .bubble-island {
+    transition: background-color 0.35s ease,
+      border-color 0.35s ease,
+      box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+      backdrop-filter 0.35s ease,
+      -webkit-backdrop-filter 0.35s ease !important;
+  }
+
+  .studio-nav-slider {
+    transition: background-color 0.35s ease,
+      border-color 0.35s ease,
+      box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+      padding 0.35s ease !important;
+  }
+
+
+  .nav-slider-indicator {
+    transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.2s ease !important;
+  }
+
+  /* Disable dynamic-island minimization under system reduced motion */
+  .nav-minimized-trigger {
+    display: none !important;
+  }
+
+  .studio-nav-header.is-scrolled.is-minimized .studio-nav-left {
+    transform: translateY(12px) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .studio-nav-header.is-scrolled.is-minimized .studio-nav-center {
+    transform: translate(-50%, -50%) translateY(12px) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .studio-nav-header.is-scrolled.is-minimized .nav-burger-bubble {
+    transform: translateY(12px) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 }
 
@@ -1111,14 +1389,19 @@
     padding: 0 0.75rem;
   }
 
-  .studio-nav-logo-wrap {
+  .studio-nav-left {
     width: 38px;
-    height: 34px;
+    height: 38px;
+  }
+
+  .studio-nav-logo-wrap {
+    width: 100%;
+    height: 100%;
   }
 
   .studio-nav-logo-wrap svg {
-    width: 34px;
-    height: 28px;
+    width: 26px;
+    height: 23px;
   }
 
   .studio-nav-slider {
@@ -1143,11 +1426,6 @@
   .studio-nav-header.is-scrolled .studio-nav-left {
     width: 38px;
     height: 38px;
-  }
-
-  .studio-nav-header.is-scrolled .studio-nav-logo-wrap svg {
-    width: 24px;
-    height: 21px;
   }
 
   .studio-nav-header.is-scrolled .studio-nav-slider {
@@ -1330,8 +1608,57 @@
    Motion Modes Support for Navigation
    ======================================================================== */
 /* Interactive Motion (non-sliding): eliminate sliding expansion */
+:root[data-motion="interactive"] .nav-static-actions,
+:root[data-motion="interactive"] .nav-static-actions.is-open,
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn,
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-icon-btn {
+  transform: none !important;
+}
+
 :root[data-motion="interactive"] .nav-static-actions {
-  transition: opacity 0.18s ease;
+  transition: opacity 0.18s ease, max-width 0.18s ease, margin 0.18s ease !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn {
+  transition: opacity 0.18s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-menu-auth .burger-icon-btn,
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-menu-section .burger-icon-btn,
+:root[data-motion="interactive"] .nav-static-actions.is-open .burger-menu-divider {
+  transition-delay: 0s !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions .burger-menu-divider {
+  transition: opacity 0.18s ease !important;
+  transition-delay: 0s !important;
+}
+
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn:hover,
+:root[data-motion="interactive"] .nav-static-actions .burger-icon-btn:active,
+:root[data-motion="interactive"] .nav-static-actions .burger-signup-btn:hover,
+:root[data-motion="interactive"] .hamburger-btn:hover,
+:root[data-motion="interactive"] .hamburger-btn:active {
+  transform: none !important;
+}
+
+:root[data-motion="interactive"] .hamburger-btn .hamburger-line {
+  transition: transform 0.18s ease, opacity 0.18s ease !important;
+}
+
+:root[data-motion="interactive"] .studio-nav-header:not(.is-scrolled) .studio-nav-center.nav-menu-open {
+  transform: translate(-50%, -50%) !important;
+  transition: opacity 0.18s ease !important;
+}
+
+:root[data-motion="interactive"] .burger-menu-horizontal .burger-icon-tooltip {
+  transform: translateX(-50%) !important;
+  transition: opacity 0.15s ease !important;
+}
+
+:root[data-motion="interactive"] .burger-menu-horizontal .burger-icon-btn:hover .burger-icon-tooltip,
+:root[data-motion="interactive"] .burger-menu-horizontal .burger-icon-btn:focus-visible .burger-icon-tooltip {
+  transform: translateX(-50%) !important;
 }
 
 :root[data-motion="interactive"] .studio-nav-header.is-scrolled .bubble-island {
@@ -1346,12 +1673,122 @@
   transition: left 0.2s ease, width 0.2s ease;
 }
 
-/* Reduced Motion: instant transitions, no decorative movement */
+/* Reduced Motion: static menu is instant, but floating island detachment is preserved */
 :root[data-motion="reduced"] .nav-static-actions,
-:root[data-motion="reduced"] .bubble-island,
-:root[data-motion="reduced"] .nav-slider-indicator,
-:root[data-motion="reduced"] .studio-nav-header::before,
+:root[data-motion="reduced"] .nav-static-actions.is-open,
+:root[data-motion="reduced"] .nav-static-actions .burger-icon-btn,
+:root[data-motion="reduced"] .nav-static-actions.is-open .burger-icon-btn,
+:root[data-motion="reduced"] .nav-static-actions .burger-menu-divider,
+:root[data-motion="reduced"] .hamburger-btn,
+:root[data-motion="reduced"] .hamburger-btn .hamburger-line,
+:root[data-motion="reduced"] .burger-icon-tooltip,
 :root[data-motion="reduced"] .nav-burger-popover {
   transition: none !important;
   animation: none !important;
+  transition-delay: 0s !important;
+}
+
+:root[data-motion="reduced"] .nav-static-actions,
+:root[data-motion="reduced"] .nav-static-actions.is-open,
+:root[data-motion="reduced"] .nav-static-actions .burger-icon-btn,
+:root[data-motion="reduced"] .nav-static-actions.is-open .burger-icon-btn,
+:root[data-motion="reduced"] .nav-static-actions .burger-icon-btn:hover,
+:root[data-motion="reduced"] .nav-static-actions .burger-icon-btn:active,
+:root[data-motion="reduced"] .nav-static-actions .burger-signup-btn:hover,
+:root[data-motion="reduced"] .hamburger-btn:hover,
+:root[data-motion="reduced"] .hamburger-btn:active {
+  transform: none !important;
+}
+
+:root[data-motion="reduced"] .nav-static-actions.is-open .burger-menu-auth .burger-icon-btn,
+:root[data-motion="reduced"] .nav-static-actions.is-open .burger-menu-section .burger-icon-btn,
+:root[data-motion="reduced"] .nav-static-actions.is-open .burger-menu-divider {
+  transition-delay: 0s !important;
+  transition: none !important;
+}
+
+:root[data-motion="reduced"] .burger-menu-horizontal .burger-icon-tooltip {
+  transform: translateX(-50%) !important;
+}
+
+:root[data-motion="reduced"] .studio-nav-header:not(.is-scrolled) .studio-nav-center.nav-menu-open {
+  transform: translate(-50%, -50%) !important;
+  transition: none !important;
+}
+
+/* Explicitly retain floating island navbar detachment transitions */
+:root[data-motion="reduced"] .studio-nav-header::before {
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+:root[data-motion="reduced"] .studio-nav-left {
+  transition: transform 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+    backdrop-filter 0.35s ease,
+    width 0.35s ease,
+    height 0.35s ease !important;
+}
+
+:root[data-motion="reduced"] .studio-nav-center {
+  transition: transform 0.48s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+:root[data-motion="reduced"] .nav-burger-bubble {
+  transition: transform 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+    backdrop-filter 0.35s ease,
+    width 0.35s ease,
+    height 0.35s ease !important;
+}
+
+:root[data-motion="reduced"] .bubble-island {
+  transition: background-color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+    backdrop-filter 0.35s ease,
+    -webkit-backdrop-filter 0.35s ease !important;
+}
+
+:root[data-motion="reduced"] .studio-nav-slider {
+  transition: background-color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.48s cubic-bezier(0.34, 1.3, 0.64, 1),
+    padding 0.35s ease !important;
+}
+
+
+
+:root[data-motion="reduced"] .nav-slider-indicator {
+  transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease !important;
+}
+
+/* Reduced Motion: Disable dynamic-island minimization completely */
+:root[data-motion="reduced"] .nav-minimized-trigger {
+  display: none !important;
+}
+
+:root[data-motion="reduced"] .studio-nav-header.is-scrolled.is-minimized .studio-nav-left {
+  transform: translateY(12px) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+:root[data-motion="reduced"] .studio-nav-header.is-scrolled.is-minimized .studio-nav-center {
+  transform: translate(-50%, -50%) translateY(12px) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+:root[data-motion="reduced"] .studio-nav-header.is-scrolled.is-minimized .nav-burger-bubble {
+  transform: translateY(12px) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }

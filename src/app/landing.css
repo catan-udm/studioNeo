@@ -4,10 +4,11 @@
    ======================================================================== */
 
 .landing-page {
-  min-height: calc(100vh - 65px);
+  min-height: calc(100vh - 68px);
+  min-height: calc(100dvh - 68px);
   position: relative;
   background: var(--bg-canvas);
-  color: #000;
+  color: var(--text-primary);
   font-family: var(--font-body);
 }
 
@@ -26,7 +27,7 @@
 }
 
 .landing-nav a {
-  color: #000;
+  color: var(--text-primary);
   font-size: 16px;
   font-weight: 500;
   line-height: 1.45;
@@ -70,7 +71,7 @@
 
 .landing-copy h1 {
   margin: 0;
-  color: #000;
+  color: var(--text-primary);
   font-size: 56px;
   font-weight: 700;
   letter-spacing: -1.12px;
@@ -81,7 +82,7 @@
   width: min(360px, 100%);
   max-width: 100%;
   margin: 0;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--text-secondary);
   font-size: 24px;
   font-weight: 500;
   letter-spacing: -0.12px;
@@ -100,14 +101,14 @@
   align-items: center;
   justify-content: center;
   padding: 12px 28px;
-  border: 1px solid #000;
+  border: 1px solid var(--border-strong);
   border-radius: 9999px;
-  color: #000;
+  color: var(--text-primary);
   font-size: 18px;
   font-weight: 500;
   line-height: 1.45;
   text-decoration: none;
-  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .landing-button:hover {
@@ -116,25 +117,25 @@
 }
 
 .landing-button-primary {
-  background: #000;
-  color: #fff;
-  border-color: #000;
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  border-color: var(--text-primary);
 }
 
 .landing-button-primary:hover {
-  background: #222;
-  color: #fff;
+  opacity: 0.9;
+  color: var(--bg-canvas);
 }
 
 .landing-button-secondary {
-  background: #fff;
-  color: #000;
-  border-color: #000;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 
 .landing-button-secondary:hover {
-  background: #f7f7f7;
-  color: #000;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
 }
 
 .code-art {

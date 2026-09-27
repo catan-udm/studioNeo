@@ -8,7 +8,6 @@ import {
   GalleryWork,
   ResidentArtist,
 } from './galleryData';
-import GallerySkeleton from '../components/GallerySkeleton';
 import './gallery.css';
 
 type CategoryFilter = 'All' | 'Generative' | 'Kinetic' | 'Vectors' | 'Mono' | 'Vaults';
@@ -134,13 +133,6 @@ export default function GalleryClient() {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [burstHeartId, setBurstHeartId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Graceful mount timer to show smooth skeleton and prevent layout popping
-    const timer = setTimeout(() => setIsReady(true), 150);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Sync with localStorage on client mount
   useEffect(() => {
@@ -356,13 +348,6 @@ export default function GalleryClient() {
     };
   }, [activeWork, checkoutWork]);
 
-  if (!isReady) {
-    return (
-      <main id="main-content" className="gallery-page">
-        <GallerySkeleton />
-      </main>
-    );
-  }
 
   return (
     <main id="main-content" className="gallery-page">
