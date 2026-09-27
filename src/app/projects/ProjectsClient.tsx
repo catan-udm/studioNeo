@@ -285,6 +285,9 @@ export default function ProjectsClient() {
                             src={item.src}
                             alt={item.title}
                             loading="lazy"
+                            decoding="async"
+                            width={item.aspectRatio === 'wide' ? 840 : item.aspectRatio === 'tall' ? 300 : 420}
+                            height={420}
                           />
                         </div>
                         <div className="media-card-badge">
@@ -362,6 +365,9 @@ export default function ProjectsClient() {
                           src={item.src}
                           alt={item.title}
                           loading="lazy"
+                          decoding="async"
+                          width={400}
+                          height={260}
                         />
                       </div>
                       <div className="project-grid-card-badge">
@@ -448,7 +454,13 @@ export default function ProjectsClient() {
             </button>
 
             <div className="lightbox-image-wrap">
-              <img src={currentMedia.src} alt={currentMedia.title} />
+              <img
+                src={currentMedia.src}
+                alt={currentMedia.title}
+                decoding="async"
+                width={900}
+                height={600}
+              />
             </div>
 
             <div className="lightbox-info">

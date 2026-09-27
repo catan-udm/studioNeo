@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSettings, UiScaleMode } from '../components/SettingsProvider';
+import { getAuthenticatedSession } from '@/lib/clientAuthCache';
 import './settings.css';
 
 export default function SettingsClient() {
@@ -33,8 +34,7 @@ export default function SettingsClient() {
         }
       } catch {}
 
-      fetch('/api/auth/me')
-        .then((res) => res.json())
+      getAuthenticatedSession()
         .then((data) => {
           if (data?.authenticated) {
             setIsAuthenticated(true);

@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { getAuthenticatedSession } from '@/lib/clientAuthCache';
 import './landing.css';
 
 interface GalleryItem {
@@ -73,13 +74,9 @@ function LandingContent() {
   const [revealedIds, setRevealedIds] = useState<number[]>([]);
   const tileMetaRef = useRef<Map<number, { revealedAt: number; maxExpiresAt: number }>>(new Map());
 
-  // Asynchronous non-blocking session check
+  // Asynchronous non-blocking session check with shared cache
   useEffect(() => {
-    fetch('/api/auth/me', {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-    })
-      .then((res) => res.json())
+    getAuthenticatedSession()
       .then((data) => {
         if (data.authenticated) {
           setAuthenticated(true);
@@ -127,6 +124,17 @@ function LandingContent() {
       };
     }
 
+    const isReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReduced) {
+      // Respect accessibility preference: static selection, no CPU cycle churn
+      initTimer = setTimeout(() => {
+        setRevealedIds([galleryItems[0].id, galleryItems[2].id]);
+      }, 0);
+      return () => {
+        if (initTimer) clearTimeout(initTimer);
+      };
+    }
+
     const tileMeta = tileMetaRef.current;
     const now = Date.now();
 
@@ -150,6 +158,9 @@ function LandingContent() {
     }, 0);
 
     const cycleInterval = window.setInterval(() => {
+      // Skip updates when browser tab is inactive/backgrounded to preserve battery & CPU
+      if (typeof document !== 'undefined' && document.hidden) return;
+
       const currentTime = Date.now();
 
       setRevealedIds((currentRevealed) => {
@@ -168,15 +179,12 @@ function LandingContent() {
         }
 
         // 2. Truly random expiration: running GIFs don't need to reach max concurrent to expire!
-        // Any running GIF visible for at least 1.1s is eligible to randomly expire.
         const eligibleToExpire = surviving.filter((id) => {
           const meta = tileMeta.get(id);
           return meta && currentTime - meta.revealedAt >= 1100;
         });
 
-        // If there are at least 2 active tiles and we have eligible ones, roll a random chance to expire one
         if (surviving.length >= 2 && eligibleToExpire.length > 0) {
-          // Higher chance if 4+ are active, moderate chance for 2-3 active tiles
           const expireChance = surviving.length >= 4 ? 0.7 : 0.38;
           if (Math.random() < expireChance) {
             const randomPick = eligibleToExpire[Math.floor(Math.random() * eligibleToExpire.length)];
@@ -214,7 +222,7 @@ function LandingContent() {
 
         return hasChanges ? surviving : currentRevealed;
       });
-    }, 480);
+    }, 1200);
 
     return () => {
       window.clearInterval(cycleInterval);

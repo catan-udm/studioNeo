@@ -6,6 +6,7 @@ import Link from 'next/link';
 import './dashboard.css';
 import { startRegistration } from '@simplewebauthn/browser';
 import { useSettings } from '../components/SettingsProvider';
+import { getAuthenticatedSession, invalidateAuthCache } from '@/lib/clientAuthCache';
 
 interface Perk {
   id: number;
@@ -51,11 +52,7 @@ function DashboardContent() {
 
   const fetchSession = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me', {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-      });
-      const data = await res.json();
+      const data = await getAuthenticatedSession({ forceRefresh: true });
       if (data.authenticated && data.subscriber) {
         setSubscriber(data.subscriber);
         setPerks(data.perks || []);
@@ -136,6 +133,7 @@ function DashboardContent() {
     } catch (err) {
       console.error('Failed to log out:', err);
     } finally {
+      invalidateAuthCache();
       setSubscriber(null);
       setPerks([]);
       setPasskeys([]);
