@@ -313,80 +313,21 @@
   }
 }
 
-/* System Dark Mode (when not explicitly overridden to light) */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg-canvas: #090d16;
-    --bg-surface: #111827;
-    --bg-subtle: #1f2937;
-    --border-subtle: #374151;
-    --border-strong: #4b5563;
+/* ========================================================================
+   THEME PALETTES & HARDWARE-AWARE DISPLAY ADAPTATION
+   - Light Theme: Crisp, high-contrast, clean minimalist whites & neutrals
+   - Dark Theme (Non-OLED): Normal neutral very dark gray (#121316 canvas, #191b20 surface)
+   - Dark Theme (OLED): Pure Blacks (#000000 canvas, #080808 surface) with pure pixel shutoff
+   ======================================================================== */
 
-    --text-primary: #f9fafb;
-    --text-secondary: #d1d5db;
-    --text-muted: #9ca3af;
-
-    --brand-primary: #3b82f6;
-    --brand-primary-hover: #60a5fa;
-    --brand-primary-light: #1e293b;
-
-    --color-success: #4ade80;
-    --color-success-bg: #052e16;
-    --color-success-border: #14532d;
-
-    --color-error: #f87171;
-    --color-error-bg: #450a0a;
-    --color-error-border: #7f1d1d;
-
-    --color-warning: #fbbf24;
-    --color-warning-bg: #451a03;
-    --color-warning-border: #78350f;
-
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  }
-}
-
-/* Explicit Dark Theme */
-:root[data-theme="dark"] {
-  --bg-canvas: #090d16;
-  --bg-surface: #111827;
-  --bg-subtle: #1f2937;
-  --border-subtle: #374151;
-  --border-strong: #4b5563;
-
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
-
-  --brand-primary: #3b82f6;
-  --brand-primary-hover: #60a5fa;
-  --brand-primary-light: #1e293b;
-
-  --color-success: #4ade80;
-  --color-success-bg: #052e16;
-  --color-success-border: #14532d;
-
-  --color-error: #f87171;
-  --color-error-bg: #450a0a;
-  --color-error-border: #7f1d1d;
-
-  --color-warning: #fbbf24;
-  --color-warning-bg: #451a03;
-  --color-warning-border: #78350f;
-
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-}
-
-/* Explicit Light Theme (forces light even if OS is dark) */
-:root[data-theme="light"] {
-  --bg-canvas: #f8fafc;
+/* 1. Base / Explicit Light Theme */
+:root,
+:root[data-theme="light"],
+:root[data-resolved-theme="light"] {
+  --bg-canvas: #ffffff;
   --bg-surface: #ffffff;
-  --bg-subtle: #f1f5f9;
-  --border-subtle: #e2e8f0;
+  --bg-subtle: #f4f4f5;
+  --border-subtle: #e5e7eb;
   --border-strong: #cbd5e1;
 
   --text-primary: #0f172a;
@@ -414,6 +355,136 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
+/* 2. Dark Mode: Standard Fallback / Non-OLED Neutral Very Dark Gray (#121316) */
+:root[data-theme="dark"],
+:root[data-resolved-theme="dark"] {
+  --bg-canvas: #121316;
+  --bg-surface: #191b20;
+  --bg-subtle: #22252c;
+  --border-subtle: #2d313a;
+  --border-strong: #3f4450;
+
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+
+  --brand-primary: #3b82f6;
+  --brand-primary-hover: #60a5fa;
+  --brand-primary-light: #1e293b;
+
+  --color-success: #4ade80;
+  --color-success-bg: #052e16;
+  --color-success-border: #14532d;
+
+  --color-error: #f87171;
+  --color-error-bg: #450a0a;
+  --color-error-border: #7f1d1d;
+
+  --color-warning: #fbbf24;
+  --color-warning-bg: #451a03;
+  --color-warning-border: #78350f;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* System Dark Mode (when not explicitly overridden to light) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-resolved-theme="light"]) {
+    --bg-canvas: #121316;
+    --bg-surface: #191b20;
+    --bg-subtle: #22252c;
+    --border-subtle: #2d313a;
+    --border-strong: #3f4450;
+
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-muted: #9ca3af;
+
+    --brand-primary: #3b82f6;
+    --brand-primary-hover: #60a5fa;
+    --brand-primary-light: #1e293b;
+
+    --color-success: #4ade80;
+    --color-success-bg: #052e16;
+    --color-success-border: #14532d;
+
+    --color-error: #f87171;
+    --color-error-bg: #450a0a;
+    --color-error-border: #7f1d1d;
+
+    --color-warning: #fbbf24;
+    --color-warning-bg: #451a03;
+    --color-warning-border: #78350f;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* 3. Dark Mode: Hardware-detected OLED Pure Blacks (HDR / Wide-Gamut Display P3) */
+@media (dynamic-range: high), (color-gamut: p3) {
+  :root[data-theme="dark"]:not([data-oled="false"]):not([data-display="neutral"]),
+  :root[data-resolved-theme="dark"]:not([data-oled="false"]):not([data-display="neutral"]),
+  :root:not([data-theme="light"]):not([data-resolved-theme="light"]):not([data-oled="false"]):not([data-display="neutral"]) {
+    --bg-canvas: #000000;
+    --bg-surface: #080808;
+    --bg-subtle: #121212;
+    --border-subtle: #1c1c1c;
+    --border-strong: #2a2a2a;
+
+    --text-primary: #ffffff;
+    --text-secondary: #d1d5db;
+    --text-muted: #888888;
+
+    --brand-primary: #3b82f6;
+    --brand-primary-hover: #60a5fa;
+    --brand-primary-light: #111827;
+  }
+}
+
+/* 4. Dark Mode: Explicit JS-detected or user-enforced OLED Pure Black */
+:root[data-theme="dark"][data-oled="true"],
+:root[data-resolved-theme="dark"][data-oled="true"],
+:root[data-theme="dark"][data-display="oled"],
+:root[data-resolved-theme="dark"][data-display="oled"] {
+  --bg-canvas: #000000;
+  --bg-surface: #080808;
+  --bg-subtle: #121212;
+  --border-subtle: #1c1c1c;
+  --border-strong: #2a2a2a;
+
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-muted: #888888;
+
+  --brand-primary: #3b82f6;
+  --brand-primary-hover: #60a5fa;
+  --brand-primary-light: #111827;
+}
+
+/* 5. Dark Mode: Explicit Non-OLED Override (Force Neutral Very Dark Gray) */
+:root[data-theme="dark"][data-oled="false"],
+:root[data-resolved-theme="dark"][data-oled="false"],
+:root[data-theme="dark"][data-display="neutral"],
+:root[data-resolved-theme="dark"][data-display="neutral"] {
+  --bg-canvas: #121316;
+  --bg-surface: #191b20;
+  --bg-subtle: #22252c;
+  --border-subtle: #2d313a;
+  --border-strong: #3f4450;
+
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+
+  --brand-primary: #3b82f6;
+  --brand-primary-hover: #60a5fa;
+  --brand-primary-light: #1e293b;
+}
+
 /* 1. Box-Sizing & Margin Reset */
 *,
 *::before,
@@ -434,9 +505,12 @@ html {
 
 body {
   font-family: var(--font-body);
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background-color var(--duration-normal) var(--ease-subtle), color var(--duration-normal) var(--ease-subtle);
 }
 
 /* 2. Semantic Typography & Primitives */

@@ -218,7 +218,7 @@
   max-width: 440px;
   margin: 0 auto;
   font-family: var(--font-body);
-  color: #0f172a;
+  color: var(--text-primary);
   box-sizing: border-box;
   background: transparent;
 }
@@ -241,12 +241,12 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
-  color: #000000;
+  color: var(--text-primary);
 }
 
 .auth-header p {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -266,7 +266,7 @@
 .auth-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-primary);
   text-align: left;
 }
 
@@ -275,15 +275,21 @@
   padding: 0.65rem 0.85rem;
   font-size: 0.875rem;
   border-radius: 6px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
   outline: none;
   box-sizing: border-box;
   font-family: inherit;
-  color: #0f172a;
+  color: var(--text-primary);
+  transition: border-color var(--duration-fast) var(--ease-subtle), background-color var(--duration-normal) var(--ease-subtle);
+}
+
+.auth-input:focus {
+  border-color: var(--brand-primary);
 }
 
 .auth-input::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .auth-btn {
@@ -311,7 +317,7 @@
   align-items: center;
   text-align: center;
   margin: 1.5rem 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -321,7 +327,7 @@
 .auth-divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .auth-divider span {
@@ -335,15 +341,29 @@
 }
 
 .auth-btn-social {
-  background-color: #ffffff;
-  color: #0f172a;
-  border-color: #cbd5e1;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
   font-size: 0.75rem;
+  transition: background-color var(--duration-fast) var(--ease-subtle), border-color var(--duration-fast) var(--ease-subtle);
+}
+
+.auth-btn-social:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--border-strong);
 }
 
 .auth-btn-passkey {
   background-color: #0f172a;
   color: #ffffff;
+  border: 1px solid var(--border-strong);
+}
+
+:root[data-theme="dark"] .auth-btn-passkey,
+:root[data-resolved-theme="dark"] .auth-btn-passkey {
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 
 .auth-sso-socials {
@@ -541,13 +561,14 @@
 .auth-toggle-pill {
   display: inline-flex;
   align-items: center;
-  background: #f1f5f9;
+  background: var(--bg-subtle);
   padding: 4px;
   border-radius: 9999px;
   margin: 0 auto 1.5rem auto;
   position: relative;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-subtle);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: background-color var(--duration-normal) var(--ease-subtle), border-color var(--duration-normal) var(--ease-subtle);
 }
 
 .auth-toggle-btn {
@@ -556,7 +577,7 @@
   padding: 0.5rem 1.6rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text-secondary);
   border: none;
   background: transparent;
   cursor: pointer;
@@ -567,11 +588,11 @@
 }
 
 .auth-toggle-btn:hover {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .auth-toggle-btn.active {
-  color: #0f172a;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -581,10 +602,10 @@
   left: 4px;
   bottom: 4px;
   width: calc(50% - 4px);
-  background: #ffffff;
+  background: var(--bg-surface);
   border-radius: 9999px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), background-color var(--duration-normal) var(--ease-subtle);
   z-index: 1;
 }
 
@@ -632,23 +653,25 @@
 }
 
 .terms-card {
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--bg-surface);
+  color: var(--text-primary);
   border-radius: 16px;
+  border: 1px solid var(--border-subtle);
   max-width: 560px;
   width: 100%;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-lg);
   animation: scaleFadeIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
   overflow: hidden;
   position: relative;
+  transition: background-color var(--duration-normal) var(--ease-subtle), border-color var(--duration-normal) var(--ease-subtle);
 }
 
 .terms-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -659,14 +682,14 @@
 .terms-header h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0;
   line-height: 1.25;
 }
 
 .terms-header p {
   font-size: 0.825rem;
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0.25rem 0 0 0;
 }
 
@@ -674,7 +697,7 @@
   background: none;
   border: none;
   font-size: 1.25rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.25rem;
   line-height: 1;
@@ -686,8 +709,8 @@
 }
 
 .terms-close-btn:hover {
-  color: #0f172a;
-  background-color: #f1f5f9;
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
 }
 
 .terms-body {
@@ -695,7 +718,7 @@
   overflow-y: auto;
   font-size: 0.875rem;
   line-height: 1.65;
-  color: #334155;
+  color: var(--text-secondary);
   flex: 1;
 }
 
@@ -711,7 +734,7 @@
 .terms-section h4 {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
   display: flex;
   align-items: center;
@@ -721,14 +744,14 @@
 .terms-section p {
   margin: 0 0 0.5rem 0;
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .terms-section ul {
   margin: 0.25rem 0 0.5rem 1.25rem;
   padding: 0;
   font-size: 0.825rem;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .terms-section li {
@@ -737,16 +760,16 @@
 
 .terms-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  background-color: #f8fafc;
+  background-color: var(--bg-subtle);
 }
 
 .terms-consent-note {
   font-size: 0.775rem;
-  color: #64748b;
+  color: var(--text-muted);
   text-align: center;
   margin-top: 0.5rem;
   line-height: 1.4;

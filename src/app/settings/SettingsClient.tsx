@@ -10,9 +10,13 @@ export default function SettingsClient() {
   const {
     theme,
     resolvedTheme,
+    oledMode,
+    isOledDetected,
+    isOledActive,
     uiScale,
     motion,
     setTheme,
+    setOledMode,
     setUiScale,
     setMotion,
     resetSettings,
@@ -161,12 +165,60 @@ export default function SettingsClient() {
               onKeyDown={(e) => e.key === 'Enter' && setTheme('dark')}
             >
               <div className="theme-card-preview preview-dark">
-                <span>OLED Dark</span>
+                <span>{isOledActive ? 'Pure Black' : 'Dark Gray'}</span>
               </div>
               <span className="theme-card-label">Dark Mode</span>
-              <span className="theme-card-sub">Deep slate &amp; obsidian</span>
+              <span className="theme-card-sub">{isOledActive ? 'OLED Pure Black' : 'Neutral Slate Gray'}</span>
             </div>
           </div>
+
+          {/* Dark Mode Surface / OLED Display Controls */}
+          {resolvedTheme === 'dark' && (
+            <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-subtle)' }}>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem', color: 'var(--text-primary)' }}>
+                  Dark Mode Surface &amp; OLED Optimization
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  {isOledActive
+                    ? 'Pure Blacks (#000000) active for full OLED pixel shutoff & battery efficiency.'
+                    : 'Neutral very dark gray (#121316) active for non-OLED & LCD screens.'}
+                </p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  data-oled-mode="auto"
+                  className={`btn ${oledMode === 'auto' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setOledMode('auto')}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', gap: '2px', borderRadius: '12px' }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Auto-Detect</span>
+                  <span style={{ fontSize: '0.72rem', opacity: 0.8 }}>{isOledDetected ? 'OLED Detected' : 'LCD / Neutral'}</span>
+                </button>
+                <button
+                  type="button"
+                  data-oled-mode="oled"
+                  className={`btn ${oledMode === 'oled' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setOledMode('oled')}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', gap: '2px', borderRadius: '12px' }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Pure Black</span>
+                  <span style={{ fontSize: '0.72rem', opacity: 0.8 }}>OLED (#000000)</span>
+                </button>
+                <button
+                  type="button"
+                  data-oled-mode="neutral"
+                  className={`btn ${oledMode === 'neutral' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setOledMode('neutral')}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', gap: '2px', borderRadius: '12px' }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Neutral Gray</span>
+                  <span style={{ fontSize: '0.72rem', opacity: 0.8 }}>Non-OLED (#121316)</span>
+                </button>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Section 2: UI Scaling & Proportions */}

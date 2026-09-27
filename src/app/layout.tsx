@@ -164,17 +164,26 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('bikko_theme');
+                  var theme = localStorage.getItem('bikko_theme') || 'system';
+                  var oledPref = localStorage.getItem('bikko_oled_mode') || 'auto';
                   var scale = localStorage.getItem('bikko_ui_scale');
                   var motion = localStorage.getItem('bikko_motion');
                   var root = document.documentElement;
-                  if (theme === 'dark' || theme === 'light') {
-                    root.setAttribute('data-theme', theme);
-                    root.setAttribute('data-resolved-theme', theme);
-                  } else {
-                    var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    root.setAttribute('data-resolved-theme', isDark ? 'dark' : 'light');
-                  }
+
+                  var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  var resolved = isDark ? 'dark' : 'light';
+
+                  var isHdr = window.matchMedia && window.matchMedia('(dynamic-range: high)').matches;
+                  var isP3 = window.matchMedia && window.matchMedia('(color-gamut: p3)').matches;
+                  var isOledDetected = !!(isHdr || isP3);
+                  var isOled = oledPref === 'oled' || (oledPref === 'auto' && isOledDetected);
+
+                  root.setAttribute('data-theme', resolved);
+                  root.setAttribute('data-theme-setting', theme);
+                  root.setAttribute('data-resolved-theme', resolved);
+                  root.setAttribute('data-oled', isOled ? 'true' : 'false');
+                  root.setAttribute('data-display', isOled ? 'oled' : 'neutral');
+
                   if (scale) root.setAttribute('data-scale', scale);
                   if (motion) root.setAttribute('data-motion', motion);
                 } catch (e) {}

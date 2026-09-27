@@ -1513,15 +1513,17 @@
 }
 
 /* ========================================================================
-   Explicit Dark Theme Overrides for Navigation (data-theme="dark")
+   Explicit Dark Theme Overrides for Navigation (data-theme="dark" & OLED)
    ======================================================================== */
-:root[data-theme="dark"] .studio-nav-header::before {
-  background-color: rgba(9, 13, 22, 0.85);
-  border-bottom-color: rgba(55, 65, 81, 0.8);
+:root[data-theme="dark"] .studio-nav-header::before,
+:root[data-resolved-theme="dark"] .studio-nav-header::before {
+  background-color: rgba(18, 19, 22, 0.88);
+  border-bottom-color: rgba(45, 49, 58, 0.8);
 }
 
-:root[data-theme="dark"] .studio-nav-header.is-scrolled .bubble-island {
-  background: rgba(28, 28, 30, 0.76);
+:root[data-theme="dark"] .studio-nav-header.is-scrolled .bubble-island,
+:root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .bubble-island {
+  background: rgba(26, 27, 32, 0.82);
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1535,72 +1537,111 @@
     inset 0 0 0 0.5px rgba(255, 255, 255, 0.06);
 }
 
-:root[data-theme="dark"] .studio-nav-logo-mark {
+/* OLED Pure Black Overrides */
+:root[data-theme="dark"][data-oled="true"] .studio-nav-header::before,
+:root[data-resolved-theme="dark"][data-oled="true"] .studio-nav-header::before {
+  background-color: rgba(0, 0, 0, 0.94);
+  border-bottom-color: rgba(35, 35, 35, 0.8);
+}
+
+:root[data-theme="dark"][data-oled="true"] .studio-nav-header.is-scrolled .bubble-island,
+:root[data-resolved-theme="dark"][data-oled="true"] .studio-nav-header.is-scrolled .bubble-island {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.6),
+    0 16px 36px -2px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.25);
+}
+
+:root[data-theme="dark"] .studio-nav-logo-mark,
+:root[data-resolved-theme="dark"] .studio-nav-logo-mark {
   color: #f9fafb;
 }
 
-:root[data-theme="dark"] .studio-nav-brand-title {
+:root[data-theme="dark"] .studio-nav-brand-title,
+:root[data-resolved-theme="dark"] .studio-nav-brand-title {
   color: #f9fafb;
 }
 
-:root[data-theme="dark"] .studio-nav-link {
+:root[data-theme="dark"] .studio-nav-link,
+:root[data-resolved-theme="dark"] .studio-nav-link {
   color: #9ca3af;
 }
 
-:root[data-theme="dark"] .studio-nav-link:hover {
+:root[data-theme="dark"] .studio-nav-link:hover,
+:root[data-resolved-theme="dark"] .studio-nav-link:hover {
   color: #f9fafb;
 }
 
-:root[data-theme="dark"] .studio-nav-link.active {
+:root[data-theme="dark"] .studio-nav-link.active,
+:root[data-resolved-theme="dark"] .studio-nav-link.active {
   color: #f9fafb;
 }
 
-:root[data-theme="dark"] .studio-nav-pill-active {
+:root[data-theme="dark"] .studio-nav-pill-active,
+:root[data-resolved-theme="dark"] .studio-nav-pill-active {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-:root[data-theme="dark"] .nav-burger-popover {
-  background: rgba(28, 28, 30, 0.94);
+:root[data-theme="dark"] .nav-burger-popover,
+:root[data-resolved-theme="dark"] .nav-burger-popover {
+  background: rgba(26, 27, 32, 0.95);
   border-color: rgba(255, 255, 255, 0.14);
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.4),
     0 20px 48px -4px rgba(0, 0, 0, 0.7) !important;
 }
 
+:root[data-theme="dark"][data-oled="true"] .nav-burger-popover,
+:root[data-resolved-theme="dark"][data-oled="true"] .nav-burger-popover {
+  background: rgba(0, 0, 0, 0.98);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
 :root[data-theme="dark"] .burger-menu-divider.burger-divider-horizontal,
-:root[data-theme="dark"] .burger-menu-divider.burger-divider-vertical {
+:root[data-resolved-theme="dark"] .burger-menu-divider.burger-divider-horizontal,
+:root[data-theme="dark"] .burger-menu-divider.burger-divider-vertical,
+:root[data-resolved-theme="dark"] .burger-menu-divider.burger-divider-vertical {
   background: rgba(255, 255, 255, 0.12);
 }
 
-:root[data-theme="dark"] .burger-icon-btn {
+:root[data-theme="dark"] .burger-icon-btn,
+:root[data-resolved-theme="dark"] .burger-icon-btn {
   color: #9ca3af;
 }
 
-:root[data-theme="dark"] .burger-icon-btn:hover {
+:root[data-theme="dark"] .burger-icon-btn:hover,
+:root[data-resolved-theme="dark"] .burger-icon-btn:hover {
   color: #f9fafb;
   background: rgba(255, 255, 255, 0.08);
 }
 
-:root[data-theme="dark"] .burger-btn-login {
+:root[data-theme="dark"] .burger-btn-login,
+:root[data-resolved-theme="dark"] .burger-btn-login {
   color: #9ca3af;
 }
 
-:root[data-theme="dark"] .burger-btn-signup {
+:root[data-theme="dark"] .burger-btn-signup,
+:root[data-resolved-theme="dark"] .burger-btn-signup {
   background: #ffffff;
   color: #000000;
 }
 
-:root[data-theme="dark"] .nav-static-actions {
+:root[data-theme="dark"] .nav-static-actions,
+:root[data-resolved-theme="dark"] .nav-static-actions {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-:root[data-theme="dark"] .hamburger-btn {
+:root[data-theme="dark"] .hamburger-btn,
+:root[data-resolved-theme="dark"] .hamburger-btn {
   color: #f9fafb;
 }
 
-:root[data-theme="dark"] .hamburger-btn:hover {
+:root[data-theme="dark"] .hamburger-btn:hover,
+:root[data-resolved-theme="dark"] .hamburger-btn:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 

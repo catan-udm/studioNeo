@@ -1,17 +1,18 @@
 /* ========================================================================
    Minimalist About Page Styles (about.css)
-   Clean white canvas, high-contrast black typography, center alignment,
-   and pill action buttons matching Home.pdf & bikko.studio design system
+   Clean canvas, high-contrast typography, center alignment,
+   and pill action buttons matching bikko.studio design system
    ======================================================================== */
 
 .about-page {
   min-height: 100vh;
   width: 100%;
-  background-color: #ffffff;
-  color: #000000;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
   padding: 4rem 1.5rem 8rem;
   display: flex;
   justify-content: center;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .about-minimal-container {
@@ -48,7 +49,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--text-muted);
   margin-bottom: 1rem;
 }
 
@@ -58,7 +59,7 @@
   font-weight: 700;
   letter-spacing: -1.12px;
   line-height: 1.15;
-  color: #000000;
+  color: var(--text-primary);
   margin: 0 0 1.25rem;
 }
 
@@ -67,7 +68,7 @@
   font-size: 1.15rem;
   font-weight: 400;
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
   max-width: 620px;
   margin: 0 auto;
 }
@@ -77,8 +78,8 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 3.5rem;
   text-align: left;
 }
@@ -88,7 +89,7 @@
   align-items: flex-start;
   gap: 2rem;
   padding: 2.25rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .tenet-row:last-child {
@@ -99,7 +100,7 @@
   font-family: var(--font-heading), 'Poppins', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--text-muted);
   letter-spacing: -0.02em;
   min-width: 32px;
 }
@@ -113,7 +114,7 @@
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #000000;
+  color: var(--text-primary);
   margin: 0 0 0.5rem;
 }
 
@@ -122,7 +123,7 @@
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -147,7 +148,7 @@
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   user-select: none;
 }
 
@@ -157,25 +158,23 @@
 }
 
 .about-pill-primary {
-  background-color: #000000;
-  color: #ffffff;
-  border: 1px solid #000000;
+  background-color: var(--text-primary);
+  color: var(--bg-canvas);
+  border: 1px solid var(--text-primary);
 }
 
 .about-pill-primary:hover {
-  background-color: #222222;
-  color: #ffffff;
+  opacity: 0.9;
 }
 
 .about-pill-secondary {
-  background-color: #ffffff;
-  color: #000000;
-  border: 1px solid #000000;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
 }
 
 .about-pill-secondary:hover {
-  background-color: #f7f7f7;
-  color: #000000;
+  background-color: var(--bg-subtle);
 }
 
 /* Minimalist Studio Footer */
@@ -183,7 +182,7 @@
   width: 100%;
   margin-top: 5rem;
   padding-top: 2.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--border-subtle);
   text-align: center;
 }
 
@@ -199,13 +198,13 @@
 .about-footer .footer-link {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 .about-footer .footer-link:hover {
-  color: #000000;
+  color: var(--text-primary);
   text-decoration: underline;
 }
 
@@ -216,7 +215,7 @@
   flex-wrap: wrap;
   gap: 1rem;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--text-muted);
 }
 
 /* Responsive */

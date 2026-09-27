@@ -9,10 +9,14 @@ export default function SettingsModal() {
   const {
     theme,
     resolvedTheme,
+    oledMode,
+    isOledDetected,
+    isOledActive,
     uiScale,
     motion,
     isSettingsOpen,
     setTheme,
+    setOledMode,
     setUiScale,
     setMotion,
     closeSettings,
@@ -129,9 +133,59 @@ export default function SettingsModal() {
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
                 <span>Dark</span>
-                <span className="settings-pill-sub">OLED</span>
+                <span className="settings-pill-sub">{isOledActive ? 'OLED Black' : 'Neutral Gray'}</span>
               </button>
             </div>
+
+            {/* Dark Mode Surface / OLED Display Controls */}
+            {resolvedTheme === 'dark' && (
+              <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-subtle)' }}>
+                <div className="settings-section-header" style={{ marginBottom: '0.75rem' }}>
+                  <h4 className="settings-section-title" style={{ fontSize: '0.85rem' }}>
+                    Dark Mode Surface &amp; Display
+                  </h4>
+                  <p className="settings-section-desc">
+                    {isOledActive
+                      ? 'Pure Blacks (#000000) active for OLED pixel shutoff & battery efficiency.'
+                      : 'Neutral very dark gray (#121316) active for non-OLED & LCD screens.'}
+                  </p>
+                </div>
+                <div className="settings-pill-group" role="radiogroup" aria-label="Dark mode OLED display surface selection">
+                  <button
+                    type="button"
+                    className={`settings-pill-btn ${oledMode === 'auto' ? 'active' : ''}`}
+                    onClick={() => setOledMode('auto')}
+                    role="radio"
+                    aria-checked={oledMode === 'auto'}
+                  >
+                    <span>Auto-Detect</span>
+                    <span className="settings-pill-sub">{isOledDetected ? 'OLED Detected' : 'LCD / Neutral'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`settings-pill-btn ${oledMode === 'oled' ? 'active' : ''}`}
+                    onClick={() => setOledMode('oled')}
+                    role="radio"
+                    aria-checked={oledMode === 'oled'}
+                  >
+                    <span>Pure Black</span>
+                    <span className="settings-pill-sub">OLED (#000000)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`settings-pill-btn ${oledMode === 'neutral' ? 'active' : ''}`}
+                    onClick={() => setOledMode('neutral')}
+                    role="radio"
+                    aria-checked={oledMode === 'neutral'}
+                  >
+                    <span>Neutral Gray</span>
+                    <span className="settings-pill-sub">Non-OLED (#121316)</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* 2. UI Scaling Control */}

@@ -5,10 +5,11 @@
 
 .terms-page {
   min-height: 100vh;
-  background-color: #fafafa;
-  color: #000000;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
   font-family: var(--font-body), 'Montserrat', sans-serif;
   padding-bottom: 7rem;
+  transition: background-color var(--duration-normal) var(--ease-subtle), color var(--duration-normal) var(--ease-subtle);
 }
 
 /* 1. Header */
@@ -26,7 +27,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--text-muted);
   margin-bottom: 12px;
 }
 
@@ -37,13 +38,13 @@
   letter-spacing: -0.03em;
   line-height: 1.15;
   margin: 0 0 16px;
-  color: #000000;
+  color: var(--text-primary);
 }
 
 .terms-lead {
   font-size: clamp(0.95rem, 1.4vw, 1.1rem);
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--text-secondary);
   margin: 0 0 24px;
 }
 
@@ -51,13 +52,13 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 9999px;
   padding: 6px 16px;
   font-size: 12px;
   font-family: monospace;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
 }
 
 /* 2. Content Layout */
@@ -68,11 +69,12 @@
 }
 
 .terms-content-card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 20px;
   padding: 3rem 2.5rem;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--duration-normal) var(--ease-subtle), border-color var(--duration-normal) var(--ease-subtle);
 }
 
 @media (max-width: 640px) {
@@ -84,7 +86,7 @@
 .terms-article-section {
   margin-bottom: 2.75rem;
   padding-bottom: 2.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .terms-article-section:last-child {
@@ -104,7 +106,7 @@
   font-family: monospace;
   font-size: 13px;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--text-muted);
 }
 
 .terms-section-title {
@@ -113,13 +115,13 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0;
-  color: #000000;
+  color: var(--text-primary);
 }
 
 .terms-article-section p {
   font-size: 0.95rem;
   line-height: 1.7;
-  color: rgba(0, 0, 0, 0.72);
+  color: var(--text-secondary);
   margin: 0 0 14px;
 }
 
@@ -132,19 +134,19 @@
 .terms-article-section li {
   font-size: 0.92rem;
   line-height: 1.65;
-  color: rgba(0, 0, 0, 0.75);
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .terms-highlight-box {
-  background: #f5f5f7;
-  border-left: 3px solid #000000;
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--text-primary);
   border-radius: 0 12px 12px 0;
   padding: 14px 18px;
   margin: 16px 0;
   font-size: 0.9rem;
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.8);
+  color: var(--text-primary);
 }
 
 /* 3. Footer Links */
@@ -152,7 +154,7 @@
   max-width: 1440px;
   margin: 4.5rem auto 0;
   padding: 2.5rem 1.5rem 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -170,13 +172,13 @@
 .terms-footer .footer-link {
   font-size: 0.85rem;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 .terms-footer .footer-link:hover {
-  color: #000000;
+  color: var(--text-primary);
   text-decoration: underline;
 }
 
@@ -187,7 +189,7 @@
   width: 100%;
   max-width: 840px;
   font-size: 0.78rem;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--text-muted);
   flex-wrap: wrap;
   gap: 10px;
 }
