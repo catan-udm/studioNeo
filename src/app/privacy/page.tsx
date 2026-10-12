@@ -207,7 +207,7 @@ export default function PrivacyPage() {
               </div>
               <p>
                 For privacy disclosures, vulnerability reports, or data deletion confirmations, reach our security desk directly at{' '}
-                <Link href="/contact" style={{ textDecoration: 'underline', color: '#000' }}>contact@bikko.studio</Link>.
+                <Link href="/contact" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>contact@bikko.studio</Link>.
               </p>
             </div>
           </article>

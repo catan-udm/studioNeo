@@ -7,6 +7,7 @@ import {
   createSessionToken,
   setSessionCookie,
 } from '@/lib/auth';
+import { normalizeBackupCode } from '@/lib/totp';
 
 interface VerifyOTPRequestBody {
   email?: string;
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
       if (totpCode) {
         is2faValid = verifyTOTP(totpRecord.totp_secret, totpCode);
       } else if (backupCode) {
-        const backupHash = hashToken(backupCode.trim());
+        const backupHash = hashToken(normalizeBackupCode(backupCode));
         const matchedBackup = await queryRow<{ id: number }>(
           'SELECT id FROM totp_backup_codes WHERE subscriber_id = ? AND code_hash = ? AND is_used = 0 LIMIT 1',
           [subscriber.id, backupHash]

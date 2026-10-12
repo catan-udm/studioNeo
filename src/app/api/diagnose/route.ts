@@ -146,6 +146,8 @@ export async function GET() {
       'totp_backup_codes',
       'perks',
       'perk_unlocks',
+      'webauthn_credentials',
+      'subscriber_oauth_accounts',
     ];
 
     const missing = requiredTables.filter((t) => !tableNames.includes(t));

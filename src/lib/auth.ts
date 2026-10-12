@@ -375,7 +375,7 @@ export async function sendOTPEmail(email: string, otp: string): Promise<Dispatch
   return { dispatched: true, channel: 'console' };
 }
 
-export default {
+const auth = {
   AUTH_COOKIE_NAME,
   SESSION_TTL_SECONDS,
   OTP_TTL_MINUTES,
@@ -390,3 +390,5 @@ export default {
   verifyTOTP,
   sendOTPEmail,
 };
+
+export default auth;

@@ -33,13 +33,14 @@ export default function GlobalError({
             maxWidth: '460px',
             textAlign: 'center',
             padding: '2rem',
-            background: '#111827',
+            background: 'var(--bg-surface, #111827)',
             borderRadius: '16px',
-            border: '1px solid #374151',
+            border: '1px solid var(--border-subtle, #374151)',
+            color: 'var(--text-primary, #ffffff)',
           }}
         >
           <h1 style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>Critical System Failure</h1>
-          <p style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted, #9ca3af)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
             A fatal exception occurred in the root layout. Please refresh or reboot the session.
           </p>
           <button
@@ -48,7 +49,7 @@ export default function GlobalError({
             style={{
               padding: '10px 24px',
               borderRadius: '9999px',
-              background: '#3b82f6',
+              background: 'var(--brand-primary, #3b82f6)',
               color: '#ffffff',
               border: 'none',
               fontWeight: 600,

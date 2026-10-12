@@ -281,6 +281,7 @@ export default function ProjectsClient() {
                         }}
                       >
                         <div className="media-image-wrap">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic responsive vector cuts reel with custom aspect-ratios */}
                           <img
                             src={item.src}
                             alt={item.title}
@@ -361,6 +362,7 @@ export default function ProjectsClient() {
                       }}
                     >
                       <div className="media-image-wrap">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic responsive vector grid with fluid aspect-ratios */}
                         <img
                           src={item.src}
                           alt={item.title}
@@ -454,6 +456,7 @@ export default function ProjectsClient() {
             </button>
 
             <div className="lightbox-image-wrap">
+              {/* eslint-disable-next-line @next/next/no-img-element -- Fullscreen lightbox overlay viewer */}
               <img
                 src={currentMedia.src}
                 alt={currentMedia.title}

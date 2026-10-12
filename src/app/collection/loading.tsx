@@ -80,7 +80,7 @@ export default function CollectionLoading() {
               </div>
 
               {/* 1:1 Aspect Ratio Artwork Media */}
-              <div className="collection-card-media" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
+              <div className="collection-card-media" style={{ backgroundColor: 'var(--bg-subtle)' }}>
                 <span className="skeleton-shimmer" style={{ width: '100%', height: '100%', display: 'block' }} />
               </div>
 

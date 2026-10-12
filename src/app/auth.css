@@ -308,7 +308,7 @@
 }
 
 .auth-btn-primary {
-  background-color: #2563eb;
+  background-color: var(--brand-primary);
   color: #ffffff;
 }
 
@@ -412,7 +412,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -425,7 +425,7 @@
   .auth-divider::after {
     content: '';
     position: absolute;
-    border-left: 1px solid #e2e8f0;
+    border-left: 1px solid var(--border-subtle);
     border-bottom: none;
     width: 1px;
   }

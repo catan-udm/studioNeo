@@ -305,7 +305,7 @@ export async function fetchOAuthUserProfile(
   throw new Error(`Unsupported provider: ${provider}`);
 }
 
-export default {
+const oauth = {
   getProviderConfig,
   generatePKCE,
   generateState,
@@ -315,3 +315,5 @@ export default {
   exchangeCodeForToken,
   fetchOAuthUserProfile,
 };
+
+export default oauth;

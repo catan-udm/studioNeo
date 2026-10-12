@@ -9,6 +9,8 @@ export interface AuthSubscriber {
   id: number;
   email: string;
   is_verified: boolean;
+  tier?: string;
+  subscriptionStatus?: 'active' | 'canceled' | 'trialing';
   twoFactorActive: boolean;
   passkeyCount: number;
   linkedOAuth: string[];

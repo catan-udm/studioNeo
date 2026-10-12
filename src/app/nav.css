@@ -409,7 +409,7 @@
 }
 
 .nav-pill.active {
-  color: #000000;
+  color: var(--text-primary);
   font-weight: 600;
   background: transparent;
   box-shadow: none;
@@ -417,7 +417,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-resolved-theme="light"]) .nav-pill.active {
-    color: #ffffff;
+    color: var(--text-primary);
     background: transparent;
     box-shadow: none;
   }
@@ -425,7 +425,7 @@
 
 /* Apple Glass Floating State Pills */
 .studio-nav-header.is-scrolled .nav-pill {
-  color: #1d1d1f;
+  color: var(--text-secondary);
   font-weight: 550;
   background: transparent;
   border: none;
@@ -433,12 +433,12 @@
 }
 
 .studio-nav-header.is-scrolled .nav-pill:hover {
-  color: #000000;
-  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
 }
 
 .studio-nav-header.is-scrolled .nav-pill.active {
-  color: #000000;
+  color: var(--text-primary);
   font-weight: 600;
   background: transparent;
   border: none;
@@ -1570,35 +1570,35 @@
 
 :root[data-theme="light"] .nav-pill.active,
 :root[data-resolved-theme="light"] .nav-pill.active {
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 :root[data-theme="light"] .studio-nav-header.is-scrolled .nav-pill,
 :root[data-resolved-theme="light"] .studio-nav-header.is-scrolled .nav-pill {
-  color: #1d1d1f;
+  color: var(--text-secondary);
 }
 
 :root[data-theme="light"] .studio-nav-header.is-scrolled .nav-pill:hover,
 :root[data-resolved-theme="light"] .studio-nav-header.is-scrolled .nav-pill:hover {
-  color: #000000;
-  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
 }
 
 :root[data-theme="light"] .studio-nav-header.is-scrolled .nav-pill.active,
 :root[data-resolved-theme="light"] .studio-nav-header.is-scrolled .nav-pill.active {
-  color: #000000;
+  color: var(--text-primary);
 }
 
 :root[data-theme="light"] .studio-nav-header:not(.is-scrolled) .hamburger-btn,
 :root[data-resolved-theme="light"] .studio-nav-header:not(.is-scrolled) .hamburger-btn {
-  background: var(--bg-subtle, #f4f4f5);
-  border-color: var(--border-subtle, #e5e7eb);
-  color: #0f172a;
+  background: var(--bg-subtle);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
 }
 
 :root[data-theme="light"] .hamburger-line,
 :root[data-resolved-theme="light"] .hamburger-line {
-  background-color: #0f172a;
+  background-color: var(--text-primary);
 }
 
 :root[data-theme="light"] .nav-burger-popover,

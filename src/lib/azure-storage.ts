@@ -12,8 +12,21 @@ import {
  * Global cache for BlobServiceClient in serverless / HMR environments.
  */
 declare global {
-  // eslint-disable-next-line no-var
   var __blobServiceClient: BlobServiceClient | undefined;
+  var __devBlobStore: Map<string, { data: Buffer; contentType: string }> | undefined;
+}
+
+export function getDevBlobStore(): Map<string, { data: Buffer; contentType: string }> {
+  if (!globalThis.__devBlobStore) {
+    globalThis.__devBlobStore = new Map();
+  }
+  return globalThis.__devBlobStore;
+}
+
+export function getBlobData(storageFilePath: string): { data: Buffer; contentType: string } | null {
+  const cleanBlobName = storageFilePath.replace(/^\/+/, '');
+  const store = getDevBlobStore();
+  return store.get(cleanBlobName) || null;
 }
 
 /**
@@ -159,6 +172,10 @@ export async function checkBlobExists(
   storageFilePath: string,
   containerNameOverride?: string
 ): Promise<boolean> {
+  const cleanBlobName = storageFilePath.replace(/^\/+/, '');
+  if (getDevBlobStore().has(cleanBlobName)) {
+    return true;
+  }
   try {
     const blobClient = getBlockBlobClient(storageFilePath, containerNameOverride);
     return await blobClient.exists();
@@ -168,10 +185,88 @@ export async function checkBlobExists(
   }
 }
 
-export default {
+export interface UploadBlobResult {
+  storageFilePath: string;
+  url: string;
+  containerName: string;
+}
+
+/**
+ * Uploads a buffer or byte array to Azure Blob Storage with appropriate MIME Content-Type headers.
+ * In local dev without credentials, falls back to a deterministic development URL.
+ */
+export async function uploadBlob(
+  storageFilePath: string,
+  data: Buffer | Uint8Array,
+  contentType: string,
+  containerNameOverride?: string
+): Promise<UploadBlobResult> {
+  const { accountName, accountKey, containerName: defaultContainer } = getAzureStorageConfig();
+  const containerName = containerNameOverride || defaultContainer;
+  const cleanBlobName = storageFilePath.replace(/^\/+/, '');
+
+  // Always cache blob in local dev store
+  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+  getDevBlobStore().set(cleanBlobName, { data: buf, contentType });
+
+  if (!accountName || !accountKey) {
+    if (process.env.NODE_ENV !== 'production') {
+      const devUrl = `https://${accountName || 'bikkostudio'}.blob.core.windows.net/${containerName}/${cleanBlobName}`;
+      return {
+        storageFilePath: cleanBlobName,
+        url: devUrl,
+        containerName,
+      };
+    }
+    throw new Error('Azure Storage Account Name and Key are required to upload blobs in production.');
+  }
+
+  try {
+    const blobClient = getBlockBlobClient(cleanBlobName, containerName);
+    await blobClient.uploadData(data, {
+      blobHTTPHeaders: {
+        blobContentType: contentType,
+      },
+    });
+
+    return {
+      storageFilePath: cleanBlobName,
+      url: blobClient.url,
+      containerName,
+    };
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[AzureStorage] Upload failed, falling back to simulated mock url:', err);
+      return {
+        storageFilePath: cleanBlobName,
+        url: `https://${accountName || 'bikkostudio'}.blob.core.windows.net/${containerName}/${cleanBlobName}`,
+        containerName,
+      };
+    }
+    throw err;
+  }
+}
+
+/**
+ * Generates a time-limited SAS URL specifically for a minted cel master.
+ */
+export async function generateCelSasUrl(
+  storageFilePath: string,
+  options: GenerateSASOptions = {}
+): Promise<string> {
+  return generatePerkSasUrl(storageFilePath, options);
+}
+
+const azureStorage = {
   getBlobServiceClient,
   getContainerClient,
   getBlockBlobClient,
   generatePerkSasUrl,
+  generateCelSasUrl,
   checkBlobExists,
+  uploadBlob,
+  getBlobData,
+  getDevBlobStore,
 };
+
+export default azureStorage;

@@ -15,11 +15,16 @@ CREATE TABLE IF NOT EXISTS `subscribers` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(255) NOT NULL,
   `is_verified` TINYINT(1) NOT NULL DEFAULT 0,
+  `tier` VARCHAR(32) NOT NULL DEFAULT 'free',
+  `subscription_status` VARCHAR(32) NOT NULL DEFAULT 'active',
+  `stripe_customer_id` VARCHAR(255) NULL DEFAULT NULL,
+  `stripe_subscription_id` VARCHAR(255) NULL DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_subscribers_email` (`email`),
-  KEY `idx_subscribers_is_verified` (`is_verified`)
+  KEY `idx_subscribers_is_verified` (`is_verified`),
+  KEY `idx_subscribers_tier` (`tier`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Auth Magic Tokens (Passwordless Email OTPs)
@@ -95,6 +100,86 @@ CREATE TABLE IF NOT EXISTS `perk_unlocks` (
   CONSTRAINT `fk_perk_unlocks_perk`
     FOREIGN KEY (`perk_id`) REFERENCES `perks` (`id`)
     ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. WebAuthn Credentials (FIDO2 Biometrics & Hardware Keys)
+CREATE TABLE IF NOT EXISTS `webauthn_credentials` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `subscriber_id` BIGINT UNSIGNED NOT NULL,
+  `credential_id` VARCHAR(255) NOT NULL,
+  `public_key` TEXT NOT NULL,
+  `counter` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  `transports` VARCHAR(255) NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_webauthn_credential_id` (`credential_id`),
+  KEY `idx_webauthn_subscriber` (`subscriber_id`),
+  CONSTRAINT `fk_webauthn_subscriber`
+    FOREIGN KEY (`subscriber_id`) REFERENCES `subscribers` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. Subscriber OAuth Accounts (Federated Google & Microsoft SSO)
+CREATE TABLE IF NOT EXISTS `subscriber_oauth_accounts` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `subscriber_id` BIGINT UNSIGNED NOT NULL,
+  `provider` VARCHAR(32) NOT NULL,
+  `provider_user_id` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_oauth_provider_user` (`provider`, `provider_user_id`),
+  KEY `idx_oauth_subscriber` (`subscriber_id`),
+  CONSTRAINT `fk_oauth_subscriber`
+    FOREIGN KEY (`subscriber_id`) REFERENCES `subscribers` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. Studio Inquiries & Commission Handling
+CREATE TABLE IF NOT EXISTS `inquiries` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `organization` VARCHAR(255) NULL DEFAULT NULL,
+  `topic` VARCHAR(64) NOT NULL,
+  `message` TEXT NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_inquiries_email` (`email`),
+  KEY `idx_inquiries_topic` (`topic`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 10. Minted Cels & Vector Masters Archive
+CREATE TABLE IF NOT EXISTS `cels` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `subscriber_id` BIGINT UNSIGNED NULL DEFAULT NULL,
+  `code` VARCHAR(64) NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT NULL,
+  `artist` VARCHAR(255) NOT NULL,
+  `artist_handle` VARCHAR(100) NOT NULL,
+  `artist_avatar` VARCHAR(16) NOT NULL DEFAULT 'AT',
+  `category` VARCHAR(32) NOT NULL DEFAULT 'Generative',
+  `edition` VARCHAR(64) NOT NULL DEFAULT 'Ed. 1/12',
+  `color` VARCHAR(32) NOT NULL DEFAULT '#c496ff',
+  `price` VARCHAR(32) NOT NULL DEFAULT '$180',
+  `likes` INT UNSIGNED NOT NULL DEFAULT 0,
+  `format` VARCHAR(32) NOT NULL DEFAULT 'SVG',
+  `svg_storage_path` VARCHAR(512) NOT NULL,
+  `svg_url` TEXT NULL DEFAULT NULL,
+  `gif_storage_path` VARCHAR(512) NULL DEFAULT NULL,
+  `gif_url` TEXT NULL DEFAULT NULL,
+  `is_vault` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_cels_code` (`code`),
+  KEY `idx_cels_artist_handle` (`artist_handle`),
+  KEY `idx_cels_category` (`category`),
+  KEY `idx_cels_subscriber` (`subscriber_id`),
+  CONSTRAINT `fk_cels_subscriber`
+    FOREIGN KEY (`subscriber_id`) REFERENCES `subscribers` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================================================

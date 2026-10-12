@@ -22,15 +22,32 @@ export async function GET() {
       return jsonWithNoCache({ authenticated: false, subscriber: null, perks: [] });
     }
 
-    const subscriber = await queryRow<{
+    let subscriber = await queryRow<{
       id: number;
       email: string;
       is_verified: number;
+      tier?: string;
+      subscription_status?: string;
       created_at: string;
     }>(
-      'SELECT id, email, is_verified, created_at FROM subscribers WHERE id = ? LIMIT 1',
+      'SELECT id, email, is_verified, tier, subscription_status, created_at FROM subscribers WHERE id = ? LIMIT 1',
       [session.subscriberId]
     );
+
+    // Backward-compatibility fallback for legacy table schema without tier column
+    if (!subscriber) {
+      subscriber = await queryRow<{
+        id: number;
+        email: string;
+        is_verified: number;
+        tier?: string;
+        subscription_status?: string;
+        created_at: string;
+      }>(
+        'SELECT id, email, is_verified, created_at FROM subscribers WHERE id = ? LIMIT 1',
+        [session.subscriberId]
+      );
+    }
 
     if (!subscriber) {
       return jsonWithNoCache({ authenticated: false, subscriber: null, perks: [] });
@@ -93,6 +110,8 @@ export async function GET() {
         id: subscriber.id,
         email: subscriber.email,
         is_verified: subscriber.is_verified === 1,
+        tier: subscriber.tier || 'free',
+        subscriptionStatus: (subscriber.subscription_status || 'active') as 'active' | 'canceled' | 'trialing',
         twoFactorActive: totp?.is_active === 1,
         passkeyCount,
         linkedOAuth,

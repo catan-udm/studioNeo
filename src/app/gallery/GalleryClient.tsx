@@ -7,7 +7,9 @@ import {
   RESIDENT_ARTISTS,
   GalleryWork,
   ResidentArtist,
+  generateStandaloneSvg,
 } from './galleryData';
+import { getAuthenticatedSession } from '@/lib/clientAuthCache';
 import './gallery.css';
 
 type CategoryFilter = 'All' | 'Generative' | 'Kinetic' | 'Vectors' | 'Mono' | 'Vaults';
@@ -19,6 +21,19 @@ type ViewMode = 'curated' | 'grid';
  * Creates an authentic minimalist studio cel inside each card's 1:1 media container
  */
 function ArtworkCanvas({ work }: { work: GalleryWork }) {
+  if (work.svgSrc) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={work.svgSrc}
+        alt={work.title}
+        className="ig-artwork-svg"
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        loading="lazy"
+      />
+    );
+  }
+
   const isMono = work.category === 'Mono';
   const strokeColor = isMono ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.45)';
   const accentFill = isMono ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
@@ -133,8 +148,11 @@ export default function GalleryClient() {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [burstHeartId, setBurstHeartId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSubscriber, setIsSubscriber] = useState<boolean>(false);
+  const [modalPreviewMode, setModalPreviewMode] = useState<'canvas' | 'kinetic'>('canvas');
+  const [dynamicCels, setDynamicCels] = useState<GalleryWork[]>([]);
 
-  // Sync with localStorage on client mount
+  // Sync with localStorage & session on client mount
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -149,6 +167,70 @@ export default function GalleryClient() {
       } catch {
         // Storage unavailable
       }
+
+      getAuthenticatedSession().then((session) => {
+        if (session.authenticated && session.subscriber) {
+          const tier = (session.subscriber.tier || '').toLowerCase();
+          if (
+            tier === 'collector' ||
+            tier === 'studio' ||
+            tier === 'studio-alpha' ||
+            tier === 'studio-atelier' ||
+            tier === 'enterprise' ||
+            tier.startsWith('artist') ||
+            tier.startsWith('illustrator')
+          ) {
+            setIsSubscriber(true);
+          }
+        }
+      }).catch(() => {});
+
+      // Fetch dynamic cels minted to archive
+      fetch('/api/cels')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.cels)) {
+            const mapped: GalleryWork[] = data.cels.map((c: {
+              id: number;
+              code: string;
+              title: string;
+              artist: string;
+              artist_handle: string;
+              artist_avatar?: string;
+              color: string;
+              gif_url?: string | null;
+              svg_url?: string | null;
+              svg_storage_path?: string | null;
+              likes?: number;
+              edition: string;
+              price: string;
+              category: 'Generative' | 'Kinetic' | 'Vectors' | 'Mono';
+              is_vault?: number;
+              format?: string;
+              description?: string;
+            }) => ({
+              id: `db-cel-${c.id}`,
+              code: c.code,
+              title: c.title,
+              artist: c.artist,
+              artistHandle: c.artist_handle,
+              artistAvatar: c.artist_avatar || 'AT',
+              color: c.color,
+              gifSrc: c.gif_url || undefined,
+              svgSrc: c.svg_url || (c.svg_storage_path ? `/api/assets/download/${c.code}?format=svg&preview=true` : undefined),
+              likes: c.likes || 0,
+              edition: c.edition,
+              price: c.price,
+              category: c.category,
+              isVault: Boolean(c.is_vault),
+              unlocked: true,
+              format: (c.format as '4K' | 'SVG' | 'RAW' | 'VECTORS') || 'SVG',
+              description: c.description || 'Verified studio cel.',
+            }));
+            setDynamicCels(mapped);
+          }
+        })
+        .catch(() => {});
     }, 0);
     return () => clearTimeout(timer);
   }, []);
@@ -167,24 +249,38 @@ export default function GalleryClient() {
     } catch {}
   }, [savedWorkIds]);
 
+  // Combined archive works
+  const allArchiveWorks = useMemo(() => {
+    const combined = [...dynamicCels, ...ALL_GALLERY_WORKS];
+    const seenCodes = new Set<string>();
+    const deduplicated: GalleryWork[] = [];
+    for (const w of combined) {
+      if (!seenCodes.has(w.code)) {
+        seenCodes.add(w.code);
+        deduplicated.push(w);
+      }
+    }
+    return deduplicated;
+  }, [dynamicCels]);
+
   // Active resident artist
   const currentResident: ResidentArtist = RESIDENT_ARTISTS[residentIndex] || RESIDENT_ARTISTS[0];
 
   // Category counts
   const categoryCounts = useMemo(() => {
     return {
-      All: ALL_GALLERY_WORKS.length,
-      Generative: ALL_GALLERY_WORKS.filter((w) => w.category === 'Generative' && !w.isVault).length,
-      Kinetic: ALL_GALLERY_WORKS.filter((w) => w.category === 'Kinetic' && !w.isVault).length,
-      Vectors: ALL_GALLERY_WORKS.filter((w) => w.category === 'Vectors' && !w.isVault).length,
-      Mono: ALL_GALLERY_WORKS.filter((w) => w.category === 'Mono' && !w.isVault).length,
-      Vaults: ALL_GALLERY_WORKS.filter((w) => w.isVault).length,
+      All: allArchiveWorks.length,
+      Generative: allArchiveWorks.filter((w) => w.category === 'Generative' && !w.isVault).length,
+      Kinetic: allArchiveWorks.filter((w) => w.category === 'Kinetic' && !w.isVault).length,
+      Vectors: allArchiveWorks.filter((w) => w.category === 'Vectors' && !w.isVault).length,
+      Mono: allArchiveWorks.filter((w) => w.category === 'Mono' && !w.isVault).length,
+      Vaults: allArchiveWorks.filter((w) => w.isVault).length,
     };
-  }, []);
+  }, [allArchiveWorks]);
 
   // Filtered and sorted works
   const filteredWorks = useMemo(() => {
-    let result = [...ALL_GALLERY_WORKS];
+    let result = [...allArchiveWorks];
 
     // Filter by category
     if (selectedCategory === 'Vaults') {
@@ -281,43 +377,120 @@ export default function GalleryClient() {
     setCheckoutWork(work);
   }, []);
 
-  // Handle Download Click (Saving/Exporting Master)
-  const handleDownloadClick = useCallback((work: GalleryWork, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (work.isVault) {
-      showToast(`Subscriber Vault: Subscribe to unlock lossless SVG stem for #${work.code}.`);
-      return;
-    }
+  // Handle Multi-Format Export (SVG, PNG, JPG, GIF)
+  const handleExportFormat = useCallback(
+    (work: GalleryWork, format: 'svg' | 'png' | 'jpg' | 'gif', e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
 
-    // Generate downloadable SVG Cel
-    const strokeColor = work.category === 'Mono' ? '#ffffff' : 'rgba(0, 0, 0, 0.6)';
-    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="1200" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-  <rect width="400" height="400" fill="${work.color}"/>
-  <g stroke="${strokeColor}" fill="none" stroke-width="2">
-    <circle cx="200" cy="200" r="130"/>
-    <circle cx="200" cy="200" r="85" stroke-dasharray="6 4"/>
-    <line x1="50" y1="200" x2="350" y2="200" stroke-width="1"/>
-    <line x1="200" y1="50" x2="200" y2="350" stroke-width="1"/>
-    <circle cx="200" cy="200" r="14" fill="${strokeColor}"/>
-  </g>
-  <text x="375" y="380" text-anchor="end" fill="${strokeColor}" font-size="11" font-family="monospace">
-    ${work.code} • studioNeo Digital Archive • Edition ${work.edition}
-  </text>
-</svg>`;
+      if ((work.isVault || format === 'svg' || format === 'gif') && !isSubscriber) {
+        showToast(`Subscriber Vault: Active tier (studio-alpha, studio-atelier, enterprise) required to unlock master ${format.toUpperCase()} for #${work.code}.`);
+        return;
+      }
 
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `studioNeo-${work.code}-master.svg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      // Format 1: Scalable Vector Graphics (SVG)
+      if (format === 'svg') {
+        if (work.svgSrc) {
+          const a = document.createElement('a');
+          a.href = `/api/assets/download/${work.code}?format=svg`;
+          a.download = `studioNeo-${work.code}-master.svg`;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
+          return;
+        }
 
-    showToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
-  }, [showToast]);
+        const svgContent = generateStandaloneSvg(work);
+        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `studioNeo-${work.code}-master.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
+        return;
+      }
+
+      // Format 2: Animated Kinetic GIF
+      if (format === 'gif') {
+        if (work.gifSrc) {
+          const a = document.createElement('a');
+          a.href = work.gifSrc;
+          a.download = `studioNeo-${work.code}-kinetic.gif`;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast(`Downloaded kinetic animated GIF for #${work.code}`);
+        } else {
+          showToast(`Animated kinetic GIF is only available for kinetic motion works.`);
+        }
+        return;
+      }
+
+      // Format 3 & 4: Raster Render via Canvas (PNG / JPG)
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      const renderToCanvas = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 1200;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        if (format === 'jpg') {
+          ctx.fillStyle = work.color;
+          ctx.fillRect(0, 0, 1200, 1200);
+        }
+        ctx.drawImage(img, 0, 0, 1200, 1200);
+
+        const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+        const ext = format === 'jpg' ? 'jpg' : 'png';
+
+        canvas.toBlob((canvasBlob) => {
+          if (canvasBlob) {
+            const downloadUrl = URL.createObjectURL(canvasBlob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `studioNeo-${work.code}-preview.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl);
+            showToast(`Exported free ${format.toUpperCase()} preview for #${work.code}`);
+          }
+        }, mimeType, 0.95);
+      };
+
+      if (work.svgSrc) {
+        img.onload = renderToCanvas;
+        img.src = work.svgSrc;
+      } else {
+        const svgContent = generateStandaloneSvg(work);
+        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        img.onload = () => {
+          renderToCanvas();
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+      }
+    },
+    [isSubscriber, showToast]
+  );
+
+  // Handle Download Click (default to SVG vector master)
+  const handleDownloadClick = useCallback(
+    (work: GalleryWork, e: React.MouseEvent) => {
+      handleExportFormat(work, 'svg', e);
+    },
+    [handleExportFormat]
+  );
 
   // Switch resident artist
   const nextResident = () => {
@@ -484,12 +657,16 @@ export default function GalleryClient() {
         {/* 3. Featured Resident Artist Information Card */}
         <section className="gallery-artist-card" aria-label="Featured artist profile">
           <div className="gallery-artist-left">
-            <div className="gallery-artist-avatar">
-              {currentResident.name.substring(0, 2).toUpperCase()}
-            </div>
+            <Link href={`/artist/${currentResident.handle}`} className="gallery-artist-avatar-link" title={`View ${currentResident.name}'s Portfolio`}>
+              <div className="gallery-artist-avatar">
+                {currentResident.name.substring(0, 2).toUpperCase()}
+              </div>
+            </Link>
             <div className="gallery-artist-details">
               <div className="gallery-artist-title-row">
-                <h2 className="gallery-artist-name">{currentResident.name}</h2>
+                <Link href={`/artist/${currentResident.handle}`} className="gallery-artist-name-link" style={{ textDecoration: 'none', color: 'inherit' }} title={`View ${currentResident.name}'s Portfolio`}>
+                  <h2 className="gallery-artist-name">{currentResident.name}</h2>
+                </Link>
                 <span className="gallery-artist-role">{currentResident.role}</span>
                 <span className="gallery-artist-divider">•</span>
                 <span className="gallery-artist-location">{currentResident.location}</span>
@@ -601,12 +778,16 @@ export default function GalleryClient() {
                   {/* Card Header (Avatar, Username, Category, More Options) */}
                   <div className="ig-card-header">
                     <div className="ig-author-profile">
-                      <div className="ig-avatar-ring">
-                        <span className="ig-avatar-initials">{work.artistAvatar}</span>
-                      </div>
+                      <Link href={`/artist/${work.artistHandle}`} className="ig-avatar-link" title={`View @${work.artistHandle}'s Portfolio`}>
+                        <div className="ig-avatar-ring">
+                          <span className="ig-avatar-initials">{work.artistAvatar}</span>
+                        </div>
+                      </Link>
                       <div className="ig-author-meta">
                         <div className="ig-author-handle-row">
-                          <span className="ig-author-handle">{work.artistHandle}</span>
+                          <Link href={`/artist/${work.artistHandle}`} className="ig-author-handle-link" style={{ textDecoration: 'none', color: 'inherit' }} title={`View @${work.artistHandle}'s Portfolio`}>
+                            <span className="ig-author-handle">{work.artistHandle}</span>
+                          </Link>
                         </div>
                         <span className="ig-card-location">{work.category} Archive</span>
                       </div>
@@ -997,7 +1178,21 @@ export default function GalleryClient() {
                 className="modal-media-wrap"
                 style={{ backgroundColor: activeWork.color }}
               >
-                <ArtworkCanvas work={activeWork} />
+                {modalPreviewMode === 'kinetic' && activeWork.gifSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={activeWork.gifSrc}
+                    alt={`${activeWork.title} Kinetic Motion Cel`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <ArtworkCanvas work={activeWork} />
+                )}
                 {activeWork.isVault && (
                   <div className="vault-overlay-content">
                     <span className="vault-lock-icon" style={{ fontSize: '32px' }}>🔒</span>
@@ -1013,10 +1208,43 @@ export default function GalleryClient() {
                   <h2 className="modal-title">{activeWork.title}</h2>
                   <p className="modal-desc">{activeWork.description}</p>
 
+                  {/* Multi-Format Preview Switcher (when kinetic animation is available) */}
+                  {activeWork.gifSrc && (
+                    <div style={{ marginTop: '0.75rem', marginBottom: '0.75rem' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+                        Preview Format
+                      </div>
+                      <div className="format-pill-group" role="tablist" aria-label="Format preview selector">
+                        <button
+                          type="button"
+                          className={`format-pill-btn ${modalPreviewMode === 'canvas' ? 'active' : ''}`}
+                          onClick={() => setModalPreviewMode('canvas')}
+                          role="tab"
+                          aria-selected={modalPreviewMode === 'canvas'}
+                        >
+                          Vector Cel (SVG)
+                        </button>
+                        <button
+                          type="button"
+                          className={`format-pill-btn ${modalPreviewMode === 'kinetic' ? 'active' : ''}`}
+                          onClick={() => setModalPreviewMode('kinetic')}
+                          role="tab"
+                          aria-selected={modalPreviewMode === 'kinetic'}
+                        >
+                          Kinetic Motion (GIF)
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="modal-specs-list">
                     <div className="modal-spec-row">
                       <span className="spec-key">Artist</span>
-                      <span className="spec-val">{activeWork.artist} (@{activeWork.artistHandle})</span>
+                      <span className="spec-val">
+                        <Link href={`/artist/${activeWork.artistHandle}`} style={{ color: 'var(--brand-primary)', textDecoration: 'none' }} title={`View @${activeWork.artistHandle} Portfolio`}>
+                          {activeWork.artist} (@{activeWork.artistHandle}) ↗
+                        </Link>
+                      </span>
                     </div>
                     <div className="modal-spec-row">
                       <span className="spec-key">Edition</span>
@@ -1033,7 +1261,54 @@ export default function GalleryClient() {
                   </div>
                 </div>
 
-                  <div className="modal-actions-row">
+                {/* Direct Asset Export (Multi-Format) */}
+                <div style={{ marginTop: '1.25rem', marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                    Direct Asset Export
+                  </div>
+                  <div className="format-pill-group">
+                    <button
+                      type="button"
+                      className="format-pill-btn"
+                      onClick={(e) => handleExportFormat(activeWork, 'svg', e)}
+                      title="Download Vector SVG Master"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      SVG
+                    </button>
+                    <button
+                      type="button"
+                      className="format-pill-btn"
+                      onClick={(e) => handleExportFormat(activeWork, 'png', e)}
+                      title="Export 1200x1200px PNG"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      PNG
+                    </button>
+                    <button
+                      type="button"
+                      className="format-pill-btn"
+                      onClick={(e) => handleExportFormat(activeWork, 'jpg', e)}
+                      title="Export High-Res JPG Cel"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      JPG
+                    </button>
+                    {activeWork.gifSrc && (
+                      <button
+                        type="button"
+                        className="format-pill-btn"
+                        onClick={(e) => handleExportFormat(activeWork, 'gif', e)}
+                        title="Download Animated Kinetic GIF"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        GIF
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="modal-actions-row">
                     {activeWork.isVault ? (
                       <Link href="/membership" className="btn-pill-primary">
                         Subscribe to Unlock ($12/mo)

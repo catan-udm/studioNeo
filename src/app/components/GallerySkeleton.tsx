@@ -153,7 +153,7 @@ export default function GallerySkeleton() {
                 </div>
 
                 {/* 1:1 Aspect Ratio Media Tile - EXACT SIZE */}
-                <div className="ig-media-tile" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
+                <div className="ig-media-tile" style={{ backgroundColor: 'var(--bg-subtle)' }}>
                   <span className="skeleton-shimmer" style={{ width: '100%', height: '100%', display: 'block' }} />
                 </div>
 

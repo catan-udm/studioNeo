@@ -50,6 +50,7 @@ function ImageWithFallback({ src, alt, className, style, ...rest }: ImageWithFal
   }
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- Dynamic fallback image renderer with onError lifecycle
     <img
       src={src}
       alt={alt}

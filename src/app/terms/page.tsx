@@ -103,8 +103,8 @@ export default function TermsPage() {
                 By accessing, browsing, subscribing to, or acquiring digital cels from bikko.studio and the
                 studioNeo archive (&ldquo;the Atelier&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;), you acknowledge that
                 you have read, understood, and agreed to be bound by these Terms of Service, along with our{' '}
-                <Link href="/privacy" style={{ textDecoration: 'underline', color: '#000' }}>Privacy Policy</Link> and{' '}
-                <Link href="/licensing" style={{ textDecoration: 'underline', color: '#000' }}>Licensing Framework</Link>.
+                <Link href="/privacy" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>Privacy Policy</Link> and{' '}
+                <Link href="/licensing" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>Licensing Framework</Link>.
               </p>
               <p>
                 If you are accepting these Terms on behalf of an agency, studio, or corporate entity, you represent
@@ -204,7 +204,7 @@ export default function TermsPage() {
                 These Terms shall be interpreted and governed by international digital copyright conventions and standards.
                 For bespoke licensing requests, custom corporate installations, or legal notices, please direct communications
                 to our curatorial desk at{' '}
-                <Link href="/contact" style={{ textDecoration: 'underline', color: '#000' }}>contact@bikko.studio</Link>.
+                <Link href="/contact" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>contact@bikko.studio</Link>.
               </p>
             </div>
           </article>

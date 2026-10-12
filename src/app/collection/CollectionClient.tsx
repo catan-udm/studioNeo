@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { ALL_GALLERY_WORKS, GalleryWork } from '../gallery/galleryData';
+import { ALL_GALLERY_WORKS, GalleryWork, generateStandaloneSvg } from '../gallery/galleryData';
+import { getAuthenticatedSession } from '@/lib/clientAuthCache';
 import CollectionLoading from './loading';
 import './collection.css';
 
@@ -91,10 +92,22 @@ export default function CollectionClient() {
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'commercial'>('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [checkoutWork, setCheckoutWork] = useState<GalleryWork | null>(null);
+  const [isSubscriber, setIsSubscriber] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from localStorage & check session on mount
   useEffect(() => {
+    getAuthenticatedSession()
+      .then((session) => {
+        if (session.authenticated && session.subscriber) {
+          const tier = session.subscriber.tier;
+          if (tier === 'collector' || tier === 'studio') {
+            setIsSubscriber(true);
+          }
+        }
+      })
+      .catch(() => {});
+
     const timer = setTimeout(() => {
       setIsClient(true);
       try {
@@ -200,36 +213,90 @@ export default function CollectionClient() {
     showToast('Exported collection manifest JSON.');
   };
 
-  // Download single master cel
-  const handleDownloadCel = (work: GalleryWork) => {
-    const strokeColor = work.category === 'Mono' ? '#ffffff' : 'rgba(0, 0, 0, 0.6)';
-    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="1200" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-  <rect width="400" height="400" fill="${work.color}"/>
-  <g stroke="${strokeColor}" fill="none" stroke-width="2">
-    <circle cx="200" cy="200" r="130"/>
-    <circle cx="200" cy="200" r="85" stroke-dasharray="6 4"/>
-    <line x1="50" y1="200" x2="350" y2="200" stroke-width="1"/>
-    <line x1="200" y1="50" x2="200" y2="350" stroke-width="1"/>
-    <circle cx="200" cy="200" r="14" fill="${strokeColor}"/>
-  </g>
-  <text x="375" y="380" text-anchor="end" fill="${strokeColor}" font-size="11" font-family="monospace">
-    ${work.code} • studioNeo Digital Archive • Edition ${work.edition}
-  </text>
-</svg>`;
+  // Download master cel in requested format
+  const handleDownloadCel = useCallback(
+    (work: GalleryWork, format: 'svg' | 'png' | 'jpg' | 'gif' = 'svg') => {
+      // Gating for subscriber-only Digital Vault works
+      if (work.isVault && !isSubscriber) {
+        showToast(`Subscriber access required for Digital Vault work #${work.code}.`);
+        return;
+      }
 
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `studioNeo-${work.code}-master.svg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      // Format 1: Scalable Vector Graphics (SVG)
+      if (format === 'svg') {
+        const svgContent = generateStandaloneSvg(work);
+        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `studioNeo-${work.code}-master.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast(`Downloaded master vector cel for #${work.code} (${work.title})`);
+        return;
+      }
 
-    showToast(`Downloaded master vector cel for #${work.code}`);
-  };
+      // Format 2: Kinetic Animated GIF
+      if (format === 'gif') {
+        if (work.gifSrc) {
+          const a = document.createElement('a');
+          a.href = work.gifSrc;
+          a.download = `studioNeo-${work.code}-kinetic.gif`;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast(`Downloaded animated GIF for #${work.code}`);
+        } else {
+          showToast(`Kinetic animated GIF is only available for kinetic motion works.`);
+        }
+        return;
+      }
+
+      // Format 3 & 4: Raster Render via Canvas (PNG / JPG)
+      const svgContent = generateStandaloneSvg(work);
+      const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 1200;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        if (format === 'jpg') {
+          ctx.fillStyle = work.color;
+          ctx.fillRect(0, 0, 1200, 1200);
+        }
+        ctx.drawImage(img, 0, 0, 1200, 1200);
+        URL.revokeObjectURL(url);
+
+        const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+        const ext = format === 'jpg' ? 'jpg' : 'png';
+
+        canvas.toBlob((canvasBlob) => {
+          if (canvasBlob) {
+            const downloadUrl = URL.createObjectURL(canvasBlob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `studioNeo-${work.code}-master.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl);
+            showToast(`Exported ${format.toUpperCase()} cel for #${work.code} (${work.title})`);
+          }
+        }, mimeType, 0.95);
+      };
+
+      img.src = url;
+    },
+    [isSubscriber, showToast]
+  );
 
   // Filtered list
   const collectionWorks = useMemo(() => {
@@ -458,6 +525,21 @@ export default function CollectionClient() {
 
                     <span className="collection-price-tag">{work.price}</span>
                   </div>
+
+                  {/* Multi-Format Asset Export Bar */}
+                  <div style={{ padding: '0 16px 14px', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Export Cel
+                    </div>
+                    <div className="format-pill-group">
+                      <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(work, 'svg')} title="Download SVG Vector Master">SVG</button>
+                      <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(work, 'png')} title="Export 1200px PNG">PNG</button>
+                      <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(work, 'jpg')} title="Export High-Res JPG">JPG</button>
+                      {work.gifSrc && (
+                        <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(work, 'gif')} title="Export Animated GIF">GIF</button>
+                      )}
+                    </div>
+                  </div>
                 </article>
               );
             })}
@@ -476,40 +558,88 @@ export default function CollectionClient() {
           <div
             className="gallery-modal-content ig-checkout-modal"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '640px', background: '#fff', borderRadius: '20px', padding: '24px' }}
+            style={{
+              maxWidth: '640px',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-primary)',
+              borderRadius: '20px',
+              padding: '24px',
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-              <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: 700 }}>Acquire #{checkoutWork.code}</h2>
+              <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: 700 }}>
+                {checkoutWork.isVault ? 'Digital Vault Exclusive' : `Acquire #${checkoutWork.code}`}
+              </h2>
               <button
                 type="button"
                 onClick={() => setCheckoutWork(null)}
-                style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--text-primary)' }}
+                aria-label="Close modal"
               >
                 ✕
               </button>
             </div>
-            <p style={{ fontSize: '0.92rem', color: 'rgba(0,0,0,0.7)', lineHeight: 1.6, marginBottom: '20px' }}>
-              Confirming registration for <strong>{checkoutWork.title}</strong> by {checkoutWork.artist} ({checkoutWork.price}). Includes uncompressed SVG stems and provenance token.
-            </p>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                type="button"
-                className="btn-pill-primary"
-                onClick={() => {
-                  showToast(`Purchase order registered for #${checkoutWork.code}!`);
-                  setCheckoutWork(null);
-                }}
-              >
-                Confirm Acquisition — {checkoutWork.price}
-              </button>
-              <button
-                type="button"
-                className="btn-pill-secondary"
-                onClick={() => setCheckoutWork(null)}
-              >
-                Cancel
-              </button>
-            </div>
+
+            {checkoutWork.isVault && !isSubscriber ? (
+              <div>
+                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
+                  <strong>{checkoutWork.title}</strong> (#{checkoutWork.code}) is an exclusive Digital Vault edition reserved for studioNeo subscribers. Upgrade your membership to unlock master vector stems, animated kinetic cels, and high-resolution exports.
+                </p>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                  <Link href="/membership" className="btn-pill-primary">
+                    Upgrade to Unlock Vault
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn-pill-secondary"
+                    onClick={() => setCheckoutWork(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
+                  Confirming registration for <strong>{checkoutWork.title}</strong> by {checkoutWork.artist} ({checkoutWork.price}). Includes uncompressed SVG stems and provenance token.
+                </p>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Instant Format Export
+                  </div>
+                  <div className="format-pill-group">
+                    <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(checkoutWork, 'svg')}>SVG Vector</button>
+                    <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(checkoutWork, 'png')}>PNG Cel</button>
+                    <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(checkoutWork, 'jpg')}>JPG Preview</button>
+                    {checkoutWork.gifSrc && (
+                      <button type="button" className="format-pill-btn" onClick={() => handleDownloadCel(checkoutWork, 'gif')}>GIF Kinetic</button>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    className="btn-pill-primary"
+                    onClick={() => {
+                      showToast(`Purchase order registered for #${checkoutWork.code}!`);
+                      setCheckoutWork(null);
+                    }}
+                  >
+                    Confirm Acquisition — {checkoutWork.price}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-pill-secondary"
+                    onClick={() => setCheckoutWork(null)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

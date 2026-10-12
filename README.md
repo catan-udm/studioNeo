@@ -38,7 +38,19 @@ https://<your-static-app-host>/api/auth/oauth/google/callback
 https://<your-static-app-host>/api/auth/oauth/microsoft/callback
 ```
 
-The GitHub Actions secret `AZURE_STATIC_WEB_APPS_API_TOKEN_ASHY_MUSHROOM_07675A400` is separate from application settings. It must contain the current deployment token generated from the matching Azure Static Web App resource.
+The GitHub Actions secret `AZURE_STATIC_WEB_APPS_API_TOKEN_ORANGE_GLACIER_0274E2E00` is separate from application settings. It must contain the current deployment token generated from the matching Azure Static Web App resource.
+
+## Diagnostics & Testing
+
+Verify environment credentials, database connectivity, and cryptographic authentication:
+
+```bash
+# Run local environment and database diagnostic audit
+npm run diagnose
+
+# Run automated cryptographic security, WebAuthn & SAS token test suite
+npm test
+```
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

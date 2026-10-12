@@ -50,9 +50,41 @@ const FAQS = [
 export default function MembershipClient() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [checkingOutTier, setCheckingOutTier] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex((prev) => (prev === index ? null : index));
+  };
+
+  const handleSubscribe = async (tier: 'collector' | 'studio') => {
+    setCheckingOutTier(tier);
+    setCheckoutError(null);
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier, billingCycle }),
+      });
+
+      const data = await res.json();
+      if (res.status === 401 && data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to initialize checkout session.');
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Checkout session initiation failed.';
+      setCheckoutError(msg);
+      setCheckingOutTier(null);
+    }
   };
 
   return (
@@ -89,6 +121,25 @@ export default function MembershipClient() {
           </div>
         </div>
       </section>
+
+      {checkoutError && (
+        <div
+          className="alert alert-error"
+          role="alert"
+          style={{
+            maxWidth: '920px',
+            margin: '0 auto 1.5rem',
+            padding: '0.85rem 1.25rem',
+            borderRadius: 'var(--radius-md)',
+            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.35)',
+            color: '#ef4444',
+            textAlign: 'center',
+          }}
+        >
+          {checkoutError}
+        </div>
+      )}
 
       {/* 2. Pricing Tiers Grid */}
       <section className="membership-tiers-grid" aria-label="Membership plans">
@@ -184,9 +235,14 @@ export default function MembershipClient() {
           </div>
 
           <div className="tier-action-wrap">
-            <Link href="/register" className="btn-pill-primary tier-cta-btn">
-              Start Collector Membership
-            </Link>
+            <button
+              type="button"
+              onClick={() => handleSubscribe('collector')}
+              className="btn-pill-primary tier-cta-btn"
+              disabled={checkingOutTier !== null}
+            >
+              {checkingOutTier === 'collector' ? 'Initializing Checkout...' : 'Start Collector Membership'}
+            </button>
           </div>
         </article>
 
@@ -231,7 +287,15 @@ export default function MembershipClient() {
             </div>
           </div>
 
-          <div className="tier-action-wrap">
+          <div className="tier-action-wrap" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={() => handleSubscribe('studio')}
+              className="btn-pill-primary tier-cta-btn"
+              disabled={checkingOutTier !== null}
+            >
+              {checkingOutTier === 'studio' ? 'Initializing Checkout...' : 'Upgrade to Studio Commercial'}
+            </button>
             <Link href="/contact?topic=commercial" className="btn-pill-secondary tier-cta-btn">
               Contact Studio Lab
             </Link>

@@ -161,9 +161,11 @@ export async function clearPasskeyChallenge(): Promise<void> {
   });
 }
 
-export default {
+const webauthn = {
   getRPConfig,
   setPasskeyChallenge,
   getPasskeyChallenge,
   clearPasskeyChallenge,
 };
+
+export default webauthn;

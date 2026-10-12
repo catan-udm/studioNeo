@@ -20,6 +20,8 @@ interface Subscriber {
   id: number;
   email: string;
   is_verified: boolean;
+  tier?: string;
+  subscriptionStatus?: 'active' | 'canceled' | 'trialing';
   twoFactorActive: boolean;
   passkeyCount?: number;
   linkedOAuth?: string[];
@@ -32,6 +34,14 @@ interface PasskeyRecord {
   credential_id: string;
   counter: number;
   created_at: string;
+}
+
+interface TotpSetupData {
+  secret: string;
+  formattedSecret: string;
+  otpauthUri: string;
+  qrCodeSvg?: string;
+  qrCodeDataUrl: string;
 }
 
 function DashboardContent() {
@@ -49,6 +59,16 @@ function DashboardContent() {
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [jsonDetails, setJsonDetails] = useState<Record<string, unknown> | null>(null);
+
+  // 2FA (TOTP) Ceremony State
+  const [totpSetupData, setTotpSetupData] = useState<TotpSetupData | null>(null);
+  const [totpStep, setTotpStep] = useState<'idle' | 'setup' | 'backupCodes'>('idle');
+  const [totpCodeInput, setTotpCodeInput] = useState('');
+  const [totpBackupCodes, setTotpBackupCodes] = useState<string[]>([]);
+  const [totpLoading, setTotpLoading] = useState(false);
+  const [totpMsg, setTotpMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedBackup, setCopiedBackup] = useState(false);
 
   const fetchSession = useCallback(async () => {
     try {
@@ -107,6 +127,8 @@ function DashboardContent() {
     const timer = setTimeout(() => {
       const linked = searchParams.get('linked');
       const error = searchParams.get('error');
+      const subscriptionParam = searchParams.get('subscription');
+      const tierParam = searchParams.get('tier');
 
       if (linked) {
         setActionMsg({
@@ -118,6 +140,13 @@ function DashboardContent() {
         setActionMsg({
           type: 'error',
           text: `Account linking error: ${decodeURIComponent(error)}`,
+        });
+        window.history.replaceState({}, '', '/dashboard');
+      } else if (subscriptionParam === 'success') {
+        const tierName = tierParam === 'studio' ? 'Studio Commercial Lab' : 'Archive Member (Collector)';
+        setActionMsg({
+          type: 'success',
+          text: `Welcome to ${tierName}! Your subscription is active, and digital vaults and perk assets are now fully unlocked.`,
         });
         window.history.replaceState({}, '', '/dashboard');
       }
@@ -225,6 +254,130 @@ function DashboardContent() {
     }
   };
 
+  // 2FA Setup Ceremony Handlers
+  const handleStartTotpSetup = async () => {
+    setTotpLoading(true);
+    setTotpMsg(null);
+    try {
+      const res = await fetch('/api/auth/totp/setup');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to initialize 2FA setup');
+      setTotpSetupData(data);
+      setTotpStep('setup');
+      setTotpCodeInput('');
+    } catch (err: unknown) {
+      const text = err instanceof Error ? err.message : 'Failed to start 2FA setup.';
+      setTotpMsg({ type: 'error', text });
+    } finally {
+      setTotpLoading(false);
+    }
+  };
+
+  const handleVerifyTotp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!totpCodeInput || totpCodeInput.length < 6) return;
+    setTotpLoading(true);
+    setTotpMsg(null);
+    try {
+      const res = await fetch('/api/auth/totp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: totpCodeInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid authenticator code');
+
+      setTotpBackupCodes(data.backupCodes || []);
+      setTotpStep('backupCodes');
+      setTotpMsg({ type: 'success', text: 'Two-Factor Authentication activated successfully!' });
+      if (subscriber) {
+        setSubscriber({ ...subscriber, twoFactorActive: true });
+      }
+      invalidateAuthCache();
+    } catch (err: unknown) {
+      const text = err instanceof Error ? err.message : 'Verification failed.';
+      setTotpMsg({ type: 'error', text });
+    } finally {
+      setTotpLoading(false);
+    }
+  };
+
+  const handleDisableTotp = async () => {
+    if (!confirm('Disable Two-Factor Authentication on your account? This lowers your security level.')) {
+      return;
+    }
+    setTotpLoading(true);
+    setTotpMsg(null);
+    try {
+      const res = await fetch('/api/auth/totp/disable', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to disable 2FA');
+      if (subscriber) {
+        setSubscriber({ ...subscriber, twoFactorActive: false });
+      }
+      setTotpStep('idle');
+      setTotpSetupData(null);
+      setTotpBackupCodes([]);
+      setTotpMsg({ type: 'success', text: 'Two-Factor Authentication deactivated.' });
+      invalidateAuthCache();
+    } catch (err: unknown) {
+      const text = err instanceof Error ? err.message : 'Failed to disable 2FA.';
+      setTotpMsg({ type: 'error', text });
+    } finally {
+      setTotpLoading(false);
+    }
+  };
+
+  const handleRegenerateBackupCodes = async () => {
+    if (!confirm('Generate new recovery backup codes? Any previous backup codes will be permanently invalidated.')) {
+      return;
+    }
+    setTotpLoading(true);
+    try {
+      const res = await fetch('/api/auth/totp/backup-codes', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to regenerate backup codes');
+      setTotpBackupCodes(data.backupCodes || []);
+      setTotpStep('backupCodes');
+      setTotpMsg({ type: 'success', text: 'New backup codes generated. Save them immediately.' });
+    } catch (err: unknown) {
+      const text = err instanceof Error ? err.message : 'Failed to regenerate backup codes.';
+      setTotpMsg({ type: 'error', text });
+    } finally {
+      setTotpLoading(false);
+    }
+  };
+
+  const copySecretKey = () => {
+    if (totpSetupData?.secret) {
+      navigator.clipboard.writeText(totpSetupData.secret);
+      setCopiedKey(true);
+      setTimeout(() => setCopiedKey(false), 2000);
+    }
+  };
+
+  const copyAllBackupCodes = () => {
+    if (totpBackupCodes.length > 0) {
+      navigator.clipboard.writeText(totpBackupCodes.join('\n'));
+      setCopiedBackup(true);
+      setTimeout(() => setCopiedBackup(false), 2000);
+    }
+  };
+
+  const downloadBackupCodes = () => {
+    if (totpBackupCodes.length === 0) return;
+    const content = `bikko.studio • Emergency Two-Factor Recovery Codes\nGenerated: ${new Date().toISOString()}\nAccount: ${subscriber?.email}\n\n${totpBackupCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nNote: Each code is single-use only. Keep in a secure location.`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bikko-studio-backup-codes.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleInspectSas = async (slug: string) => {
     try {
       const res = await fetch(`/api/assets/download/${slug}?format=json`);
@@ -248,6 +401,14 @@ function DashboardContent() {
     return null;
   }
 
+  const currentTier = subscriber.tier || 'free';
+  const tierDisplayName =
+    currentTier === 'studio'
+      ? 'Studio Commercial Lab'
+      : currentTier === 'collector'
+      ? 'Archive Member (Collector)'
+      : 'Public Preview';
+
   return (
     <main id="main-content" className="container stack" style={{ gap: '2rem', paddingTop: '2rem', paddingBottom: '3rem' }}>
       {/* Graceful Signout Overlay */}
@@ -270,7 +431,6 @@ function DashboardContent() {
       )}
 
       {/* Action Notification Message */}
-
       {actionMsg && (
         <div
           className={`alert ${actionMsg.type === 'success' ? 'alert-success' : 'alert-error'}`}
@@ -285,10 +445,13 @@ function DashboardContent() {
       <section className="card">
         <div className="cluster-between">
           <div className="stack" style={{ gap: '0.35rem' }}>
-            <div className="cluster">
+            <div className="cluster" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
               <h2>Subscriber Dashboard</h2>
               <span className="badge badge-success">
                 {subscriber.is_verified ? 'Verified' : 'Pending Verification'}
+              </span>
+              <span className={`badge ${currentTier !== 'free' ? 'badge-success' : 'badge-warning'}`}>
+                {tierDisplayName}
               </span>
               {subscriber.passkeyCount && subscriber.passkeyCount > 0 ? (
                 <span className="badge badge-success">
@@ -314,6 +477,278 @@ function DashboardContent() {
             )}
           </button>
         </div>
+      </section>
+
+      {/* Membership & Subscription Status Card */}
+      <section className="card stack">
+        <header className="cluster-between">
+          <div>
+            <h3>Membership &amp; Subscription Status</h3>
+            <p style={{ margin: 0 }}>
+              Your current access entitlement for digital cels, private vaults, and lossless vector stems.
+            </p>
+          </div>
+          <Link href="/membership" className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
+            {currentTier === 'free' ? 'Upgrade to Collector ($12/mo)' : 'Manage / Change Tier'}
+          </Link>
+        </header>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '1rem',
+            marginTop: '0.5rem',
+          }}
+        >
+          <div
+            style={{
+              padding: '1rem',
+              backgroundColor: 'var(--bg-subtle)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>CURRENT PLAN</span>
+            <h4 style={{ margin: '0.25rem 0', fontSize: '1.15rem' }}>{tierDisplayName}</h4>
+            <span className="hint">
+              Status: <strong style={{ color: 'var(--color-success)' }}>{subscriber.subscriptionStatus || 'Active'}</strong>
+            </span>
+          </div>
+
+          <div
+            style={{
+              padding: '1rem',
+              backgroundColor: 'var(--bg-subtle)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>ENTITLEMENTS</span>
+            <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>
+              {currentTier === 'studio'
+                ? 'All 128 Works + 11 Vaults + Commercial License'
+                : currentTier === 'collector'
+                ? 'All 128 Works + 11 Vaults + Lossless Stems'
+                : '8 Public Cels (Preview mode)'}
+            </p>
+            <Link href="/gallery" className="hint" style={{ color: 'var(--brand-primary)', textDecoration: 'none' }}>
+              Browse Digital Vault &rarr;
+            </Link>
+          </div>
+
+          <div
+            style={{
+              padding: '1rem',
+              backgroundColor: 'var(--bg-subtle)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>BILLING PIPELINE</span>
+            <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>
+              Stripe Customer Portal &amp; Webhook Integration
+            </p>
+            <span className="hint">Encrypted PCI-DSS Level 1</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Two-Factor Authentication (TOTP MFA) Management Ceremony */}
+      <section className="card stack">
+        <header className="cluster-between">
+          <div>
+            <h3>Two-Factor Authentication (RFC 6238 TOTP)</h3>
+            <p style={{ margin: 0 }}>
+              Protect your account using time-based one-time passwords from Google Authenticator, Apple Passwords, or 1Password.
+            </p>
+          </div>
+          {subscriber.twoFactorActive ? (
+            <div className="cluster" style={{ gap: '0.5rem' }}>
+              <span className="badge badge-success">✓ 2FA Active</span>
+              <button
+                type="button"
+                onClick={handleRegenerateBackupCodes}
+                className="btn btn-outline"
+                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+                disabled={totpLoading}
+              >
+                Regenerate Backup Codes
+              </button>
+              <button
+                type="button"
+                onClick={handleDisableTotp}
+                className="btn btn-outline"
+                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', color: 'var(--color-error)' }}
+                disabled={totpLoading}
+              >
+                Disable 2FA
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleStartTotpSetup}
+              className="btn btn-primary"
+              disabled={totpLoading || totpStep === 'setup'}
+            >
+              {totpLoading ? 'Generating Secret...' : '+ Enable Two-Factor (TOTP)'}
+            </button>
+          )}
+        </header>
+
+        {totpMsg && (
+          <div
+            className={`alert ${totpMsg.type === 'success' ? 'alert-success' : 'alert-error'}`}
+            role="status"
+            style={{ marginTop: '0.5rem' }}
+          >
+            {totpMsg.text}
+          </div>
+        )}
+
+        {/* TOTP Setup Wizard Ceremony */}
+        {totpStep === 'setup' && totpSetupData && (
+          <div className="totp-setup-card" role="region" aria-label="Two-Factor Setup Wizard">
+            <div className="cluster-between">
+              <h4 style={{ margin: 0 }}>Configure Authenticator App</h4>
+              <button
+                type="button"
+                onClick={() => setTotpStep('idle')}
+                className="btn btn-outline"
+                style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem' }}
+              >
+                Cancel Setup
+              </button>
+            </div>
+
+            <div className="totp-setup-grid">
+              {/* QR Code Column */}
+              <div className="totp-qr-frame">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={totpSetupData.qrCodeDataUrl}
+                  alt="Two-factor authentication QR code"
+                  className="totp-qr-image"
+                />
+              </div>
+
+              {/* Instructions and Manual Key Column */}
+              <div className="stack" style={{ gap: '1rem' }}>
+                <div>
+                  <strong style={{ display: 'block', marginBottom: '0.25rem' }}>Step 1: Scan QR or Enter Key Manually</strong>
+                  <p className="hint" style={{ margin: 0 }}>
+                    Open your authenticator app (Google Authenticator, Apple Keychain, Microsoft Authenticator, 1Password) and scan this QR code, or paste the secret key below:
+                  </p>
+                </div>
+
+                <div className="totp-key-display">
+                  <span>{totpSetupData.formattedSecret}</span>
+                  <button
+                    type="button"
+                    onClick={copySecretKey}
+                    className="btn btn-outline"
+                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                  >
+                    {copiedKey ? '✓ Copied' : 'Copy Key'}
+                  </button>
+                </div>
+
+                <form onSubmit={handleVerifyTotp} className="stack" style={{ gap: '0.75rem' }}>
+                  <label htmlFor="totp-verify-input" style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                    Step 2: Enter the 6-Digit Code from Authenticator
+                  </label>
+                  <div className="cluster" style={{ gap: '0.5rem' }}>
+                    <input
+                      id="totp-verify-input"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      required
+                      autoComplete="one-time-code"
+                      placeholder="123456"
+                      value={totpCodeInput}
+                      onChange={(e) => setTotpCodeInput(e.target.value.replace(/\D/g, ''))}
+                      className="form-input"
+                      style={{
+                        width: '180px',
+                        fontSize: '1.25rem',
+                        letterSpacing: '0.25em',
+                        textAlign: 'center',
+                        fontFamily: 'monospace',
+                        fontWeight: 700,
+                        padding: '0.5rem',
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={totpLoading || totpCodeInput.length < 6}
+                    >
+                      {totpLoading ? 'Verifying...' : 'Verify & Activate 2FA'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Emergency Backup Codes Display */}
+        {totpStep === 'backupCodes' && totpBackupCodes.length > 0 && (
+          <div
+            className="totp-setup-card"
+            style={{ borderColor: 'var(--color-success-border)', backgroundColor: 'var(--color-success-bg)' }}
+            role="region"
+            aria-label="Emergency Backup Codes"
+          >
+            <div className="stack" style={{ gap: '0.5rem' }}>
+              <div className="cluster">
+                <span style={{ fontSize: '1.25rem' }}>🛡️</span>
+                <h4 style={{ margin: 0 }}>Emergency Backup Recovery Codes</h4>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                Store these single-use recovery codes in a safe password manager or print them out. If you lose access to your authenticator device, these codes are the only way to recover account access.
+              </p>
+            </div>
+
+            <div className="backup-codes-grid">
+              {totpBackupCodes.map((code, idx) => (
+                <div key={idx} className="backup-code-pill">
+                  {code}
+                </div>
+              ))}
+            </div>
+
+            <div className="cluster" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={copyAllBackupCodes}
+                className="btn btn-outline"
+                style={{ fontSize: '0.85rem' }}
+              >
+                {copiedBackup ? '✓ All Codes Copied' : 'Copy All Codes'}
+              </button>
+              <button
+                type="button"
+                onClick={downloadBackupCodes}
+                className="btn btn-outline"
+                style={{ fontSize: '0.85rem' }}
+              >
+                Download (.txt)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTotpStep('idle')}
+                className="btn btn-primary"
+                style={{ fontSize: '0.85rem' }}
+              >
+                I Have Saved My Codes
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Passkeys & Hardware Biometrics Management */}
@@ -441,16 +876,14 @@ function DashboardContent() {
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = '/api/auth/oauth/google?action=link';
-                }}
+              <Link
+                href="/api/auth/oauth/google?action=link"
+                prefetch={false}
                 className="btn btn-primary"
-                style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
+                style={{ fontSize: '0.8rem', padding: '0.4rem 1rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
               >
                 Connect Google
-              </button>
+              </Link>
             )}
           </div>
 
@@ -492,16 +925,14 @@ function DashboardContent() {
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = '/api/auth/oauth/microsoft?action=link';
-                }}
+              <Link
+                href="/api/auth/oauth/microsoft?action=link"
+                prefetch={false}
                 className="btn btn-primary"
-                style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
+                style={{ fontSize: '0.8rem', padding: '0.4rem 1rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
               >
                 Connect Microsoft
-              </button>
+              </Link>
             )}
           </div>
         </div>
@@ -514,7 +945,7 @@ function DashboardContent() {
             <h2>Authorized Perk Assets</h2>
             <p>
               Assets unlocked for your account. Each download generates a cryptographically signed,
-              15-minute expiring SAS URL.
+              15-minute expiring SAS URL across multiple formats.
             </p>
           </div>
         </header>
@@ -523,7 +954,7 @@ function DashboardContent() {
           <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
             <p>No perk unlocks found for this subscriber yet.</p>
             <p className="hint">
-              Insert records into <code>perk_unlocks</code> in <code>experimental_studio_db</code> to authorize downloads.
+              Subscribe or acquire editions to unlock digital guides, audio stems, and architectural starter kits.
             </p>
           </div>
         ) : (
@@ -543,7 +974,7 @@ function DashboardContent() {
                   </span>
                 </div>
 
-                <div className="cluster" style={{ marginTop: '1rem' }}>
+                <div className="cluster" style={{ marginTop: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <a
                     href={`/api/assets/download/${perk.slug}`}
                     className="btn btn-primary"
@@ -558,6 +989,26 @@ function DashboardContent() {
                   >
                     Inspect SAS JSON
                   </button>
+                  <div className="format-pill-group" style={{ display: 'inline-flex', gap: '4px' }}>
+                    <a
+                      href={`/api/assets/download/${perk.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="format-pill-btn"
+                      title="Download archive asset"
+                    >
+                      {perk.slug.includes('guide') ? 'PDF' : perk.slug.includes('audio') || perk.slug.includes('pack') ? 'TAR.GZ' : 'ZIP'}
+                    </a>
+                    <a
+                      href={`/api/assets/download/${perk.slug}?format=json`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="format-pill-btn"
+                      title="Inspect JSON manifest"
+                    >
+                      JSON
+                    </a>
+                  </div>
                 </div>
               </article>
             ))}

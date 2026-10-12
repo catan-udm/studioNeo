@@ -358,7 +358,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
   };
 
   return (
-    <main className="landing-page">
+    <main id="main-content" className="landing-page">
       <section className="landing-hero auth-hero">
         <div className="auth-container">
           {/* Segmented Mode Switcher */}
@@ -790,7 +790,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
             </div>
 
             {/* Footer Switching Prompt */}
-            <div style={{ textAlign: 'center', fontSize: '0.85rem', color: '#64748b', marginTop: '0.75rem' }}>
+            <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
               {mode === 'login' ? (
                 <>
                   Don&apos;t have an account?{' '}
