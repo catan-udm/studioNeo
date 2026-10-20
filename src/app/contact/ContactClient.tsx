@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getAuthenticatedSession, invalidateAuthCache } from '@/lib/clientAuthCache';
@@ -20,6 +20,13 @@ function ContactFormContent() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Spam defences: honeypot (must stay empty) and form-render timestamp
+  const [website, setWebsite] = useState('');
+  const formStartedAtRef = useRef<number>(0);
+  useEffect(() => {
+    formStartedAtRef.current = Date.now();
+  }, []);
 
   // Curatorial Role Ceremony State
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
@@ -80,6 +87,8 @@ function ContactFormContent() {
           organization: organization || (artistHandle ? `@${artistHandle}` : null),
           topic,
           message: composedMessage,
+          website,
+          startedAt: formStartedAtRef.current,
         }),
       });
 
@@ -202,6 +211,19 @@ function ContactFormContent() {
             </div>
           ) : (
             <form className="contact-form" onSubmit={handleSubmit} noValidate={false}>
+              {/* Honeypot: hidden from humans and assistive tech; bots tend to fill it */}
+              <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+                <label htmlFor="website-input">Leave this field empty</label>
+                <input
+                  id="website-input"
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                />
+              </div>
               {submitError && (
                 <div
                   className="alert alert-error"

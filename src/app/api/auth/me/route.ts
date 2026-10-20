@@ -160,28 +160,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Atomic transaction: clean up any orders then delete subscriber (cascades to all child tables)
+    // Atomic transaction: delete subscriber (cascades to all child tables)
     await transaction(async (conn) => {
-      // 1. Delete associated order items for any subscriber orders
-      try {
-        await conn.execute(
-          `DELETE oi FROM order_items oi
-           INNER JOIN orders o ON o.id = oi.order_id
-           WHERE o.subscriber_id = ?`,
-          [session.subscriberId]
-        );
-      } catch {
-        // Table may not exist or have orders
-      }
-
-      // 2. Delete orders
-      try {
-        await conn.execute('DELETE FROM orders WHERE subscriber_id = ?', [session.subscriberId]);
-      } catch {
-        // Table may not exist or have orders
-      }
-
-      // 3. Delete subscriber record (foreign keys cascade to webauthn_credentials,
+      // Delete subscriber record (foreign keys cascade to webauthn_credentials,
       // subscriber_oauth_accounts, auth_magic_tokens, totp_credentials, totp_backup_codes,
       // perk_unlocks, customer_addresses, submissions)
       await conn.execute('DELETE FROM subscribers WHERE id = ?', [session.subscriberId]);

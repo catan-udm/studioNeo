@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
       }
     } else {
-      // In development / testing or mock mode without webhook secret
+      // In development / testing or mock mode without webhook secret.
+      // NOTE: Stripe is mock-only in this university project (all products are mock products),
+      // so unsigned payloads are intentionally accepted. Do not reuse this handler with real payments.
       try {
         event = JSON.parse(rawBody) as Stripe.Event;
       } catch {

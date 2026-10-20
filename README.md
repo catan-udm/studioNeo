@@ -1,31 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# studioNeo
+
+A Next.js (App Router) studio site with membership tiers, a generative-art gallery, a creator upload studio and a custom authentication stack (email OTP, passkeys/WebAuthn, TOTP, Google & Microsoft OAuth). Hosted on Azure Static Web Apps with Azure Database for MySQL, Blob Storage and Communication Services.
+
+> **University project.** All products, memberships and payments are **mock**. Stripe runs in simulated mode only; no real payments are ever processed.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
+cp .env.example .env.local   # then fill in real values
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
+
+Create the database schema with [scripts/schema.sql](scripts/schema.sql).
 
 ## Environment Configuration
 
-Use [.env.example](.env.example) as the complete variable checklist. Copy it to `.env.local` for local development and replace every sample value with a real credential. `.env.local` is ignored by Git and must never be committed.
+Use [.env.example](.env.example) as the complete variable checklist. `.env.local` is ignored by Git and must never be committed.
 
 For Azure Static Web Apps, add the same variables under **Static Web App -> Configuration -> Application settings**. At minimum, production requires:
 
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 - `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_ACCOUNT_KEY`, `AZURE_STORAGE_CONTAINER_NAME`
 - `AUTH_SESSION_SECRET`, `AUTH_SESSION_COOKIE_NAME`, `AUTH_SESSION_TTL_SECONDS`
-- `AZURE_COMMUNICATION_CONNECTION_STRING`, `ACS_SENDER_EMAIL`
+- `AZURE_COMMUNICATION_CONNECTION_STRING`, `ACS_SENDER_EMAIL` (OTP and studio notification emails)
+- `CONTACT_NOTIFY_EMAIL` (inbox that receives contact-form inquiries)
 - `WEBAUTHN_RP_ID`, `WEBAUTHN_RP_NAME`
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 - `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_TENANT_ID`
@@ -40,9 +41,20 @@ https://<your-static-app-host>/api/auth/oauth/microsoft/callback
 
 The GitHub Actions secret `AZURE_STATIC_WEB_APPS_API_TOKEN_ORANGE_GLACIER_0274E2E00` is separate from application settings. It must contain the current deployment token generated from the matching Azure Static Web App resource.
 
-## Diagnostics & Testing
+### Behaviour when services are not configured
 
-Verify environment credentials, database connectivity, and cryptographic authentication:
+| Service | If unset |
+|---|---|
+| Database (`DB_*`) | Development only: falls back to an in-memory store. In production, queries fail. |
+| Azure Storage | Download URLs are simulated (`mock_sas=true`). |
+| ACS email | OTP codes are printed to the server console; contact notifications are skipped. |
+| Stripe (`STRIPE_*`) | Intended mode. Checkout is simulated and the tier is auto-fulfilled. |
+
+## Contact form protection
+
+`/api/contact` is protected without any third-party keys: a hidden honeypot field, a minimum time-to-submit check (3 s), and a per-IP rate limit (5 submissions per 10 minutes). Inquiries are stored in the `inquiries` table (a DB failure returns an error) and forwarded to `CONTACT_NOTIFY_EMAIL` through Azure Communication Services.
+
+## Diagnostics & Testing
 
 ```bash
 # Run local environment and database diagnostic audit
@@ -52,21 +64,6 @@ npm run diagnose
 npm test
 ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Documentation](https://nextjs.org/docs)
