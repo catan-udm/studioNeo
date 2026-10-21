@@ -292,7 +292,7 @@ function LandingContent() {
 
         <div className="landing-content">
           <div id="about" className="landing-copy">
-            <h1 id="landing-title">bikko.studio</h1>
+            <h1 id="landing-title">studioNeo</h1>
             <p>Go ahead and say just a little more about what you do.</p>
           </div>
           <div className="landing-actions" role="group" aria-label="Primary landing actions">

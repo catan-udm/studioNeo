@@ -152,7 +152,7 @@ function ContactFormContent() {
       {/* 1. Header */}
       <section className="contact-header" aria-labelledby="contact-heading">
         <span className="contact-overline">STUDIO COMMISSIONS &amp; CURATION DESK</span>
-        <h1 id="contact-heading" className="contact-title">Contact Studio</h1>
+        <h1 id="contact-heading" className="contact-title">Contact Us</h1>
         <p className="contact-lead">
           Connect with the studioNeo curation desk for resident artist applications, bespoke kinetic cels, commercial broadcast rights, and physical exhibition prints.
         </p>
@@ -602,7 +602,7 @@ function ContactFormContent() {
           <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
           <Link href="/terms" className="footer-link">Terms of Service</Link>
           <Link href="/privacy" className="footer-link">Privacy Policy</Link>
-          <Link href="/contact" className="footer-link">Contact Studio</Link>
+          <Link href="/contact" className="footer-link">Contact Us</Link>
         </div>
         <div className="footer-bottom-copy">
           <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>

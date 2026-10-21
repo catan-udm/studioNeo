@@ -2,24 +2,24 @@ import type { Metadata } from 'next';
 import ContactClient from './ContactClient';
 
 export const metadata: Metadata = {
-  title: 'Contact Studio • Commissions & Curation Desk • bikko.studio',
+  title: 'Contact Us • Commissions & Curation Desk • studioneo.tech',
   description:
     'Connect with the studioNeo curation desk for bespoke kinetic cels, commercial broadcast rights, and physical exhibition print acquisitions.',
   alternates: {
-    canonical: 'https://bikko.studio/contact',
+    canonical: 'https://studioneo.tech/contact',
   },
   openGraph: {
-    title: 'Contact Studio • bikko.studio',
+    title: 'Contact Us • studioneo.tech',
     description:
       'Connect with the studioNeo curation desk for bespoke kinetic cels, commercial broadcast rights, and exhibition print acquisitions.',
-    url: 'https://bikko.studio/contact',
+    url: 'https://studioneo.tech/contact',
     type: 'website',
     locale: 'en_US',
-    siteName: 'bikko.studio',
+    siteName: 'studioneo.tech',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Contact Studio • bikko.studio',
+    title: 'Contact Us • studioneo.tech',
     description:
       'Connect with the studioNeo curation desk for bespoke kinetic cels, commercial broadcast rights, and exhibition print acquisitions.',
   },
@@ -30,31 +30,31 @@ const contactStructuredData = {
   '@graph': [
     {
       '@type': 'ContactPage',
-      '@id': 'https://bikko.studio/contact/#webpage',
-      url: 'https://bikko.studio/contact',
-      name: 'Contact Studio • bikko.studio',
+      '@id': 'https://studioneo.tech/contact/#webpage',
+      url: 'https://studioneo.tech/contact',
+      name: 'Contact Us • studioneo.tech',
       description:
         'Connect with the studioNeo curation desk for bespoke kinetic cels, commercial broadcast rights, and physical exhibition print acquisitions.',
       inLanguage: 'en-US',
       isPartOf: {
-        '@id': 'https://bikko.studio/#website',
+        '@id': 'https://studioneo.tech/#website',
       },
     },
     {
       '@type': 'BreadcrumbList',
-      '@id': 'https://bikko.studio/contact/#breadcrumb',
+      '@id': 'https://studioneo.tech/contact/#breadcrumb',
       itemListElement: [
         {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://bikko.studio',
+          item: 'https://studioneo.tech',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Contact',
-          item: 'https://bikko.studio/contact',
+          item: 'https://studioneo.tech/contact',
         },
       ],
     },
