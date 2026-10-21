@@ -297,7 +297,7 @@ function ContactFormContent() {
                     autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Adrian or Artist Name"
+                    placeholder="Artist Name"
                     className="form-input"
                   />
                 </div>
@@ -313,7 +313,7 @@ function ContactFormContent() {
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="adrian@bikko.studio"
+                    placeholder="abcde@studioneo.tech"
                     className="form-input"
                   />
                 </div>
@@ -491,7 +491,7 @@ function ContactFormContent() {
                         required
                         value={ceremonyTargetEmail}
                         onChange={(e) => setCeremonyTargetEmail(e.target.value)}
-                        placeholder="artist@bikko.studio"
+                        placeholder="artist@studioneo.tech"
                         className="form-input"
                       />
                     </div>
@@ -544,19 +544,19 @@ function ContactFormContent() {
             <h2>Direct Atelier Channels</h2>
             <div className="info-item">
               <span className="info-label">CURATORIAL DESK</span>
-              <span className="info-val">curator@bikko.studio</span>
+              <span className="info-val">curator@studioneo.tech</span>
             </div>
             <div className="info-item">
               <span className="info-label">RESIDENT ARTISTS DISPATCH</span>
-              <span className="info-val">artists@bikko.studio</span>
+              <span className="info-val">artists@studioneo.tech</span>
             </div>
             <div className="info-item">
               <span className="info-label">LICENSING &amp; RIGHTS</span>
-              <span className="info-val">rights@bikko.studio</span>
+              <span className="info-val">rights@studioneo.tech</span>
             </div>
             <div className="info-item">
               <span className="info-label">STUDIO HEADQUARTERS</span>
-              <span className="info-val">Shibuya, Tokyo &bull; Distributed Atelier</span>
+              <span className="info-val">Kawaguchi, Saitama &bull; Distributed Atelier</span>
             </div>
           </div>
 
@@ -606,7 +606,7 @@ function ContactFormContent() {
         </div>
         <div className="footer-bottom-copy">
           <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-          <span>bikko.studio visual engineering</span>
+          <span>studioneo.tech visual engineering</span>
         </div>
       </footer>
     </main>
