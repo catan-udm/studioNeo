@@ -11,6 +11,20 @@ import './collection.css';
  * Geometric Vector Artwork Cel Generator
  */
 function ArtworkCanvas({ work }: { work: GalleryWork }) {
+  const mediaSrc = work.svgSrc || work.gifSrc;
+  if (mediaSrc) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={mediaSrc}
+        alt={work.title}
+        className="collection-artwork-svg"
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        loading="lazy"
+      />
+    );
+  }
+
   const isMono = work.category === 'Mono';
   const strokeColor = isMono ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.45)';
   const accentFill = isMono ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';

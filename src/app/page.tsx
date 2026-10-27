@@ -2,26 +2,26 @@ import type { Metadata } from 'next';
 import LandingClient from './LandingClient';
 
 export const metadata: Metadata = {
-  title: 'bikko.studio • Creative Code, Kinetic Motion & Next-Gen Identity',
+  title: 'sankobite — ugoira tribute archive さんこばいと | Rella • studioNeo',
   description:
-    'Creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey authentication.',
+    'A fan-made tribute archive of sankobite — Filipino illustrator, animator and sticker maker (14 hand-drawn ugoira loops from the DECO*27 series, HERO for Magical Mirai 2023, and Poké Miku) alongside Rella — The Artist Archive.',
   alternates: {
     canonical: 'https://bikko.studio',
   },
   openGraph: {
-    title: 'bikko.studio • Creative Code, Kinetic Motion & Next-Gen Identity',
+    title: 'sankobite — ugoira tribute archive | Rella — The Artist Archive',
     description:
-      'Algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkeys.',
+      '14 hand-drawn looping animations by sankobite and selected illustrations by Rella, integrated with studioNeo.',
     url: 'https://bikko.studio',
     type: 'website',
     locale: 'en_US',
-    siteName: 'bikko.studio',
+    siteName: 'studioNeo',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'bikko.studio • Creative Code, Kinetic Motion & Next-Gen Identity',
+    title: 'sankobite — ugoira tribute archive | Rella — The Artist Archive',
     description:
-      'Algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkeys.',
+      '14 hand-drawn looping animations by sankobite and selected illustrations by Rella, integrated with studioNeo.',
   },
 };
 
@@ -30,9 +30,9 @@ const homeStructuredData = {
   '@type': 'WebPage',
   '@id': 'https://bikko.studio/#webpage',
   url: 'https://bikko.studio',
-  name: 'bikko.studio • Creative Code, Kinetic Motion & Next-Gen Identity',
+  name: 'sankobite — ugoira tribute archive さんこばいと | Rella • studioNeo',
   description:
-    'Creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey authentication.',
+    'Tribute archive of sankobite ugoira animations and Rella illustrations, powered by studioNeo.',
   inLanguage: 'en-US',
   isPartOf: {
     '@id': 'https://bikko.studio/#website',

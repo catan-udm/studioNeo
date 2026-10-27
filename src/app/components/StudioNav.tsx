@@ -538,6 +538,10 @@ export default function StudioNav() {
     </>
   );
 
+  if (pathname === '/' || pathname === '/artist/sankobite' || pathname === '/artist/rella') {
+    return null;
+  }
+
   return (
     <>
       <header

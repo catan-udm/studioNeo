@@ -117,7 +117,7 @@ export async function GET(
 
       const blobData = dbCel.svg_storage_path ? getBlobData(dbCel.svg_storage_path) : null;
       if (blobData) {
-        return new NextResponse(blobData.data, {
+        return new NextResponse(new Uint8Array(blobData.data), {
           status: 200,
           headers: {
             'Content-Type': 'image/svg+xml; charset=utf-8',

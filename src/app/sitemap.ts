@@ -19,6 +19,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { route: '/licensing', changeFrequency: 'monthly', priority: 0.7 },
     { route: '/contact', changeFrequency: 'monthly', priority: 0.7 },
     { route: '/studio/upload', changeFrequency: 'weekly', priority: 0.8 },
+    { route: '/artist/sankobite', changeFrequency: 'weekly', priority: 0.9 },
+    { route: '/artist/rella', changeFrequency: 'weekly', priority: 0.9 },
     { route: '/artist/neo_tokyo', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/artist/kroma_lab', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/artist/sanko_arch', changeFrequency: 'weekly', priority: 0.8 },

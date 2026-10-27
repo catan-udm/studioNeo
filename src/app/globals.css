@@ -485,151 +485,153 @@
   --brand-primary-light: #1e293b;
 }
 
-/* 1. Box-Sizing & Margin Reset */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* 1. Box-Sizing & Margin Reset (placed in @layer base so Tailwind utilities win) */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-html {
-  font-family: var(--font-body);
-  color: var(--text-primary);
-  background-color: var(--bg-canvas);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  html {
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    background-color: var(--bg-canvas);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  font-family: var(--font-body);
-  background-color: var(--bg-canvas);
-  color: var(--text-primary);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  transition: background-color var(--duration-normal) var(--ease-subtle), color var(--duration-normal) var(--ease-subtle);
-}
+  body {
+    font-family: var(--font-body);
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background-color var(--duration-normal) var(--ease-subtle), color var(--duration-normal) var(--ease-subtle);
+  }
 
-/* 2. Semantic Typography & Primitives */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-heading);
-  color: var(--text-primary);
-  font-weight: 700;
-  line-height: 1.25;
-}
+  /* 2. Semantic Typography & Primitives */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    font-weight: 700;
+    line-height: 1.25;
+  }
 
-h1 {
-  font-size: 1.75rem;
-  margin-bottom: 0.5rem;
-}
+  h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
 
-h2 {
-  font-size: 1.35rem;
-  margin-bottom: 0.5rem;
-}
+  h2 {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+  }
 
-h3 {
-  font-size: 1.15rem;
-  margin-bottom: 0.25rem;
-}
+  h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
 
-p {
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-}
+  p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
 
-html,
-body {
-  overflow-x: clip;
-}
+  html,
+  body {
+    overflow-x: clip;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
+  html {
+    scroll-behavior: smooth;
+  }
 
-a {
-  color: var(--brand-primary);
-  text-decoration: none;
-  font-weight: 500;
-}
+  a {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
 
-a:hover {
-  text-decoration: underline;
-}
+  a:hover {
+    text-decoration: underline;
+  }
 
-code,
-pre {
-  font-family: var(--font-mono);
-  font-size: 0.875rem;
-}
+  code,
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
 
-/* 3. Universal Layout Containers & Grids */
-.page-wrapper {
-  flex: 1;
-  width: 100%;
-}
+  /* 3. Universal Layout Containers & Grids */
+  .page-wrapper {
+    flex: 1;
+    width: 100%;
+  }
 
-.container {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
+  .container {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
 
-.card {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  box-shadow: var(--shadow-sm);
-  width: 100%;
-}
+  .card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+  }
 
-.card-header {
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
+  .card-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
 
-.card-header p {
-  font-size: 0.925rem;
-  margin-bottom: 0;
-}
+  .card-header p {
+    font-size: 0.925rem;
+    margin-bottom: 0;
+  }
 
-.grid {
-  display: grid;
-  gap: 1.5rem;
-}
+  .grid {
+    display: grid;
+    gap: 1.5rem;
+  }
 
-.grid-cols-2 {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-}
+  .grid-cols-2 {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  }
 
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-.cluster {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
+  .cluster {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
 
-.cluster-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
+  .cluster-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+  }
 }
 
 /* 4. Global Brand Logo / Studio Mark */
@@ -657,84 +659,86 @@ pre {
 }
 
 /* 5. Form Controls & HTML5 Constraint Validation */
-fieldset {
-  border: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
+@layer base {
+  fieldset {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
 
-legend {
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
-}
+  legend {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
 
-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
 
-.hint {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
+  .hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
 
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"] {
-  width: 100%;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.95rem;
-  font-family: inherit;
-  color: var(--text-primary);
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"] {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
 
-input:focus {
-  border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
+  input:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
 
-/* Modern Constraint Validation with :user-invalid & :user-valid */
-input:user-invalid {
-  border-color: var(--color-error);
-  background-color: var(--color-error-bg);
-}
+  /* Modern Constraint Validation with :user-invalid & :user-valid */
+  input:user-invalid {
+    border-color: var(--color-error);
+    background-color: var(--color-error-bg);
+  }
 
-input:user-invalid:focus {
-  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15);
-}
+  input:user-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15);
+  }
 
-input:user-valid:not(:placeholder-shown) {
-  border-color: var(--color-success);
-}
+  input:user-valid:not(:placeholder-shown) {
+    border-color: var(--color-success);
+  }
 
-.error-msg {
-  display: none;
-  font-size: 0.8rem;
-  color: var(--color-error);
-  margin-top: 0.25rem;
-}
+  .error-msg {
+    display: none;
+    font-size: 0.8rem;
+    color: var(--color-error);
+    margin-top: 0.25rem;
+  }
 
-input:user-invalid + .error-msg,
-.field:has(input:user-invalid) .error-msg {
-  display: block;
+  input:user-invalid + .error-msg,
+  .field:has(input:user-invalid) .error-msg {
+    display: block;
+  }
 }
 
 /* 6. Buttons */

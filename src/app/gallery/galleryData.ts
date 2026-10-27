@@ -1,3 +1,6 @@
+import { artworks as sankobiteArtworks } from '@/data';
+import { rellaArtworks } from '@/rellaData';
+
 export interface GalleryWork {
   id: string;
   code: string;
@@ -285,6 +288,50 @@ export function generateGalleryArchive(): GalleryWork[] {
       description: `Algorithmic vector exploration ${i} from the 2023-2025 StudioNeo digital heritage vault.`,
     });
   }
+
+  // 4. Append Sankobite & Rella archive works so bookmarked works resolve in /collection and /gallery
+  sankobiteArtworks.forEach((a, idx) => {
+    works.push({
+      id: a.id,
+      code: `SNK-${String(idx + 1).padStart(2, '0')}`,
+      title: `${a.titleJp} (${a.titleEn})`,
+      artist: 'sankobite',
+      artistHandle: 'sankobite',
+      artistAvatar: 'SB',
+      color: a.accent,
+      gifSrc: KINETIC_GIF_URLS[idx % KINETIC_GIF_URLS.length],
+      svgSrc: a.src,
+      likes: 200 + a.frames * 4,
+      edition: `${a.frames}f Loop`,
+      price: '$180',
+      category: 'Kinetic',
+      isVault: false,
+      unlocked: true,
+      format: 'RAW',
+      description: a.note,
+    });
+  });
+
+  rellaArtworks.forEach((r, idx) => {
+    works.push({
+      id: `rella-${r.id}`,
+      code: `REL-${String(idx + 1).padStart(2, '0')}`,
+      title: r.title,
+      artist: 'Rella',
+      artistHandle: 'rella',
+      artistAvatar: 'RL',
+      color: '#849d99',
+      svgSrc: r.image,
+      likes: 320 + idx * 25,
+      edition: r.year,
+      price: '$240',
+      category: 'Generative',
+      isVault: false,
+      unlocked: true,
+      format: '4K',
+      description: r.description,
+    });
+  });
 
   return works;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ArtistProfileClient from './ArtistProfileClient';
+import { ArchiveApp } from '@/components/archive/ArchiveApp';
 import { RESIDENT_ARTISTS } from '../../gallery/galleryData';
 
 interface ArtistPageProps {
@@ -9,6 +10,22 @@ interface ArtistPageProps {
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
   const { handle } = await params;
   const cleanHandle = (handle || '').toLowerCase().trim();
+
+  if (cleanHandle === 'sankobite') {
+    return {
+      title: 'sankobite — ugoira tribute archive さんこばいと • studioNeo',
+      description:
+        'A fan-made tribute archive of sankobite — Filipino illustrator, animator and sticker maker. Every ugoira loop, from the DECO*27 song series to Magical Mirai’s HERO and Poké Miku.',
+    };
+  }
+
+  if (cleanHandle === 'rella') {
+    return {
+      title: 'Rella | The Artist Archive • studioNeo',
+      description:
+        'An independent tribute archive of Rella — illustrator, designer, and storyteller in light (Hatsune Miku Symphony, 15th & 16th anniversary visuals).',
+    };
+  }
 
   const resident = RESIDENT_ARTISTS.find((a) => a.handle.toLowerCase() === cleanHandle);
   const artistName = resident
@@ -47,5 +64,15 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
 
 export default async function ArtistPage({ params }: ArtistPageProps) {
   const { handle } = await params;
+  const cleanHandle = (handle || '').toLowerCase().trim();
+
+  if (cleanHandle === 'sankobite') {
+    return <ArchiveApp initialArtist="sankobite" />;
+  }
+
+  if (cleanHandle === 'rella') {
+    return <ArchiveApp initialArtist="rella" />;
+  }
+
   return <ArtistProfileClient handle={handle} />;
 }

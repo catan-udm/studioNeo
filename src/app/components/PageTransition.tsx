@@ -120,7 +120,9 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
     };
 
     const handlePopState = () => {
-      startNavigation();
+      if (window.location.pathname !== pathname) {
+        startNavigation(window.location.pathname);
+      }
     };
 
     document.addEventListener('click', handleDocumentClick, { capture: true });
@@ -132,7 +134,7 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
     };
-  }, [startNavigation]);
+  }, [startNavigation, pathname]);
 
   return (
     <PageTransitionContext.Provider value={{ isNavigating, startNavigation }}>
