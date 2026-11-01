@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  ...(process.env.BUILD_STANDALONE === "true" ? { output: "standalone" as const } : {}),
   compress: true,
   poweredByHeader: false,
   allowedDevOrigins: ["10.236.48.*", "192.168.*.*", "localhost"],
