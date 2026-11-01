@@ -136,7 +136,7 @@ export default function StudioLanding() {
   }, [query, sortMode]);
 
   return (
-    <div className="studio-landing-root">
+    <main id="main-content" className="studio-landing-root">
       {/* Hero Section */}
       <div className="landing-page">
         <section className="landing-hero" aria-labelledby="landing-title">
@@ -339,6 +339,6 @@ export default function StudioLanding() {
           <Link href="/about">About</Link>
         </nav>
       </footer>
-    </div>
+    </main>
   );
 }

@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import GlassRefraction from '@/components/GlassRefraction';
+import { LiquidGlassDefs, useLiquidRefraction } from '@/components/LiquidGlass';
 import { illustrators } from '@/data/illustrators';
 
 const useIsomorphicLayoutEffect =
@@ -626,7 +626,10 @@ export default function StudioNav() {
   const [motion, setMotionState] = useState<MotionPref>('full');
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const leftRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
+  const burgerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const getRouteFromPath = useCallback((path: string): RouteId => {
     if (path.startsWith('/projects')) return 'projects';
@@ -637,10 +640,18 @@ export default function StudioNav() {
 
   const route = getRouteFromPath(pathname);
 
+  const glassSpecs = useLiquidRefraction({
+    leftRef,
+    sliderRef: navRef,
+    burgerRef,
+    popoverRef,
+    deps: [route, scrolled, menuOpen],
+  });
+
   // Sync scroll position & progress fill
   useEffect(() => {
     const updatePosition = () => {
-      setScrolled(window.scrollY > 32);
+      setScrolled(window.scrollY > 20);
       const scrollable =
         document.documentElement.scrollHeight - window.innerHeight;
       setProgress(scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0);
@@ -660,36 +671,26 @@ export default function StudioNav() {
 
   // Precise capsule indicator measurement with ResizeObserver & fonts.ready
   useIsomorphicLayoutEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return;
-    let disposed = false;
-
     const updateIndicator = () => {
-      if (disposed) return;
-      const css = getComputedStyle(nav);
-      let x = parseFloat(css.paddingLeft);
-      for (const pill of nav.querySelectorAll<HTMLElement>('.nav-pill')) {
-        const width = parseFloat(getComputedStyle(pill).width);
-        if (pill.dataset.route === route) {
-          setIndicator((prev) =>
-            prev.x === x && prev.width === width ? prev : { x, width },
-          );
-          break;
-        }
-        x += width + parseFloat(css.columnGap || '0');
+      const active = navRef.current?.querySelector<HTMLElement>(
+        `[data-route="${route}"]`,
+      );
+      if (active) {
+        setIndicator({ x: active.offsetLeft, width: active.offsetWidth });
       }
     };
 
     updateIndicator();
-    const observer = new ResizeObserver(updateIndicator);
-    observer.observe(nav);
-    nav.querySelectorAll('.nav-pill').forEach((pill) => observer.observe(pill));
+    const ro =
+      typeof ResizeObserver !== 'undefined' && navRef.current
+        ? new ResizeObserver(() => updateIndicator())
+        : null;
+    if (ro && navRef.current) ro.observe(navRef.current);
     document.fonts?.ready?.then(updateIndicator);
     window.addEventListener('resize', updateIndicator);
 
     return () => {
-      disposed = true;
-      observer.disconnect();
+      ro?.disconnect();
       window.removeEventListener('resize', updateIndicator);
     };
   }, [route]);
@@ -778,7 +779,7 @@ export default function StudioNav() {
 
   return (
     <>
-      <GlassRefraction />
+      <LiquidGlassDefs specs={glassSpecs} />
 
       {/* Top Reading Progress Bar */}
       <div className="page-top-progress-bar" aria-hidden="true">
@@ -798,7 +799,7 @@ export default function StudioNav() {
       >
         <div className="studio-nav-inner">
           {/* Island 1: Left Insignia Mark Bubble */}
-          <div className="studio-nav-left bubble-island">
+          <div className="studio-nav-left bubble-island" ref={leftRef}>
             <Link
               className="studio-nav-brand-link"
               href="/"
@@ -1014,7 +1015,7 @@ export default function StudioNav() {
 
             {/* Burger Bubble Island */}
             <div className="menu-anchor">
-              <div className="nav-burger-bubble bubble-island">
+              <div className="nav-burger-bubble bubble-island" ref={burgerRef}>
                 <button
                   type="button"
                   className={`hamburger-btn${menuOpen ? ' is-open open' : ''}`}
@@ -1034,6 +1035,7 @@ export default function StudioNav() {
                 className={`nav-burger-popover${menuOpen && scrolled ? ' is-open' : ''}`}
                 id="studio-menu"
                 aria-hidden={!menuOpen || !scrolled}
+                ref={popoverRef}
               >
                 <span className="menu-heading">Explore the studio</span>
                 {navigation.map((item) => (

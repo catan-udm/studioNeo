@@ -138,13 +138,13 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
 
   return (
     <PageTransitionContext.Provider value={{ isNavigating, startNavigation }}>
-      {/* Top Edge Progress Indicator */}
+      {/* Top Edge Route Loading Indicator */}
       <div
-        className={`page-top-progress-bar ${showProgressBar ? 'visible' : ''}`}
+        className={`page-route-progress-bar ${showProgressBar ? 'visible' : ''}`}
         aria-hidden="true"
       >
         <div
-          className="page-top-progress-fill"
+          className="page-route-progress-fill"
           style={{
             transform: `scaleX(${progress / 100})`,
             opacity: showProgressBar ? 1 : 0,
