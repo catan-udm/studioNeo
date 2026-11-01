@@ -1,780 +1,1180 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import BikkoMark from './BikkoMark';
-import { usePageTransition } from './PageTransition';
-import { useSettings } from './SettingsProvider';
-import { getAuthenticatedSession, invalidateAuthCache } from '@/lib/clientAuthCache';
+import GlassRefraction from '@/components/GlassRefraction';
+import { illustrators } from '@/data/illustrators';
 
-const subscribeToReducedMotion = (callback: () => void) => {
-  if (typeof window === 'undefined') return () => {};
-  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-  mq.addEventListener?.('change', callback);
-  return () => {
-    mq.removeEventListener?.('change', callback);
-  };
-};
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
-const getReducedMotionSnapshot = () => {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-};
+type RouteId = 'studio' | 'projects' | 'gallery' | 'about';
+type ModalType = 'settings' | 'profile' | 'terms' | 'auth' | null;
+type Theme = 'light' | 'dark' | 'system';
+type UiScale = 'compact' | 'default' | 'comfortable';
+type MotionPref = 'full' | 'interactive' | 'reduced';
 
-const getReducedMotionServerSnapshot = () => false;
+const navigation: { id: RouteId; label: string; path: string }[] = [
+  { id: 'studio', label: 'Studio', path: '/' },
+  { id: 'projects', label: 'Projects', path: '/projects' },
+  { id: 'gallery', label: 'Gallery', path: '/gallery' },
+  { id: 'about', label: 'About', path: '/about' },
+];
 
-type TabKey = 'studio' | 'projects' | 'gallery' | 'about' | 'dashboard';
-
-export default function StudioNav() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { isNavigating, startNavigation } = usePageTransition();
-  const { openSettings, motion } = useSettings();
-
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
-
-  // Scroll state for water droplet detach / rejoin
-  const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  const [isMinimized, setIsMinimized] = useState<boolean>(false);
-  const isNavigatingRef = useRef(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const isHoveredRef = useRef<boolean>(false);
-  const minimizeTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const headerRef = useRef<HTMLElement>(null);
-
-  // Check current session status with inflight deduplication and TTL cache
-  const checkAuth = useCallback(async () => {
-    try {
-      const data = await getAuthenticatedSession();
-      if (data?.authenticated) {
-        setIsAuthenticated(true);
-        setUserEmail(data.subscriber?.email || 'Active Subscriber');
-        return;
-      }
-      setIsAuthenticated(false);
-      setUserEmail(null);
-    } catch {
-      setIsAuthenticated(false);
-      setUserEmail(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    const authTask = window.setTimeout(() => {
-      void checkAuth();
-    }, 0);
-
-    return () => window.clearTimeout(authTask);
-  }, [checkAuth]);
-
-  // Dynamic Island Minimization state & logic (for non-reduced motion views, during dynamic-island mode only)
-
-  // Subscribe to system reduced motion preference using useSyncExternalStore
-  const isSystemReduced = useSyncExternalStore(
-    subscribeToReducedMotion,
-    getReducedMotionSnapshot,
-    getReducedMotionServerSnapshot
+function StudioMark() {
+  return (
+    <svg viewBox="0 0 1553 1375" fill="none" aria-hidden="true">
+      <path
+        d="M880.003 473.5C875.336 428 843.503 321.6 753.503 260C641.003 183 539.503 96.5 263.503 189.5"
+        stroke="currentColor"
+        strokeWidth="32"
+        strokeLinecap="round"
+      />
+      <path
+        d="M263.243 191C250.031 361.691 306.188 690.17 636.503 638.563"
+        stroke="currentColor"
+        strokeWidth="32"
+        strokeLinecap="round"
+      />
+      <path
+        d="M636.503 639C634.003 654.5 630.103 689.4 634.503 705"
+        stroke="currentColor"
+        strokeWidth="32"
+        strokeLinecap="round"
+      />
+      <path
+        d="M493.503 825C581.67 799.667 714.503 746.5 815.503 609.5C914.003 492.5 913.503 493 971.503 473C1029.5 453 1126 532.5 1126 609.5C1126 652.5 1086 685.5 1042 814.5C1035.5 962.5 1086 1179.5 972.503 1312.5C859.003 1445.5 551.003 1247 528.003 1236.5C505.003 1226 144.003 1166 16.0029 936"
+        stroke="currentColor"
+        strokeWidth="32"
+        strokeLinecap="round"
+      />
+      <path
+        d="M17.5029 937C67.3363 964.333 197.603 1018.2 320.003 1015C473.003 1011 521.003 1058 716.503 1212"
+        stroke="currentColor"
+        strokeWidth="32"
+        strokeLinecap="round"
+      />
+      <path
+        d="M934.003 608C945.003 664 925.003 786.7 757.003 829.5C711.003 839.9 637.17 872.833 606.003 888C551.503 908.333 396.003 944.5 210.003 926.5"
+        stroke="currentColor"
+        strokeWidth="32"
+        strokeLinecap="round"
+      />
+      <path
+        d="M873.003 172C904.207 172 929.503 197.296 929.503 228.5C929.503 259.704 904.207 285 873.003 285C841.799 285 816.503 259.704 816.503 228.5C816.503 197.296 841.799 172 873.003 172Z"
+        stroke="currentColor"
+        strokeWidth="32"
+      />
+      <path
+        d="M1021.5 188C1079.31 188 1126.5 235.495 1126.5 294.5C1126.5 353.505 1079.31 401 1021.5 401C963.698 401 916.503 353.505 916.503 294.5C916.503 235.495 963.698 188 1021.5 188Z"
+        stroke="currentColor"
+        strokeWidth="32"
+      />
+      <line
+        x1="1386.43"
+        y1="470.266"
+        x2="1492.77"
+        y2="92.0719"
+        stroke="currentColor"
+        strokeWidth="32"
+        strokeLinecap="round"
+      />
+      <circle cx="1502.5" cy="50" r="34" stroke="currentColor" strokeWidth="32" />
+    </svg>
   );
+}
 
-  const isReducedMotion = motion === 'reduced' || (motion === 'system' && isSystemReduced);
-  const isNavMinimized = isScrolled && !isReducedMotion && isMinimized;
-
-  const isReducedMotionRef = useRef(isReducedMotion);
-  const isMenuOpenRef = useRef(isMenuOpen);
-  const isScrolledRef = useRef(isScrolled);
-  const isMinimizedRef = useRef(isMinimized);
-  const lastScrollYRef = useRef<number>(0);
-
-  useEffect(() => {
-    isReducedMotionRef.current = isReducedMotion;
-    isMenuOpenRef.current = isMenuOpen;
-    isScrolledRef.current = isScrolled;
-    isMinimizedRef.current = isMinimized;
-  }, [isReducedMotion, isMenuOpen, isScrolled, isMinimized]);
-
-  const clearMinimizeTimer = useCallback(() => {
-    if (minimizeTimerRef.current) {
-      clearTimeout(minimizeTimerRef.current);
-      minimizeTimerRef.current = null;
-    }
-  }, []);
-
-  const startMinimizeTimer = useCallback((delay = 5000) => {
-    clearMinimizeTimer();
-    if (!isScrolledRef.current || isReducedMotionRef.current || isMenuOpenRef.current || isHoveredRef.current) {
-      return;
-    }
-    minimizeTimerRef.current = setTimeout(() => {
-      if (isScrolledRef.current && !isReducedMotionRef.current && !isMenuOpenRef.current && !isHoveredRef.current) {
-        setIsMinimized(true);
-      }
-    }, delay);
-  }, [clearMinimizeTimer, setIsMinimized]);
-
-  // Scroll, wheel, touch, and top-edge mousemove listeners: pop the navbar back up instantly if scrolling or hovering again
-  useEffect(() => {
-    let ticking = false;
-    lastScrollYRef.current = typeof window !== 'undefined' ? window.scrollY : 0;
-
-    const popBackUpAndResetTimer = () => {
-      // If currently minimized, immediately pop back up into view
-      if (isMinimizedRef.current) {
-        setIsMinimized(false);
-      }
-      // Re-arm the minimize timer once active scrolling stops
-      if (isScrolledRef.current && !isReducedMotionRef.current && !isMenuOpenRef.current && !isHoveredRef.current) {
-        startMinimizeTimer(5000);
-      }
-    };
-
-    const onScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrolled = isNavigatingRef.current ? false : currentScrollY > 40;
-
-      // Pop the navbar back up if user scrolls while in dynamic-island mode
-      if (currentScrollY !== lastScrollYRef.current) {
-        popBackUpAndResetTimer();
-      }
-      lastScrollYRef.current = currentScrollY;
-
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setIsScrolled((prev) => {
-            if (prev && !scrolled) {
-              setIsMinimized(false);
-            }
-            return prev === scrolled ? prev : scrolled;
-          });
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    // Catch wheel gestures (trackpad or mouse wheel) even on boundary states
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > 0.5 || Math.abs(e.deltaX) > 0.5) {
-        popBackUpAndResetTimer();
-      }
-    };
-
-    // Catch touch gestures on mobile / tablet
-    const onTouchMove = () => {
-      popBackUpAndResetTimer();
-    };
-
-    // Catch mouse moving towards top edge when minimized (throttled via RAF to eliminate idle CPU churn)
-    let mouseTicking = false;
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isMinimizedRef.current) return;
-      if (!mouseTicking) {
-        mouseTicking = true;
-        window.requestAnimationFrame(() => {
-          if (isMinimizedRef.current && e.clientY <= 28) {
-            setIsMinimized(false);
-            isHoveredRef.current = true;
-            clearMinimizeTimer();
-          }
-          mouseTicking = false;
-        });
-      }
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('wheel', onWheel, { passive: true });
-    window.addEventListener('touchmove', onTouchMove, { passive: true });
-    window.addEventListener('mousemove', onMouseMove, { passive: true });
-
-    // Check initial scroll state
-    const initialStateTask = window.requestAnimationFrame(() => {
-      if (window.scrollY > 40) setIsScrolled(true);
-    });
-
-    return () => {
-      window.cancelAnimationFrame(initialStateTask);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('wheel', onWheel);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('mousemove', onMouseMove);
-    };
-  }, [startMinimizeTimer, clearMinimizeTimer]);
-
-  // Handle idle minimization timer (only schedules when in dynamic-island mode and not reduced motion)
-  useEffect(() => {
-    if (isScrolled && !isReducedMotion && !isMenuOpen && !isHoveredRef.current) {
-      startMinimizeTimer(5000);
-    } else {
-      clearMinimizeTimer();
-    }
-    return () => clearMinimizeTimer();
-  }, [isScrolled, isReducedMotion, isMenuOpen, startMinimizeTimer, clearMinimizeTimer]);
-
-  // Mouse & Focus handlers to prevent minimization while the navbar is in use
-  const handleNavMouseEnter = useCallback(() => {
-    isHoveredRef.current = true;
-    clearMinimizeTimer();
-    setIsMinimized(false);
-  }, [clearMinimizeTimer, setIsMinimized]);
-
-  const handleNavMouseLeave = useCallback(() => {
-    isHoveredRef.current = false;
-    if (isScrolled && !isReducedMotion && !isMenuOpen) {
-      startMinimizeTimer(2500);
-    }
-  }, [isScrolled, isReducedMotion, isMenuOpen, startMinimizeTimer]);
-
-  const handleNavFocus = useCallback(() => {
-    isHoveredRef.current = true;
-    clearMinimizeTimer();
-    setIsMinimized(false);
-  }, [clearMinimizeTimer, setIsMinimized]);
-
-  const handleNavBlur = useCallback((e: React.FocusEvent) => {
-    const nextTarget = e.relatedTarget as Node | null;
-    if (headerRef.current && !headerRef.current.contains(nextTarget)) {
-      isHoveredRef.current = false;
-      if (isScrolled && !isReducedMotion && !isMenuOpen) {
-        startMinimizeTimer(2500);
-      }
-    }
-  }, [isScrolled, isReducedMotion, isMenuOpen, startMinimizeTimer]);
-
-  // Handle Sign Out
-  const handleSignOut = async () => {
-    if (isSigningOut) return;
-    setIsSigningOut(true);
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {
-      // Proceed even if request fails
-    } finally {
-      invalidateAuthCache();
-      setIsAuthenticated(false);
-      setUserEmail(null);
-      setIsSigningOut(false);
-      setIsMenuOpen(false);
-      router.push('/');
-      router.refresh();
-    }
+function NavIcon({ id }: { id: RouteId }) {
+  const common = {
+    width: 17,
+    height: 17,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.9,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true as const,
   };
+  if (id === 'studio')
+    return (
+      <svg {...common}>
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    );
+  if (id === 'projects')
+    return (
+      <svg {...common}>
+        <rect width="18" height="18" x="3" y="3" rx="2" />
+        <path d="M7 3v18M17 3v18M3 12h18M3 7.5h4M3 16.5h4M17 7.5h4M17 16.5h4" />
+      </svg>
+    );
+  if (id === 'gallery')
+    return (
+      <svg {...common}>
+        <rect width="7" height="7" x="3" y="3" rx="1.5" />
+        <rect width="7" height="7" x="14" y="3" rx="1.5" />
+        <rect width="7" height="7" x="14" y="14" rx="1.5" />
+        <rect width="7" height="7" x="3" y="14" rx="1.5" />
+      </svg>
+    );
+  return (
+    <svg {...common}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4M12 8h.01" />
+    </svg>
+  );
+}
 
-  // Close menu on click outside, Escape key, route change, or scroll mode change
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsMenuOpen(false);
-      }
-    };
+function ArrowIcon({ size = 19 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 19 19 5M8 5h11v11" />
+    </svg>
+  );
+}
 
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    if (isMenuOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      setIsMenuOpen((open) => (open ? false : open));
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [pathname, isScrolled]);
-
-  const isHome = pathname === '/';
-
-  const getTabFromPath = (path: string): TabKey | null => {
-    if (path === '/about') return 'about';
-    if (path === '/projects') return 'projects';
-    if (path === '/gallery') return 'gallery';
-    if (path === '/dashboard') return 'dashboard';
-    if (path === '/') return 'studio';
-    return null;
-  };
-
-  const [activeTab, setActiveTab] = useState<TabKey | null>(() => getTabFromPath(pathname));
-  const sliderRef = useRef<HTMLElement>(null);
-  const tabRefs = useRef<{ [key in TabKey]?: HTMLAnchorElement | null }>({});
-  const [indicatorStyle, setIndicatorStyle] = useState<{
-    left: number;
-    width: number;
-    opacity: number;
-  }>({ left: 0, width: 0, opacity: 0 });
-
-  // Synchronize activeTab with current route
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      setActiveTab(getTabFromPath(pathname));
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [pathname]);
-
-  // Measure and align the Apple sliding capsule indicator
-  // Normalizes by scale factor to eliminate ancestor transform distortion (e.g. scale(0.92) on mobile)
-  const updateIndicator = useCallback(() => {
-    if (!activeTab) {
-      setIndicatorStyle({ left: 0, width: 0, opacity: 0 });
-      return;
-    }
-    const activeEl = tabRefs.current[activeTab];
-    const sliderEl = sliderRef.current;
-    if (activeEl && sliderEl) {
-      const sliderRect = sliderEl.getBoundingClientRect();
-      const activeRect = activeEl.getBoundingClientRect();
-      const scaleX = sliderEl.offsetWidth > 0 ? sliderRect.width / sliderEl.offsetWidth : 1;
-
-      const left = scaleX > 0
-        ? (activeRect.left - sliderRect.left) / scaleX - sliderEl.clientLeft
-        : activeEl.offsetLeft;
-      const width = scaleX > 0
-        ? activeRect.width / scaleX
-        : activeEl.offsetWidth;
-
-      setIndicatorStyle({
-        left: Math.round(left * 100) / 100,
-        width: Math.round(width * 100) / 100,
-        opacity: 1,
-      });
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      updateIndicator();
-    });
-    const timer = setTimeout(updateIndicator, 40);
-    const scrollTimer = setTimeout(updateIndicator, 150);
-
-    const sliderEl = sliderRef.current;
-    let observer: ResizeObserver | null = null;
-    if (sliderEl && typeof ResizeObserver !== 'undefined') {
-      observer = new ResizeObserver(() => {
-        updateIndicator();
-      });
-      observer.observe(sliderEl);
-    }
-
-    if (typeof document !== 'undefined' && 'fonts' in document) {
-      document.fonts.ready.then(updateIndicator);
-    }
-
-    window.addEventListener('resize', updateIndicator);
-    return () => {
-      cancelAnimationFrame(frame);
-      clearTimeout(timer);
-      clearTimeout(scrollTimer);
-      observer?.disconnect();
-      window.removeEventListener('resize', updateIndicator);
-    };
-  }, [updateIndicator, isScrolled]);
-
-  // Immediate tab click with instantaneous navigation and synchronized indicator
-  const handleTabClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    tab: TabKey,
-    targetHref: string
-  ) => {
-    setActiveTab(tab);
-
-    if (pathname === targetHref) {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      startNavigation(targetHref);
-    }
-  };
-
-  // Helper to render curated icon-only menu buttons in horizontal (static) or vertical (scrolled) orientation
-  const renderBurgerIconButtons = (orientation: 'horizontal' | 'vertical') => (
-    <>
-      {/* Section 1: Settings, Profile, Terms & Policies */}
+function SettingsModal({
+  theme,
+  setTheme,
+  uiScale,
+  setUiScale,
+  motion,
+  setMotion,
+  onClose,
+  onReset,
+}: {
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  uiScale: UiScale;
+  setUiScale: (s: UiScale) => void;
+  motion: MotionPref;
+  setMotion: (m: MotionPref) => void;
+  onClose: () => void;
+  onReset: () => void;
+}) {
+  return (
+    <div
+      className="settings-modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Studio Settings"
+    >
       <div
-        className={`burger-menu-section burger-menu-${orientation}`}
-        role="group"
-        aria-label="Preferences and Profile"
+        className="settings-modal-dialog"
+        onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          className="burger-icon-btn"
-          aria-label="Settings"
-          title="Settings"
-          onClick={() => {
-            setIsMenuOpen(false);
-            openSettings();
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
-          <span className="burger-icon-tooltip">Settings</span>
-        </button>
-
-        <Link
-          href="/dashboard"
-          prefetch={true}
-          className="burger-icon-btn"
-          aria-label={userEmail ? `Profile (${userEmail})` : 'Profile'}
-          title={userEmail ? `Profile (${userEmail})` : 'Profile'}
-          onClick={() => setIsMenuOpen(false)}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span className="burger-icon-tooltip">{userEmail ? userEmail : 'Profile'}</span>
-        </Link>
-
-        <Link
-          href="/studio/upload"
-          prefetch={true}
-          className="burger-icon-btn"
-          aria-label="Creator Studio (Upload &amp; Mint)"
-          title="Creator Studio (Upload &amp; Mint)"
-          onClick={() => setIsMenuOpen(false)}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-          <span className="burger-icon-tooltip">Creator Studio</span>
-        </Link>
-
-        <Link
-          href="/terms"
-          prefetch={true}
-          className="burger-icon-btn"
-          aria-label="Terms &amp; Policies"
-          title="Terms &amp; Policies"
-          onClick={() => setIsMenuOpen(false)}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <line x1="10" y1="9" x2="8" y2="9" />
-          </svg>
-          <span className="burger-icon-tooltip">Terms &amp; Policies</span>
-        </Link>
-      </div>
-
-      {/* Hairline Divider */}
-      <div className={`burger-menu-divider burger-divider-${orientation}`} />
-
-      {/* Section 2: Sign In & Sign Up (or Sign Out when authenticated) */}
-      <div
-        className={`burger-menu-section burger-menu-${orientation} burger-menu-auth`}
-        role="group"
-        aria-label="Account Access"
-      >
-        {isAuthenticated ? (
+        <header className="settings-modal-header">
+          <div className="settings-modal-title-group">
+            <div className="settings-modal-title-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="settings-modal-title">Studio Settings</h2>
+              <span className="settings-modal-subtitle">
+                Display &amp; interaction preferences
+              </span>
+            </div>
+          </div>
           <button
             type="button"
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-            className="burger-icon-btn burger-signout-btn"
-            aria-label="Sign Out"
-            title="Sign Out"
+            className="settings-modal-close-btn"
+            onClick={onClose}
+            aria-label="Close settings"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            <span className="burger-icon-tooltip">{isSigningOut ? 'Signing out...' : 'Sign Out'}</span>
+            ✕
           </button>
-        ) : (
-          <>
-            <Link
-              href="/login"
-              prefetch={true}
-              className="burger-icon-btn"
-              aria-label="Sign In"
-              title="Sign In"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <polyline points="10 17 15 12 10 7" />
-                <line x1="15" y1="12" x2="3" y2="12" />
-              </svg>
-              <span className="burger-icon-tooltip">Sign In</span>
-            </Link>
+        </header>
 
-            <Link
-              href="/register"
-              prefetch={true}
-              className="burger-icon-btn burger-signup-btn"
-              aria-label="Sign Up"
-              title="Sign Up"
-              onClick={() => setIsMenuOpen(false)}
+        <div className="settings-modal-body">
+          <section>
+            <div className="settings-section-title">Color Theme</div>
+            <div
+              className="settings-pill-group"
+              role="radiogroup"
+              aria-label="Theme"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <line x1="20" y1="8" x2="20" y2="14" />
-                <line x1="23" y1="11" x2="17" y2="11" />
-              </svg>
-              <span className="burger-icon-tooltip">Sign Up</span>
-            </Link>
-          </>
-        )}
-      </div>
-    </>
-  );
-
-  if (pathname === '/' || pathname === '/artist/sankobite' || pathname === '/artist/rella') {
-    return null;
-  }
-
-  return (
-    <>
-      <header
-        ref={headerRef}
-        className={`studio-nav-header ${isScrolled ? 'is-scrolled' : ''} ${isNavMinimized ? 'is-minimized' : ''}`}
-        role="banner"
-        onMouseEnter={handleNavMouseEnter}
-        onMouseLeave={handleNavMouseLeave}
-        onFocusCapture={handleNavFocus}
-        onBlurCapture={handleNavBlur}
-      >
-        <div className="studio-nav-inner">
-          {/* Island 1: Logo Bubble */}
-          <div className="studio-nav-left bubble-island">
-            <Link
-              href="/"
-              prefetch={true}
-              className="studio-nav-brand-link"
-              aria-label="Bikko Studio home"
-              onClick={(e) => {
-                if (isHome) {
-                  e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                  setActiveTab('studio');
-                } else {
-                  startNavigation('/');
-                }
-              }}
-            >
-              <div className="studio-nav-logo-wrap">
-                <BikkoMark width={32} height={28} />
-              </div>
-            </Link>
-          </div>
-
-          {/* Island 2: Slider Bubble in the Middle */}
-          <div className={`studio-nav-center ${isMenuOpen && !isScrolled ? 'nav-menu-open' : ''}`}>
-            <nav
-              ref={sliderRef}
-              className="studio-nav-slider bubble-island"
-              aria-label="Main Navigation"
-            >
-              {/* Apple Sliding Capsule Indicator */}
-              <div
-                className={`nav-slider-indicator ${isNavigating ? 'is-navigating' : ''}`}
-                style={{
-                  transform: `translateX(${indicatorStyle.left}px)`,
-                  width: `${indicatorStyle.width}px`,
-                  opacity: indicatorStyle.opacity,
-                }}
-              />
-              <Link
-                ref={(el) => {
-                  tabRefs.current['studio'] = el;
-                }}
-                href="/"
-                prefetch={true}
-                className={`nav-pill ${activeTab === 'studio' ? 'active' : ''}`}
-                aria-current={activeTab === 'studio' ? 'page' : undefined}
-                aria-label="Studio"
-                title="Studio"
-                onClick={(e) => handleTabClick(e, 'studio', '/')}
-              >
-                <span className="nav-pill-icon" aria-hidden="true">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                </span>
-                <span className="nav-pill-text">Studio</span>
-              </Link>
-              <Link
-                ref={(el) => {
-                  tabRefs.current['projects'] = el;
-                }}
-                href="/projects"
-                prefetch={true}
-                className={`nav-pill ${activeTab === 'projects' ? 'active' : ''}`}
-                aria-current={activeTab === 'projects' ? 'page' : undefined}
-                aria-label="Projects"
-                title="Projects"
-                onClick={(e) => handleTabClick(e, 'projects', '/projects')}
-              >
-                <span className="nav-pill-icon" aria-hidden="true">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2" />
-                    <path d="M7 3v18" />
-                    <path d="M17 3v18" />
-                    <path d="M3 12h18" />
-                    <path d="M3 7.5h4" />
-                    <path d="M3 16.5h4" />
-                    <path d="M17 7.5h4" />
-                    <path d="M17 16.5h4" />
-                  </svg>
-                </span>
-                <span className="nav-pill-text">Projects</span>
-              </Link>
-              <Link
-                ref={(el) => {
-                  tabRefs.current['gallery'] = el;
-                }}
-                href="/gallery"
-                prefetch={true}
-                className={`nav-pill ${activeTab === 'gallery' ? 'active' : ''}`}
-                aria-current={activeTab === 'gallery' ? 'page' : undefined}
-                aria-label="Gallery"
-                title="Gallery"
-                onClick={(e) => handleTabClick(e, 'gallery', '/gallery')}
-              >
-                <span className="nav-pill-icon" aria-hidden="true">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="7" height="7" x="3" y="3" rx="1.5" />
-                    <rect width="7" height="7" x="14" y="3" rx="1.5" />
-                    <rect width="7" height="7" x="14" y="14" rx="1.5" />
-                    <rect width="7" height="7" x="3" y="14" rx="1.5" />
-                  </svg>
-                </span>
-                <span className="nav-pill-text">Gallery</span>
-              </Link>
-              <Link
-                ref={(el) => {
-                  tabRefs.current['about'] = el;
-                }}
-                href="/about"
-                prefetch={true}
-                className={`nav-pill ${activeTab === 'about' ? 'active' : ''}`}
-                aria-current={activeTab === 'about' ? 'page' : undefined}
-                aria-label="About"
-                title="About"
-                onClick={(e) => handleTabClick(e, 'about', '/about')}
-              >
-                <span className="nav-pill-icon" aria-hidden="true">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 16v-4" />
-                    <path d="M12 8h.01" />
-                  </svg>
-                </span>
-                <span className="nav-pill-text">About</span>
-              </Link>
-              {isAuthenticated && (
-                <Link
-                  ref={(el) => {
-                    tabRefs.current['dashboard'] = el;
-                  }}
-                  href="/dashboard"
-                  prefetch={true}
-                  className={`nav-pill ${activeTab === 'dashboard' ? 'active' : ''}`}
-                  aria-current={activeTab === 'dashboard' ? 'page' : undefined}
-                  aria-label="Dashboard"
-                  title="Dashboard"
-                  onClick={(e) => handleTabClick(e, 'dashboard', '/dashboard')}
+              {(['system', 'light', 'dark'] as Theme[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  className={`settings-pill-btn${theme === t ? ' active' : ''}`}
+                  onClick={() => setTheme(t)}
+                  role="radio"
+                  aria-checked={theme === t}
                 >
-                  <span className="nav-pill-icon" aria-hidden="true">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </span>
-                  <span className="nav-pill-text">Dashboard</span>
-                </Link>
-              )}
-            </nav>
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <div className="settings-section-title">Interface Scale</div>
+            <div
+              className="settings-pill-group"
+              role="radiogroup"
+              aria-label="Interface Scale"
+            >
+              {(['compact', 'default', 'comfortable'] as UiScale[]).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`settings-pill-btn${uiScale === s ? ' active' : ''}`}
+                  onClick={() => setUiScale(s)}
+                  role="radio"
+                  aria-checked={uiScale === s}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <div className="settings-section-title">Motion Physics</div>
+            <div
+              className="settings-pill-group"
+              role="radiogroup"
+              aria-label="Motion Physics"
+            >
+              {(['full', 'interactive', 'reduced'] as MotionPref[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  className={`settings-pill-btn${motion === m ? ' active' : ''}`}
+                  onClick={() => setMotion(m)}
+                  role="radio"
+                  aria-checked={motion === m}
+                >
+                  {m.charAt(0).toUpperCase() + m.slice(1)}
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <footer className="settings-modal-footer">
+          <span className="settings-status-note">Saved locally</span>
+          <button
+            type="button"
+            className="settings-reset-btn"
+            onClick={onReset}
+          >
+            Reset Defaults
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function ProfileModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="settings-modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Profile"
+    >
+      <div
+        className="settings-modal-dialog"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="settings-modal-header">
+          <div className="settings-modal-title-group">
+            <div className="settings-modal-title-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="settings-modal-title">Studio Passkey Profile</h2>
+              <span className="settings-modal-subtitle">
+                WebAuthn Biometric Session
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="settings-modal-close-btn"
+            onClick={onClose}
+            aria-label="Close profile"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div className="settings-modal-body">
+          <div className="profile-badge-card">
+            <div className="profile-avatar-circle">
+              <StudioMark />
+            </div>
+            <div className="profile-badge-meta">
+              <strong>Studio Guest Patron</strong>
+              <small>FIDO2 Biometric Key: Verified</small>
+            </div>
+            <span className="status-dot-active" />
           </div>
 
-          {/* Right Section: Action Buttons & Island 3: Burger Menu Bubble */}
-          <div className="studio-nav-right" ref={menuRef}>
-            {/* Static Nav Bar Actions (revealed to the left when burger is clicked on static nav bar) */}
-            <div
-              className={`nav-static-actions ${isMenuOpen && !isScrolled ? 'is-open' : ''}`}
-              role="menu"
-              aria-label="Quick Actions"
-              aria-hidden={!isMenuOpen || isScrolled}
-            >
-              {renderBurgerIconButtons('horizontal')}
+          <div className="profile-detail-grid">
+            <div className="profile-detail-item">
+              <span className="profile-detail-label">Curated Illustrators</span>
+              <strong className="profile-detail-value">
+                {illustrators.length} profiles
+              </strong>
             </div>
-
-            {/* Island 3: Burger Menu Bubble */}
-            <div className="nav-burger-bubble bubble-island">
-              <button
-                type="button"
-                className={`hamburger-btn ${isMenuOpen ? 'open' : ''}`}
-                onClick={() => setIsMenuOpen((prev) => !prev)}
-                aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-                aria-expanded={isMenuOpen}
-              >
-                <span className="hamburger-line line-1" />
-                <span className="hamburger-line line-2" />
-                <span className="hamburger-line line-3" />
-              </button>
+            <div className="profile-detail-item">
+              <span className="profile-detail-label">Session Authentication</span>
+              <strong className="profile-detail-value">Passwordless</strong>
             </div>
-
-            {/* Dynamic Scrolled Island Popover (only active in floating island scrolled mode) */}
-            <div
-              className={`nav-burger-popover ${isMenuOpen && isScrolled ? 'is-open' : ''}`}
-              role="menu"
-              aria-label="Quick Actions"
-              aria-hidden={!isMenuOpen || !isScrolled}
-            >
-              {renderBurgerIconButtons('vertical')}
+            <div className="profile-detail-item">
+              <span className="profile-detail-label">Active Directory</span>
+              <strong className="profile-detail-value">Official X / Pixiv</strong>
+            </div>
+            <div className="profile-detail-item">
+              <span className="profile-detail-label">Atelier Release</span>
+              <strong className="profile-detail-value">2026 Archive</strong>
             </div>
           </div>
         </div>
 
-        {/* Dynamic Island Minimized Top Indicator Bar (non-reduced motion, scrolled dynamic-island mode only) */}
-        {isScrolled && !isReducedMotion && (
+        <footer className="settings-modal-footer">
+          <Link
+            href="/gallery"
+            onClick={onClose}
+            className="settings-footer-link"
+          >
+            Explore 64 Profiles →
+          </Link>
           <button
             type="button"
-            className={`nav-minimized-trigger ${isNavMinimized ? 'is-visible' : ''}`}
-            aria-label="Expand navigation bar"
-            title="Expand navigation bar"
-            tabIndex={isNavMinimized ? 0 : -1}
-            aria-hidden={!isNavMinimized}
-            onMouseEnter={() => {
-              setIsMinimized(false);
-              isHoveredRef.current = true;
-              clearMinimizeTimer();
-            }}
-            onClick={() => {
-              setIsMinimized(false);
-              isHoveredRef.current = true;
-              clearMinimizeTimer();
-            }}
-            onFocus={() => {
-              setIsMinimized(false);
-              isHoveredRef.current = true;
-              clearMinimizeTimer();
-            }}
+            className="landing-button landing-button-primary modal-action-btn"
+            onClick={onClose}
           >
-            <span className="nav-minimized-bar" />
+            Done
           </button>
-        )}
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function TermsModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="settings-modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Terms &amp; Policies"
+    >
+      <div
+        className="settings-modal-dialog"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="settings-modal-header">
+          <div className="settings-modal-title-group">
+            <div className="settings-modal-title-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <line x1="10" y1="9" x2="8" y2="9" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="settings-modal-title">Terms &amp; Policies</h2>
+              <span className="settings-modal-subtitle">
+                Attribution &amp; Non-Affiliation
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="settings-modal-close-btn"
+            onClick={onClose}
+            aria-label="Close terms"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div className="settings-modal-body terms-text-body">
+          <p>
+            <strong>1. Official Profile Pictures:</strong> All {illustrators.length}{' '}
+            illustrator profile images showcased in this directory are authentic public
+            avatars retrieved from Twitter&apos;s Content Delivery Network (
+            <code>pbs.twimg.com</code>). None of the images are generated by artificial
+            intelligence.
+          </p>
+          <p>
+            <strong>2. Ownership &amp; Intellectual Property:</strong> All artwork,
+            characters, trademarks, and profile images remain the exclusive property of
+            their respective creators and illustrators.
+          </p>
+          <p>
+            <strong>3. Non-Affiliation:</strong> This is an independent, non-commercial
+            discovery directory and curatorial study inspired by the studioNeo /
+            bikko.studio aesthetic. It is not endorsed by, sponsored by, or formally
+            affiliated with X Corp., Pixiv, or the individual artists.
+          </p>
+          <p>
+            <strong>4. Direct Links:</strong> Each card and grid tile directs visitors
+            straight to the creator&apos;s verified public profile so fans and clients
+            can support their work directly at the source.
+          </p>
+        </div>
+
+        <footer className="settings-modal-footer">
+          <span className="settings-status-note">studioNeo Archive • 2026</span>
+          <button
+            type="button"
+            className="landing-button landing-button-primary modal-action-btn"
+            onClick={onClose}
+          >
+            Acknowledge
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function AuthModal({ onClose }: { onClose: () => void }) {
+  const [authed, setAuthed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const simulatePasskey = () => {
+    setLoading(true);
+    window.setTimeout(() => {
+      setLoading(false);
+      setAuthed(true);
+    }, 700);
+  };
+
+  return (
+    <div
+      className="settings-modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Account Access"
+    >
+      <div
+        className="settings-modal-dialog"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="settings-modal-header">
+          <div className="settings-modal-title-group">
+            <div className="settings-modal-title-icon" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="settings-modal-title">WebAuthn Passkey Access</h2>
+              <span className="settings-modal-subtitle">
+                Zero Passwords • Biometric Identity
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="settings-modal-close-btn"
+            onClick={onClose}
+            aria-label="Close access dialog"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div className="settings-modal-body">
+          {authed ? (
+            <div className="auth-success-box">
+              <div className="auth-success-check">✓</div>
+              <h3>Biometric Passkey Verified</h3>
+              <p>
+                Welcome back to the studioNeo atelier. Your hardware-backed session key
+                is active.
+              </p>
+            </div>
+          ) : (
+            <div className="auth-prompt-box">
+              <div className="passkey-glyph" aria-hidden="true">
+                <svg
+                  width="36"
+                  height="36"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m21 2-2 2m-1.5 1.5L16 7M2 13a6 6 0 1 0 11.2-3M2 13l7.5-7.5M10.5 7 12 8.5M13.5 10l1.5 1.5" />
+                  <circle cx="7.5" cy="16.5" r="1.5" fill="currentColor" />
+                </svg>
+              </div>
+              <h3>Touch ID, Face ID, or Security Key</h3>
+              <p>
+                Sign in using your device&apos;s biometric passkey. Eliminates passwords,
+                phishing, and raster delay.
+              </p>
+              <button
+                type="button"
+                className="landing-button landing-button-primary auth-submit-btn"
+                onClick={simulatePasskey}
+                disabled={loading}
+              >
+                {loading ? 'Authenticating Passkey…' : 'Authenticate with Passkey'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        <footer className="settings-modal-footer">
+          <span className="settings-status-note">FIDO2 / WebAuthn Standard</span>
+          <button
+            type="button"
+            className="settings-reset-btn"
+            onClick={onClose}
+          >
+            {authed ? 'Close' : 'Cancel'}
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+export default function StudioNav() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [indicator, setIndicator] = useState({ x: 4, width: 0 });
+  const [modal, setModal] = useState<ModalType>(null);
+
+  const [theme, setThemeState] = useState<Theme>('system');
+  const [uiScale, setUiScaleState] = useState<UiScale>('default');
+  const [motion, setMotionState] = useState<MotionPref>('full');
+
+  const menuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  const getRouteFromPath = useCallback((path: string): RouteId => {
+    if (path.startsWith('/projects')) return 'projects';
+    if (path.startsWith('/gallery')) return 'gallery';
+    if (path.startsWith('/about')) return 'about';
+    return 'studio';
+  }, []);
+
+  const route = getRouteFromPath(pathname);
+
+  // Sync scroll position & progress fill
+  useEffect(() => {
+    const updatePosition = () => {
+      setScrolled(window.scrollY > 32);
+      const scrollable =
+        document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0);
+    };
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, { passive: true });
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('scroll', updatePosition);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [route]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [route, pathname]);
+
+  // Precise capsule indicator measurement with ResizeObserver & fonts.ready
+  useIsomorphicLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    let disposed = false;
+
+    const updateIndicator = () => {
+      if (disposed) return;
+      const css = getComputedStyle(nav);
+      let x = parseFloat(css.paddingLeft);
+      for (const pill of nav.querySelectorAll<HTMLElement>('.nav-pill')) {
+        const width = parseFloat(getComputedStyle(pill).width);
+        if (pill.dataset.route === route) {
+          setIndicator((prev) =>
+            prev.x === x && prev.width === width ? prev : { x, width },
+          );
+          break;
+        }
+        x += width + parseFloat(css.columnGap || '0');
+      }
+    };
+
+    updateIndicator();
+    const observer = new ResizeObserver(updateIndicator);
+    observer.observe(nav);
+    nav.querySelectorAll('.nav-pill').forEach((pill) => observer.observe(pill));
+    document.fonts?.ready?.then(updateIndicator);
+    window.addEventListener('resize', updateIndicator);
+
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [route]);
+
+  // Close menus on outside click or Escape key
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [menuOpen]);
+
+  // Theme & UI preference sync
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('bikko_theme') as Theme | null;
+      if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
+        setThemeState(savedTheme);
+      }
+      const savedScale = localStorage.getItem('bikko_ui_scale') as UiScale | null;
+      if (savedScale && ['compact', 'default', 'comfortable'].includes(savedScale)) {
+        setUiScaleState(savedScale);
+      }
+      const savedMotion = localStorage.getItem('bikko_motion') as MotionPref | null;
+      if (savedMotion && ['full', 'interactive', 'reduced'].includes(savedMotion)) {
+        setMotionState(savedMotion);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const resolved =
+      theme === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : theme;
+    root.setAttribute('data-theme', resolved);
+    root.setAttribute('data-resolved-theme', resolved);
+    try {
+      localStorage.setItem('bikko_theme', theme);
+    } catch {}
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-scale', uiScale);
+    try {
+      localStorage.setItem('bikko_ui_scale', uiScale);
+    } catch {}
+  }, [uiScale]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-motion', motion);
+    try {
+      localStorage.setItem('bikko_motion', motion);
+    } catch {}
+  }, [motion]);
+
+  const handleResetSettings = () => {
+    setThemeState('system');
+    setUiScaleState('default');
+    setMotionState('full');
+  };
+
+  const selectSection = (id: RouteId) => {
+    const target = navigation.find((item) => item.id === id)?.path ?? '/';
+    setMenuOpen(false);
+    if (pathname === target) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      router.push(target);
+    }
+  };
+
+  return (
+    <>
+      <GlassRefraction />
+
+      {/* Top Reading Progress Bar */}
+      <div className="page-top-progress-bar" aria-hidden="true">
+        <div
+          className="page-top-progress-fill"
+          style={{
+            transform: `scaleX(${progress})`,
+            opacity: progress > 0.004 ? 1 : 0,
+          }}
+        />
+      </div>
+
+      {/* Sticky Liquid Glass Navbar */}
+      <header
+        className={`studio-nav-header${scrolled ? ' is-scrolled' : ''}${menuOpen ? ' menu-open' : ''}`}
+        role="banner"
+      >
+        <div className="studio-nav-inner">
+          {/* Island 1: Left Insignia Mark Bubble */}
+          <div className="studio-nav-left bubble-island">
+            <Link
+              className="studio-nav-brand-link"
+              href="/"
+              aria-label="Bikko Studio home"
+              onClick={() => selectSection('studio')}
+            >
+              <StudioMark />
+            </Link>
+          </div>
+
+          {/* Island 2: Center Navigation Capsule Slider */}
+          <div
+            className={`studio-nav-center${menuOpen ? ' nav-menu-open' : ''}`}
+          >
+            <nav
+              className="studio-nav-slider bubble-island"
+              aria-label="Main navigation"
+              ref={navRef}
+            >
+              <span
+                className="nav-slider-indicator"
+                aria-hidden="true"
+                style={{
+                  transform: `translateX(${indicator.x}px)`,
+                  width: indicator.width,
+                  opacity: indicator.width ? 1 : 0,
+                }}
+              />
+              {navigation.map((item) => (
+                <Link
+                  key={item.id}
+                  data-route={item.id}
+                  className={`nav-pill${route === item.id ? ' active' : ''}`}
+                  href={item.path}
+                  aria-label={item.label}
+                  aria-current={route === item.id ? 'page' : undefined}
+                  onClick={(e) => {
+                    if (pathname === item.path) {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                    setMenuOpen(false);
+                  }}
+                >
+                  <span className="nav-pill-icon">
+                    <NavIcon id={item.id} />
+                  </span>
+                  <span className="nav-pill-text">{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Island 3: Right Quick Actions & Burger Bubble */}
+          <div className="studio-nav-right" ref={menuRef}>
+            {/* Static Action Buttons (slide horizontally into view on static header) */}
+            <div
+              className={`nav-static-actions${menuOpen && !scrolled ? ' is-open' : ''}`}
+              role="menu"
+              aria-label="Quick Actions"
+              aria-hidden={!menuOpen || scrolled}
+            >
+              <div
+                className="burger-menu-section burger-menu-horizontal"
+                role="group"
+                aria-label="Preferences and Profile"
+              >
+                <button
+                  type="button"
+                  className="burger-icon-btn"
+                  aria-label="Settings"
+                  title="Settings"
+                  onClick={() => {
+                    setModal('settings');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                  <span className="burger-icon-tooltip">Settings</span>
+                </button>
+                <button
+                  type="button"
+                  className="burger-icon-btn"
+                  aria-label="Profile"
+                  title="Profile"
+                  onClick={() => {
+                    setModal('profile');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span className="burger-icon-tooltip">Profile</span>
+                </button>
+                <button
+                  type="button"
+                  className="burger-icon-btn"
+                  aria-label="Terms & Policies"
+                  title="Terms & Policies"
+                  onClick={() => {
+                    setModal('terms');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <line x1="10" y1="9" x2="8" y2="9" />
+                  </svg>
+                  <span className="burger-icon-tooltip">Terms & Policies</span>
+                </button>
+              </div>
+              <div className="burger-menu-divider burger-divider-horizontal" />
+              <div
+                className="burger-menu-section burger-menu-horizontal burger-menu-auth"
+                role="group"
+                aria-label="Account Access"
+              >
+                <button
+                  type="button"
+                  className="burger-icon-btn"
+                  aria-label="Sign In"
+                  title="Sign In"
+                  onClick={() => {
+                    setModal('auth');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                  <span className="burger-icon-tooltip">Sign In</span>
+                </button>
+                <button
+                  type="button"
+                  className="burger-icon-btn burger-signup-btn"
+                  aria-label="Sign Up"
+                  title="Sign Up"
+                  onClick={() => {
+                    setModal('auth');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                  </svg>
+                  <span className="burger-icon-tooltip">Sign Up</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Burger Bubble Island */}
+            <div className="menu-anchor">
+              <div className="nav-burger-bubble bubble-island">
+                <button
+                  type="button"
+                  className={`hamburger-btn${menuOpen ? ' is-open open' : ''}`}
+                  aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                  aria-expanded={menuOpen}
+                  aria-controls="studio-menu"
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  <span className="hamburger-line line-1" />
+                  <span className="hamburger-line line-2" />
+                  <span className="hamburger-line line-3" />
+                </button>
+              </div>
+
+              {/* Scrolled Floating Dynamic Island Popover */}
+              <div
+                className={`nav-burger-popover${menuOpen && scrolled ? ' is-open' : ''}`}
+                id="studio-menu"
+                aria-hidden={!menuOpen || !scrolled}
+              >
+                <span className="menu-heading">Explore the studio</span>
+                {navigation.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.path}
+                    className={route === item.id ? ' is-current' : undefined}
+                    onClick={() => selectSection(item.id)}
+                    tabIndex={menuOpen && scrolled ? 0 : -1}
+                  >
+                    {item.label}
+                    <ArrowIcon size={15} />
+                  </Link>
+                ))}
+                <div className="burger-menu-divider burger-divider-vertical" />
+                <span className="menu-heading">Quick Actions</span>
+                <div className="popover-quick-actions">
+                  <button
+                    type="button"
+                    className="popover-action-row"
+                    onClick={() => {
+                      setModal('settings');
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                    <span>Settings</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="popover-action-row"
+                    onClick={() => {
+                      setModal('profile');
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span>Profile</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="popover-action-row"
+                    onClick={() => {
+                      setModal('terms');
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <line x1="10" y1="9" x2="8" y2="9" />
+                    </svg>
+                    <span>Terms & Policies</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="popover-action-row popover-action-highlight"
+                    onClick={() => {
+                      setModal('auth');
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    <span>Sign In / Sign Up</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </header>
+
+      {/* Modal Dialogs */}
+      {modal === 'settings' && (
+        <SettingsModal
+          theme={theme}
+          setTheme={setThemeState}
+          uiScale={uiScale}
+          setUiScale={setUiScaleState}
+          motion={motion}
+          setMotion={setMotionState}
+          onClose={() => setModal(null)}
+          onReset={handleResetSettings}
+        />
+      )}
+
+      {modal === 'profile' && <ProfileModal onClose={() => setModal(null)} />}
+      {modal === 'terms' && <TermsModal onClose={() => setModal(null)} />}
+      {modal === 'auth' && <AuthModal onClose={() => setModal(null)} />}
     </>
   );
 }

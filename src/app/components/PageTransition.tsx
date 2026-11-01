@@ -160,11 +160,19 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
 export function PageTransitionContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isNavigating } = usePageTransition();
+  const [isEntering, setIsEntering] = useState(true);
+
+  useEffect(() => {
+    setIsEntering(true);
+    const timer = setTimeout(() => setIsEntering(false), 350);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   return (
     <div
       key={pathname}
-      className={`page-transition-view ${isNavigating ? 'is-exiting' : 'is-entering'}`}
+      className={`page-transition-view ${isNavigating ? 'is-exiting' : isEntering ? 'is-entering' : ''}`}
+      onAnimationEnd={() => setIsEntering(false)}
     >
       {children}
     </div>

@@ -5,7 +5,6 @@ import './nav.css';
 import StudioNav from './components/StudioNav';
 import { PageTransitionProvider, PageTransitionContent } from './components/PageTransition';
 import { SettingsProvider } from './components/SettingsProvider';
-import SettingsModal from './components/SettingsModal';
 import ServiceWorkerRegister from './components/ServiceWorkerRegister';
 
 const poppins = Poppins({
@@ -55,6 +54,7 @@ export const metadata: Metadata = {
   publisher: 'bikko.studio',
   category: 'Design & Technology',
   classification: 'Creative Technology & Digital Art',
+  referrer: 'no-referrer',
   alternates: {
     canonical: 'https://bikko.studio',
     languages: {
@@ -203,7 +203,6 @@ export default function RootLayout({
         <SettingsProvider>
           <PageTransitionProvider>
             <StudioNav />
-            <SettingsModal />
             <PageTransitionContent>
               <div className="page-wrapper">{children}</div>
             </PageTransitionContent>

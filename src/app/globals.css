@@ -81,16 +81,18 @@
   outline-offset: 2px;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+@layer base {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
 }
 
 :root[data-scale="default"] {
@@ -578,7 +580,7 @@
     width: 100%;
   }
 
-  .container {
+  .container:where(:not(.dolman-page *, .dinoillus-page *, .lam-page *, .tatamipi-page *, .mikapikazo-page *, .yoneyamai-page *, .tamimoon-page *, .rella-page *, .sankobite-page *, .askziye-page *, .dora-page *, .kaduise-page *, .kda-page *)) {
     width: 100%;
     max-width: 960px;
     margin: 0 auto;
@@ -604,12 +606,12 @@
     margin-bottom: 0;
   }
 
-  .grid {
+  .grid:where(:not(.sankobite-page *, .rella-page *, .tamimoon-page *, .yoneyamai-page *, .mikapikazo-page *, .dinoillus-page *, .lam-page *, .dolman-page *, .tatamipi-page *, .askziye-page *, .dora-page *, .kaduise-page *, .kda-page *)) {
     display: grid;
     gap: 1.5rem;
   }
 
-  .grid-cols-2 {
+  .grid-cols-2:where(:not(.sankobite-page *, .rella-page *, .tamimoon-page *, .yoneyamai-page *, .mikapikazo-page *, .dinoillus-page *, .lam-page *, .dolman-page *, .tatamipi-page *, .askziye-page *, .dora-page *, .kaduise-page *, .kda-page *)) {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   }
 
