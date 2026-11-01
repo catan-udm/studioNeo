@@ -2,16 +2,16 @@ import type { Metadata } from 'next';
 import LandingClient from './LandingClient';
 
 export const metadata: Metadata = {
-  title: 'sankobite — ugoira tribute archive さんこばいと | Rella • studioNeo',
+  title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
   description:
-    'A fan-made tribute archive of sankobite — Filipino illustrator, animator and sticker maker (14 hand-drawn ugoira loops from the DECO*27 series, HERO for Magical Mirai 2023, and Poké Miku) alongside Rella — The Artist Archive.',
+    'A fan-made tribute archive of resident illustrators — sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, powered by studioNeo.',
   alternates: {
     canonical: 'https://bikko.studio',
   },
   openGraph: {
-    title: 'sankobite — ugoira tribute archive | Rella — The Artist Archive',
+    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
     description:
-      '14 hand-drawn looping animations by sankobite and selected illustrations by Rella, integrated with studioNeo.',
+      'Curated tribute archives of sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, integrated with studioNeo.',
     url: 'https://bikko.studio',
     type: 'website',
     locale: 'en_US',
@@ -19,9 +19,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'sankobite — ugoira tribute archive | Rella — The Artist Archive',
+    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
     description:
-      '14 hand-drawn looping animations by sankobite and selected illustrations by Rella, integrated with studioNeo.',
+      'Curated tribute archives of sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, integrated with studioNeo.',
   },
 };
 
@@ -30,9 +30,9 @@ const homeStructuredData = {
   '@type': 'WebPage',
   '@id': 'https://bikko.studio/#webpage',
   url: 'https://bikko.studio',
-  name: 'sankobite — ugoira tribute archive さんこばいと | Rella • studioNeo',
+  name: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
   description:
-    'Tribute archive of sankobite ugoira animations and Rella illustrations, powered by studioNeo.',
+    'Tribute archive of resident illustrators — sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, powered by studioNeo.',
   inLanguage: 'en-US',
   isPartOf: {
     '@id': 'https://bikko.studio/#website',
