@@ -1,0 +1,253 @@
+/* Palette lifted from the artwork itself:
+   teal hair (IDENTITY), vermilion lips/nails, lavender-grey ground (Anne),
+   grass green (NYLON), hot-pink frame (RIN), indigo bob (RIKU), night black (JUN). */
+
+@keyframes ping-slow {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+@keyframes progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) rotate(calc(var(--r, 0deg) * -0.6));
+  }
+}
+
+.tamimoon-page ::selection {
+  background: var(--color-vermil);
+  color: #fff;
+}
+
+.tamimoon-page button {
+  cursor: pointer;
+}
+
+/* ---------- type: the heavy extended grotesque + the light tracked caps ---------- */
+.tamimoon-page .wide {
+  font-family: var(--font-sans);
+  font-stretch: 125%;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+.tamimoon-page .wide-md {
+  font-family: var(--font-sans);
+  font-stretch: 115%;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.tamimoon-page .tracked {
+  font-family: var(--font-sans);
+  font-stretch: 125%;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.tamimoon-page .tracked-b {
+  font-family: var(--font-sans);
+  font-stretch: 112%;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.tamimoon-page .jp {
+  font-family: var(--font-jp);
+}
+.tamimoon-page .vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* ---------- paper grain, like the soft texture in the paintings ---------- */
+.tamimoon-page.grain::after,
+.tamimoon-page .grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.38'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+/* ---------- hand-drawn, never-quite-closed frames ---------- */
+.tamimoon-page .hand-frame {
+  filter: url(#wobble);
+}
+
+/* ---------- loose ink lines that draw themselves ---------- */
+.tamimoon-page .ink-line path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+  transition-delay: var(--d, 0ms);
+}
+.tamimoon-page .ink-line.is-drawn path {
+  stroke-dashoffset: 0;
+}
+
+/* ---------- scroll reveal ---------- */
+.tamimoon-page .reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.tamimoon-page .reveal[data-dir="left"] {
+  transform: translate3d(-32px, 0, 0);
+}
+.tamimoon-page .reveal[data-dir="right"] {
+  transform: translate3d(32px, 0, 0);
+}
+.tamimoon-page .reveal[data-dir="scale"] {
+  transform: scale(0.95);
+}
+.tamimoon-page .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.tamimoon-page .line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.tamimoon-page .line-mask > span {
+  display: block;
+  transform: translate3d(0, 108%, 0);
+  transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--d, 0ms);
+}
+.tamimoon-page .is-in .line-mask > span,
+.tamimoon-page .line-mask.is-in > span {
+  transform: none;
+}
+
+/* ---------- hero: image wipes up like a pulled layer ---------- */
+.tamimoon-page .wipe {
+  clip-path: inset(100% 0 0 0);
+  opacity: 0;
+  transition:
+    clip-path 0s linear 1.05s,
+    opacity 0s linear 1.05s;
+}
+.tamimoon-page .wipe.is-on {
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  transition:
+    clip-path 1.05s cubic-bezier(0.77, 0, 0.18, 1),
+    opacity 0s linear 0s;
+}
+
+.tamimoon-page .title-roll {
+  transform: translate3d(0, 108%, 0);
+  transition: transform 0.9s cubic-bezier(0.7, 0, 0.2, 1);
+}
+.tamimoon-page .title-roll.is-on {
+  transform: none;
+  transition-delay: 0.22s;
+}
+
+.tamimoon-page .progress-fill {
+  transform-origin: left;
+  animation: progress var(--dur, 6500ms) linear forwards;
+}
+
+.tamimoon-page .bob {
+  animation: float-y 7s ease-in-out infinite;
+}
+
+.tamimoon-page .link-line {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tamimoon-page .link-line:hover,
+.tamimoon-page .group:hover .link-line {
+  background-size: 100% 2px;
+}
+
+.tamimoon-page .no-bar::-webkit-scrollbar {
+  height: 6px;
+}
+.tamimoon-page .no-bar::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 19, 0.4);
+  border-radius: 99px;
+}
+
+/* ---------- artist switcher in tamimoon header ---------- */
+.artist-switcher--tamimoon {
+  border: 1.5px solid currentColor;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.artist-switcher--tamimoon .artist-switcher__link {
+  padding: 6px 10px;
+  font-family: var(--font-sans);
+  font-stretch: 112%;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  line-height: 1;
+  color: currentColor;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.artist-switcher--tamimoon .artist-switcher__link + .artist-switcher__link {
+  border-left: 1px solid currentColor;
+}
+.artist-switcher--tamimoon .artist-switcher__link:hover {
+  opacity: 1;
+}
+.artist-switcher--tamimoon .artist-switcher__link.is-active {
+  opacity: 1;
+  background: currentColor;
+  color: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tamimoon-page *,
+  .tamimoon-page *::before,
+  .tamimoon-page *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+  .tamimoon-page .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .tamimoon-page .line-mask > span,
+  .tamimoon-page .title-roll {
+    transform: none;
+  }
+  .tamimoon-page .ink-line path {
+    stroke-dashoffset: 0;
+  }
+}

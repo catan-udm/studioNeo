@@ -1,0 +1,1900 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Zen+Old+Mincho:wght@400;700&display=swap");
+
+/* ================================================================== */
+/*  Yoneyama Mai Museum — Tokens & Base Scoping                       */
+/* ================================================================== */
+.yoneyamai-page {
+  --ink: #111111;
+  --ink-2: #44423d;
+  --ink-3: #6a675f;
+  --red: #b3261e;
+  --accent: #ff4800;
+
+  /* one wall colour per room */
+  --wall-lobby: #f3f1ec;
+  --wall-flare: #f6f4ef;
+  --wall-salon: #27272b;
+  --wall-gallery: #e5ddcc;
+  --wall-screening: #050507;
+  --wall-chronology: #fbfaf7;
+  --wall-directory: #cdcac1;
+  --wall-artist: #efebe3;
+
+  --serif: "Instrument Serif", "Times New Roman", serif;
+  --sans: "Instrument Sans", system-ui, sans-serif;
+  --jp: "Zen Old Mincho", "Hiragino Mincho ProN", serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --display: "Instrument Serif", "Times New Roman", serif;
+  --ease: cubic-bezier(.16, .84, .28, 1);
+  --pad: clamp(20px, 5vw, 72px);
+
+  position: relative;
+  background: var(--wall-lobby);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  min-height: 100vh;
+}
+
+.yoneyamai-page * {
+  box-sizing: border-box;
+}
+
+.yoneyamai-page ::selection {
+  background: var(--ink);
+  color: #fff;
+}
+
+.yoneyamai-page img,
+.yoneyamai-page video {
+  display: block;
+  max-width: 100%;
+}
+
+.yoneyamai-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.yoneyamai-page button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.yoneyamai-page figure,
+.yoneyamai-page blockquote,
+.yoneyamai-page ol,
+.yoneyamai-page ul,
+.yoneyamai-page p,
+.yoneyamai-page h1,
+.yoneyamai-page h2 {
+  margin: 0;
+}
+
+.yoneyamai-page ol,
+.yoneyamai-page ul {
+  padding: 0;
+  list-style: none;
+}
+
+.yoneyamai-page :focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+.yoneyamai-page .sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Lights come up as you enter */
+.yoneyamai-page [data-reveal] {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 1.5s ease, transform 1.5s var(--ease);
+  transition-delay: calc(var(--i, 0) * 110ms);
+}
+.yoneyamai-page [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ================================================================== */
+/*  Museum Signage bar — sits below StudioNav                          */
+/* ================================================================== */
+.yoneyamai-bar {
+  position: fixed;
+  z-index: 35;
+  top: 74px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  height: 48px;
+  padding: 0 clamp(16px, 3vw, 40px);
+  color: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.yoneyamai-bar a {
+  pointer-events: auto;
+}
+
+.yoneyamai-bar-name {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.yoneyamai-bar-rooms {
+  display: flex;
+  gap: 4px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.yoneyamai-bar-rooms a {
+  padding: 6px 9px;
+  border-bottom: 1px solid transparent;
+  opacity: .7;
+  transition: opacity .3s, border-color .3s;
+}
+
+.yoneyamai-bar-rooms a:hover {
+  opacity: 1;
+}
+
+.yoneyamai-bar-rooms a.is-here {
+  opacity: 1;
+  border-bottom-color: #fff;
+}
+
+/* ================================================================== */
+/*  Shared museum furniture                                           */
+/* ================================================================== */
+.yoneyamai-page .room {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+}
+
+.yoneyamai-page .work {
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--ar);
+  overflow: hidden;
+  background: #d8d5cd;
+  cursor: zoom-in;
+}
+
+.yoneyamai-page .work img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--ease);
+}
+
+.yoneyamai-page .work:hover img {
+  transform: scale(1.025);
+}
+
+/* wall label: artist, title, year, medium */
+.yoneyamai-page .label,
+.viewer .label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-2, #44423d);
+}
+
+.yoneyamai-page .label strong,
+.viewer .label strong {
+  color: var(--ink, #111111);
+  font-weight: 600;
+}
+
+.yoneyamai-page .label em,
+.viewer .label em {
+  font-family: var(--serif, "Instrument Serif", serif);
+  font-style: italic;
+  font-size: 1.28em;
+  color: var(--ink, #111111);
+  line-height: 1.2;
+}
+
+.yoneyamai-page .label-no,
+.viewer .label-no {
+  margin-bottom: 7px;
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--red, #b3261e);
+}
+
+.yoneyamai-page .label--light,
+.viewer .label--light {
+  color: #aeaba2;
+}
+
+.yoneyamai-page .label--light strong,
+.viewer .label--light strong,
+.yoneyamai-page .label--light em,
+.viewer .label--light em {
+  color: #f3f1ec;
+}
+
+.yoneyamai-page .label--wall {
+  width: max-content;
+  margin: 26px 0 0 auto;
+}
+
+.yoneyamai-page .label--card {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 18px);
+  width: max-content;
+  max-width: 100%;
+  padding: 12px 15px;
+  background: #fffefb;
+  border: 1px solid rgba(0, 0, 0, .12);
+  box-shadow: 0 8px 20px -12px rgba(0, 0, 0, .35);
+}
+
+.yoneyamai-page .label--line {
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+/* ================================================================== */
+/*  Lobby — plan of the museum                                        */
+/* ================================================================== */
+.yoneyamai-page .lobby {
+  display: flex;
+  align-items: flex-end;
+  padding: 22vh var(--pad) 9vh;
+  background: var(--wall-lobby);
+}
+
+.yoneyamai-page .lobby::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(60% 60% at 30% 0%, rgba(255, 255, 255, .95), transparent 72%);
+}
+
+.yoneyamai-page .lobby-grid {
+  width: min(1400px, 100%);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, .8fr);
+  gap: clamp(36px, 6vw, 96px);
+  align-items: end;
+}
+
+.yoneyamai-page .lobby h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: .84;
+  letter-spacing: -.035em;
+  font-size: clamp(4.4rem, 12vw, 13rem);
+}
+
+.yoneyamai-page .lobby h1 > span {
+  display: block;
+}
+
+.yoneyamai-page .lobby-second {
+  display: flex !important;
+  align-items: baseline;
+  gap: .2em;
+  margin-left: .62em;
+}
+
+.yoneyamai-page .lobby-second em {
+  font-style: italic;
+}
+
+.yoneyamai-page .lobby-second i {
+  font-family: var(--jp);
+  font-style: normal;
+  font-size: .15em;
+  letter-spacing: .34em;
+  color: var(--ink-3);
+}
+
+.yoneyamai-page .lobby-side {
+  display: flex;
+  flex-direction: column;
+  gap: 46px;
+}
+
+.yoneyamai-page .placard {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.yoneyamai-page .placard strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.yoneyamai-page .plan {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(2, 86px);
+  margin-top: 6px;
+  border: 1.5px solid var(--ink);
+  background: #fbfaf7;
+}
+
+.yoneyamai-page .plan-title {
+  position: absolute;
+  left: 0;
+  top: -24px;
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.yoneyamai-page .plan-room {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 9px 11px;
+  border: 1px solid var(--ink);
+  margin: -.5px;
+  font-size: 11px;
+  line-height: 1.2;
+  transition: background .3s, color .3s;
+  position: relative;
+}
+
+.yoneyamai-page .plan-room b {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 25px;
+  line-height: 1;
+}
+
+.yoneyamai-page .plan-room span {
+  letter-spacing: .04em;
+}
+
+.yoneyamai-page .plan-room:hover {
+  background: #e7e4dc;
+}
+
+.yoneyamai-page .plan-room.is-here {
+  background: var(--ink);
+  color: #fff;
+}
+
+.yoneyamai-page .plan-room.is-here::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff5b4d;
+  animation: blink 2s ease-in-out infinite;
+}
+
+.yoneyamai-page .plan-flare { grid-column: 1 / 4; grid-row: 1; }
+.yoneyamai-page .plan-salon { grid-column: 4 / 9; grid-row: 1; }
+.yoneyamai-page .plan-gallery { grid-column: 9 / 13; grid-row: 1; }
+.yoneyamai-page .plan-artist { grid-column: 1 / 3; grid-row: 2; }
+.yoneyamai-page .plan-exhibitions { grid-column: 3 / 6; grid-row: 2; }
+.yoneyamai-page .plan-chronology { grid-column: 6 / 9; grid-row: 2; }
+.yoneyamai-page .plan-screening { grid-column: 9 / 13; grid-row: 2; }
+.yoneyamai-page .plan-door {
+  position: absolute;
+  left: -2.5px;
+  top: 26px;
+  width: 4px;
+  height: 30px;
+  background: var(--wall-lobby);
+}
+
+.yoneyamai-page .lobby-quote p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.25rem, 1.8vw, 1.6rem);
+  line-height: 1.3;
+  color: var(--ink);
+  max-width: 30ch;
+}
+
+.yoneyamai-page .lobby-quote cite {
+  display: block;
+  margin-top: 10px;
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ================================================================== */
+/*  I · Flare — one work on one wall                                  */
+/* ================================================================== */
+.yoneyamai-page .room-flare {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 17vh 6vw 26vh;
+  background: var(--wall-flare);
+}
+
+.yoneyamai-page .room-flare::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(55% 50% at 50% 12%, #fff, transparent 75%);
+}
+
+.yoneyamai-page .room-flare::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 15vh;
+  z-index: -1;
+  background: linear-gradient(180deg, #bab7ae, #a6a39a);
+  border-top: 8px solid #ebe8e0;
+}
+
+.yoneyamai-page .side-title {
+  position: absolute;
+  left: clamp(14px, 2.4vw, 34px);
+  top: 50%;
+  transform: translateY(-50%) rotate(180deg);
+  writing-mode: vertical-rl;
+  font-size: 11px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.yoneyamai-page .side-title b {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin-block-end: 10px;
+}
+
+.yoneyamai-page .flare-wall {
+  width: min(1180px, 88vw);
+}
+
+.yoneyamai-page .flare-wall .work {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, .1),
+    0 22px 44px -14px rgba(0, 0, 0, .38),
+    0 60px 90px -40px rgba(0, 0, 0, .35);
+}
+
+/* ================================================================== */
+/*  II · Salon — a hang of framed, mounted works                      */
+/* ================================================================== */
+.yoneyamai-page .room-salon {
+  padding: 24vh var(--pad) 18vh;
+  background: var(--wall-salon);
+  color: #ecebe6;
+}
+
+.yoneyamai-page .room-salon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(50% 45% at 50% 0%, rgba(255, 238, 205, .13), transparent 72%);
+}
+
+.yoneyamai-page .corner-numeral {
+  position: absolute;
+  z-index: -1;
+  top: 12vh;
+  right: 4vw;
+  font-family: var(--serif);
+  font-style: italic;
+  line-height: .8;
+  font-size: clamp(6rem, 18vw, 16rem);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, .2);
+}
+
+.yoneyamai-page .salon {
+  width: min(1240px, 100%);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: 2.2vw;
+  row-gap: 10vh;
+}
+
+.yoneyamai-page .frame-wrap {
+  position: relative;
+}
+
+.yoneyamai-page .frame {
+  padding: clamp(10px, 1.9vw, 26px);
+  background: #fbfaf7;
+  border: clamp(3px, .45vw, 6px) solid #0b0b0c;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, .5), 0 30px 50px -20px rgba(0, 0, 0, .7);
+}
+
+.yoneyamai-page .frame .work {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .25);
+  background: #ddd;
+}
+
+.yoneyamai-page .tick {
+  display: block;
+  margin-top: 12px;
+  font-size: 11px;
+  letter-spacing: .14em;
+  color: rgba(255, 255, 255, .5);
+  text-align: right;
+}
+
+.yoneyamai-page .s1 { grid-column: 1 / span 4; grid-row: 1; align-self: start; }
+.yoneyamai-page .s2 { grid-column: 5 / span 4; grid-row: 1; align-self: end; }
+.yoneyamai-page .s3 { grid-column: 9 / span 4; grid-row: 1; align-self: start; margin-top: 9vh; }
+.yoneyamai-page .s4 { grid-column: 5 / span 3; grid-row: 2; align-self: start; }
+.yoneyamai-page .s5 { grid-column: 9 / span 4; grid-row: 2; align-self: center; }
+
+.yoneyamai-page .legend {
+  grid-column: 1 / span 3;
+  grid-row: 2;
+  align-self: end;
+  padding: 18px 20px;
+  background: #f3f1ec;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.yoneyamai-page .legend li {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid #dcd9d0;
+}
+
+.yoneyamai-page .legend li:last-child {
+  border: 0;
+}
+
+.yoneyamai-page .legend span {
+  color: var(--red);
+  letter-spacing: .08em;
+}
+
+.yoneyamai-page .legend em {
+  font-family: var(--serif);
+  font-size: 16px;
+}
+
+.yoneyamai-page .legend small {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+/* ================================================================== */
+/*  III · Gallery — a long wall you walk along                        */
+/* ================================================================== */
+.yoneyamai-page .room-gallery {
+  --floor: 21vh;
+  --wh: clamp(250px, 52vh, 520px);
+  padding-top: 15vh;
+  background: var(--wall-gallery);
+  display: flex;
+  flex-direction: column;
+}
+
+.yoneyamai-page .room-gallery::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .45), transparent 22%, transparent 78%, rgba(255, 255, 255, .3));
+}
+
+.yoneyamai-page .room-gallery::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--floor);
+  z-index: -1;
+  border-top: 10px solid #f3eee3;
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 72px), linear-gradient(180deg, #aa8864, #8b6b49);
+}
+
+.yoneyamai-page .long-wall {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: clamp(70px, 10vw, 180px);
+  padding: 0 14vw calc(var(--floor) + 70px) 12vw;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.yoneyamai-page .long-wall::-webkit-scrollbar {
+  display: none;
+}
+
+.yoneyamai-page .long-piece {
+  position: relative;
+  flex: none;
+  height: var(--wh);
+  scroll-snap-align: center;
+}
+
+.yoneyamai-page .long-piece .work {
+  height: 100%;
+  width: auto;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .1), 0 24px 40px -16px rgba(60, 40, 10, .5);
+}
+
+.yoneyamai-page .long-piece .work img {
+  height: 100%;
+  width: auto;
+}
+
+.yoneyamai-page .bench {
+  position: relative;
+  flex: none;
+  align-self: flex-end;
+  width: 260px;
+  height: 62px;
+  margin-bottom: -88px;
+}
+
+.yoneyamai-page .bench::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 18px;
+  background: #2c231b;
+  border-radius: 2px;
+  box-shadow: 0 10px 14px -6px rgba(0, 0, 0, .45);
+}
+
+.yoneyamai-page .bench i {
+  position: absolute;
+  top: 18px;
+  width: 10px;
+  height: 44px;
+  background: #2c231b;
+}
+
+.yoneyamai-page .bench i:first-child { left: 14%; }
+.yoneyamai-page .bench i:last-child { right: 14%; }
+
+.yoneyamai-page .floor-note {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--floor);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--pad);
+  color: #f8f2e6;
+}
+
+.yoneyamai-page .floor-note p {
+  font-size: 11px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+.yoneyamai-page .floor-note b {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 24px;
+  letter-spacing: 0;
+  margin-right: 10px;
+}
+
+.yoneyamai-page .floor-note div {
+  display: flex;
+  gap: 8px;
+}
+
+.yoneyamai-page .floor-note button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .6);
+  border-radius: 50%;
+  transition: background .3s, color .3s;
+}
+
+.yoneyamai-page .floor-note button:hover {
+  background: #f8f2e6;
+  color: #2c231b;
+}
+
+/* ================================================================== */
+/*  IV · Screening — a dark room                                      */
+/* ================================================================== */
+.yoneyamai-page .room-screening {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 17vh 6vw 25vh;
+  background: var(--wall-screening);
+  color: #e8e6e0;
+}
+
+.yoneyamai-page .room-screening::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 15vh;
+  z-index: -1;
+  background: linear-gradient(180deg, #0d0d12, #000);
+  border-top: 1px solid #1a1a21;
+}
+
+.yoneyamai-page .beam {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 50%;
+  width: min(1180px, 100%);
+  height: 62%;
+  transform: translateX(-50%);
+  filter: blur(30px);
+  opacity: .85;
+}
+
+.yoneyamai-page .beam::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .12), transparent 88%);
+  clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%);
+}
+
+.yoneyamai-page .now-showing {
+  position: absolute;
+  top: 12vh;
+  left: var(--pad);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: #aeaba2;
+}
+
+.yoneyamai-page .now-showing i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4a3d;
+  animation: blink 2s ease-in-out infinite;
+}
+
+.yoneyamai-page .projection {
+  width: min(1080px, 88vw);
+}
+
+.yoneyamai-page .screen {
+  position: relative;
+  aspect-ratio: 1920 / 946;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 0 140px rgba(255, 255, 255, .14);
+}
+
+.yoneyamai-page .screen video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yoneyamai-page .loop-btn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .6);
+  color: #fff;
+  transition: background .3s, color .3s;
+}
+
+.yoneyamai-page .loop-btn:hover {
+  background: #fff;
+  color: #000;
+}
+
+.yoneyamai-page .seats {
+  position: absolute;
+  bottom: 8vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 44px;
+}
+
+.yoneyamai-page .seats i {
+  width: 130px;
+  height: 64px;
+  background: #0e0e13;
+  border-radius: 40px 40px 6px 6px;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, .05);
+}
+
+/* Screening room animation archive styles */
+.yoneyamai-page .screening-archive-content { width: min(1380px, 100%); }
+.yoneyamai-page .screening-intro {
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, .75fr);
+  gap: 28px;
+  align-items: end;
+  width: min(1380px, 100%);
+  margin: 0 auto clamp(28px, 4vh, 44px);
+}
+.yoneyamai-page .screening-intro h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 5.2vw, 4.8rem);
+  font-weight: 400;
+  line-height: .95;
+  letter-spacing: -.035em;
+}
+.yoneyamai-page .screening-intro p {
+  max-width: 46ch;
+  margin: 0;
+  color: #aaa6b0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.yoneyamai-page .animation-archive {
+  border-top: 1px solid rgba(232, 230, 224, .18);
+}
+.yoneyamai-page .animation-archive-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(232, 230, 224, .12);
+}
+.yoneyamai-page .animation-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: #e8e6e0;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.yoneyamai-page .animation-kicker svg {
+  color: var(--accent);
+}
+.yoneyamai-page .animation-source-note {
+  max-width: 64ch;
+  margin: 0;
+  color: #aaa6b0;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: right;
+}
+.yoneyamai-page .animation-program {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(290px, .65fr);
+  border-bottom: 1px solid rgba(232, 230, 224, .18);
+}
+.yoneyamai-page .animation-preview {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #101016;
+}
+.yoneyamai-page .animation-preview::after {
+  content: "";
+  position: absolute;
+  inset: 45% 0 0;
+  z-index: 1;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .5));
+  pointer-events: none;
+}
+.yoneyamai-page .animation-preview > img,
+.yoneyamai-page .animation-preview > iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+.yoneyamai-page .animation-preview-tag {
+  position: absolute;
+  z-index: 3;
+  top: 15px;
+  left: 15px;
+  max-width: calc(100% - 30px);
+  padding: 7px 10px;
+  border: 1px solid rgba(244, 241, 232, .36);
+  background: rgba(6, 6, 12, .74);
+  color: #f2eff0;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(8px);
+}
+.yoneyamai-page .animation-play {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 15px 21px;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 999px;
+  background: rgba(7, 7, 13, .7);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease), transform .25s var(--ease);
+}
+.yoneyamai-page .animation-play:hover {
+  transform: translate(-50%, -50%) scale(1.04);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #08080f;
+}
+.yoneyamai-page .animation-record {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(22px, 3vw, 38px);
+  border-left: 1px solid rgba(232, 230, 224, .16);
+  background: linear-gradient(155deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .015));
+}
+.yoneyamai-page .animation-record-meta {
+  display: flex;
+  gap: 10px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.yoneyamai-page .animation-record-meta span + span::before {
+  content: "/";
+  padding-right: 10px;
+  color: #817c88;
+}
+.yoneyamai-page .animation-record h3 {
+  margin: 15px 0 16px;
+  font-family: var(--display);
+  font-size: clamp(1.9rem, 3vw, 3.1rem);
+  font-weight: 400;
+  line-height: .94;
+  text-transform: uppercase;
+}
+.yoneyamai-page .animation-role-label {
+  margin: 0 0 7px;
+  color: #aaa6b0;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.yoneyamai-page .animation-role {
+  margin: 0;
+  color: #f2eff0;
+  font-size: 14px;
+  line-height: 1.62;
+}
+.yoneyamai-page .animation-record-actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 19px;
+}
+.yoneyamai-page .animation-record-actions > button,
+.yoneyamai-page .animation-record-actions > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 9px 12px;
+  border: 1px solid rgba(244, 241, 232, .3);
+  color: #f2eff0;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: border-color .25s var(--ease), background .25s var(--ease), color .25s var(--ease);
+}
+.yoneyamai-page .animation-record-actions > button:hover,
+.yoneyamai-page .animation-record-actions > a:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #08080f;
+}
+.yoneyamai-page .animation-record-index {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 22px;
+  color: #aaa6b0;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.yoneyamai-page .animation-record-index strong {
+  color: var(--accent);
+  font-size: 23px;
+  font-weight: 400;
+}
+.yoneyamai-page .animation-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(232, 230, 224, .12);
+}
+.yoneyamai-page .animation-filter button {
+  padding: 8px 11px;
+  border: 1px solid transparent;
+  color: #aaa6b0;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.yoneyamai-page .animation-filter button:hover {
+  color: #f2eff0;
+}
+.yoneyamai-page .animation-filter button.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.yoneyamai-page .animation-filter > span {
+  margin-left: auto;
+  color: #aaa6b0;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.yoneyamai-page .animation-catalog {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px 13px;
+  padding-top: 17px;
+}
+.yoneyamai-page .animation-item {
+  min-width: 0;
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgba(244, 241, 232, .16);
+  background: rgba(255, 255, 255, .025);
+  text-align: left;
+  transition: border-color .25s ease, background .25s ease, transform .25s var(--ease);
+}
+.yoneyamai-page .animation-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(244, 241, 232, .48);
+}
+.yoneyamai-page .animation-item.is-selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, rgba(255, 255, 255, .02));
+}
+.yoneyamai-page .animation-item-image {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #171721;
+}
+.yoneyamai-page .animation-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .55s var(--ease), opacity .3s ease;
+}
+.yoneyamai-page .animation-item:hover .animation-item-image img {
+  transform: scale(1.05);
+  opacity: .88;
+}
+.yoneyamai-page .animation-item-no {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  padding: 5px 6px;
+  background: rgba(7, 7, 13, .78);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+.yoneyamai-page .animation-item-play {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .62);
+  border-radius: 50%;
+  background: rgba(7, 7, 13, .68);
+  color: #fff;
+}
+.yoneyamai-page .animation-item-credit-source {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  max-width: calc(100% - 48px);
+  padding: 5px 6px;
+  background: rgba(7, 7, 13, .78);
+  color: #e7e2d8;
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: .1em;
+}
+.yoneyamai-page .animation-item-title {
+  display: block;
+  padding: 10px 10px 3px;
+  color: #f3efe6;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.yoneyamai-page .animation-item-credit {
+  display: block;
+  padding: 0 10px 11px;
+  color: #aaa6b0;
+  font-size: 9px;
+  line-height: 1.45;
+}
+.yoneyamai-page .additional-animation-credits {
+  margin-top: 22px;
+  border-top: 1px solid rgba(232, 230, 224, .2);
+  border-bottom: 1px solid rgba(232, 230, 224, .2);
+}
+.yoneyamai-page .additional-animation-credits summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  min-height: 58px;
+  cursor: pointer;
+  color: #eae6dc;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  list-style: none;
+}
+.yoneyamai-page .additional-animation-credits summary::-webkit-details-marker {
+  display: none;
+}
+.yoneyamai-page .additional-animation-credits summary::after {
+  content: "+";
+  color: var(--accent);
+  font-size: 19px;
+}
+.yoneyamai-page .additional-animation-credits[open] summary::after {
+  content: "−";
+}
+.yoneyamai-page .additional-animation-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 36px;
+  padding-bottom: 18px;
+}
+.yoneyamai-page .additional-animation-list > div {
+  display: grid;
+  grid-template-columns: 66px 1fr;
+  gap: 3px 14px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(232, 230, 224, .12);
+}
+.yoneyamai-page .additional-animation-list > div > span {
+  grid-row: span 2;
+  padding-top: 2px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .1em;
+}
+.yoneyamai-page .additional-animation-list strong {
+  color: #e9e5da;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.yoneyamai-page .additional-animation-list em {
+  color: #aaa6b0;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1.4;
+}
+.yoneyamai-page .additional-animation-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 18px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+/* ================================================================== */
+/*  V · Chronology — vinyl lettering on a white wall                  */
+/* ================================================================== */
+.yoneyamai-page .room-chronology {
+  display: flex;
+  align-items: center;
+  padding: 24vh 7vw 20vh;
+  background: var(--wall-chronology);
+}
+
+.yoneyamai-page .vinyl-head {
+  position: absolute;
+  top: 12vh;
+  left: 7vw;
+  font-size: 11px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.yoneyamai-page .vinyl-head b,
+.yoneyamai-page .panel-room b {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin-right: 10px;
+}
+
+.yoneyamai-page .vinyl {
+  width: min(1200px, 100%);
+  margin-inline: auto;
+  font-family: var(--serif);
+  font-size: clamp(1.9rem, 4.7vw, 4.7rem);
+  line-height: 1.12;
+  letter-spacing: -.018em;
+  text-wrap: pretty;
+  color: var(--ink);
+}
+
+.yoneyamai-page .ve {
+  transition: opacity .5s ease;
+}
+
+.yoneyamai-page .vinyl:hover .ve {
+  opacity: .24;
+}
+
+.yoneyamai-page .vinyl .ve:hover {
+  opacity: 1;
+}
+
+.yoneyamai-page .vy {
+  font-family: var(--sans);
+  font-size: .26em;
+  font-weight: 600;
+  letter-spacing: .1em;
+  color: var(--red);
+  vertical-align: .95em;
+  margin-right: .6em;
+}
+
+/* ================================================================== */
+/*  VI · Exhibitions — wayfinding sign                                */
+/* ================================================================== */
+.yoneyamai-page .room-directory {
+  display: grid;
+  place-items: center;
+  padding: 16vh var(--pad);
+  background: var(--wall-directory);
+}
+
+.yoneyamai-page .room-directory::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(50% 45% at 50% 0%, rgba(255, 255, 255, .5), transparent 72%);
+}
+
+.yoneyamai-page .sign {
+  --sp: clamp(18px, 3vw, 40px);
+  width: min(1100px, 100%);
+  padding: 26px 0 22px;
+  background: #0c0c0d;
+  color: #fff;
+  box-shadow: 0 40px 70px -30px rgba(0, 0, 0, .6);
+}
+
+.yoneyamai-page .sign-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 var(--sp);
+  padding-bottom: 18px;
+  border-bottom: 3px solid #fff;
+  font-size: clamp(1.3rem, 2.4vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+.yoneyamai-page .sign li a {
+  display: grid;
+  grid-template-columns: 74px 38px minmax(0, 1.2fr) minmax(0, 1.5fr) 24px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px var(--sp);
+  border-bottom: 1px solid rgba(255, 255, 255, .2);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+  font-weight: 500;
+  transition: background .25s, color .25s;
+}
+
+.yoneyamai-page .sign li a:hover {
+  background: #fff;
+  color: #0c0c0d;
+}
+
+.yoneyamai-page .sg-year {
+  font-variant-numeric: tabular-nums;
+  opacity: .7;
+}
+
+.yoneyamai-page .sg-kind {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #0c0c0d;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.yoneyamai-page .sign li a:hover .sg-kind {
+  background: #0c0c0d;
+  color: #fff;
+}
+
+.yoneyamai-page .sg-name {
+  font-weight: 600;
+}
+
+.yoneyamai-page .sg-venue {
+  opacity: .72;
+  font-size: .86em;
+}
+
+.yoneyamai-page .sign-key {
+  display: flex;
+  gap: 22px;
+  margin: 18px var(--sp) 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, .7);
+}
+
+.yoneyamai-page .sign-key b {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+  background: #fff;
+  color: #0c0c0d;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+/* ================================================================== */
+/*  VII · Artist — one panel, then the exit                           */
+/* ================================================================== */
+.yoneyamai-page .room-artist {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18vh 6vw 0;
+  background: var(--wall-artist);
+}
+
+.yoneyamai-page .room-artist::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(50% 55% at 50% 10%, #fff, transparent 75%);
+}
+
+.yoneyamai-page .panel {
+  width: min(620px, 100%);
+  padding: clamp(26px, 4vw, 46px);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 44px 70px -34px rgba(0, 0, 0, .38);
+}
+
+.yoneyamai-page .panel-room {
+  font-size: 11px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.yoneyamai-page .panel-body {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 28px;
+  align-items: center;
+  margin: 28px 0;
+}
+
+.yoneyamai-page .portrait {
+  padding: 8px;
+  background: #fbfaf7;
+  border: 3px solid #0c0c0d;
+  box-shadow: 0 16px 28px -16px rgba(0, 0, 0, .5);
+}
+
+.yoneyamai-page .portrait img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.yoneyamai-page .panel h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+
+.yoneyamai-page .panel h2 span {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--jp);
+  font-size: .4em;
+  letter-spacing: .4em;
+  color: var(--ink-3);
+}
+
+.yoneyamai-page .panel-body p {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.yoneyamai-page .panel-body p + p {
+  margin-top: 0;
+}
+
+.yoneyamai-page .panel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-top: 18px;
+  border-top: 1px solid #e3e0d8;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.yoneyamai-page .panel-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: border-color .3s, color .3s;
+}
+
+.yoneyamai-page .panel-links a:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.yoneyamai-page .exit-row {
+  align-self: stretch;
+  margin: 14vh -6vw 0;
+  padding: 26px 6vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: linear-gradient(180deg, #c6c2b8, #b6b2a7);
+  border-top: 8px solid #e8e5dd;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.yoneyamai-page .exit-sign {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #0f6b3e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .28);
+}
+
+/* ================================================================== */
+/*  Viewer Dialog                                                     */
+/* ================================================================== */
+.viewer {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(9, 9, 10, .97);
+  color: #eee;
+  z-index: 100;
+}
+
+.viewer::backdrop {
+  background: rgba(9, 9, 10, .9);
+}
+
+.viewer-top {
+  position: absolute;
+  z-index: 2;
+  inset: 0 0 auto 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px clamp(16px, 3vw, 40px);
+  font-size: 12px;
+  letter-spacing: .16em;
+  color: #aeaba2;
+}
+
+.viewer-top button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 50%;
+  color: #fff;
+  transition: background .3s, color .3s;
+}
+
+.viewer-top button:hover {
+  background: #fff;
+  color: #000;
+}
+
+.viewer-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 70px 0 120px;
+}
+
+.viewer-frame {
+  --ar: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: zoom-in;
+  aspect-ratio: var(--ar);
+  width: min(92vw, calc((100dvh - 200px) * var(--ar)));
+  background: #1a1a1d center / cover no-repeat;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+}
+
+.viewer-frame.is-zoomed {
+  cursor: zoom-out;
+}
+
+.viewer-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: transform .5s cubic-bezier(.16, .84, .28, 1), opacity .6s ease;
+  user-select: none;
+}
+
+.viewer-frame img.is-loaded {
+  opacity: 1;
+}
+
+.viewer-frame.is-zoomed img {
+  transform: scale(2.3);
+}
+
+.viewer-foot {
+  position: absolute;
+  z-index: 2;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 18px clamp(16px, 3vw, 40px) 22px;
+}
+
+.viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.viewer-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 8px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, .4);
+}
+
+.viewer-actions button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 50%;
+  transition: background .3s, color .3s;
+}
+
+.viewer-actions button:hover {
+  background: #fff;
+  color: #000;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+
+/* ================================================================== */
+/*  Responsive                                                        */
+/* ================================================================== */
+@media (max-width: 960px) {
+  .yoneyamai-page .room-screening {
+    align-items: stretch;
+    padding: 15vh 4vw 20vh;
+  }
+  .yoneyamai-page .screening-archive-content { width: 100%; }
+  .yoneyamai-page .animation-program { grid-template-columns: 1fr; }
+  .yoneyamai-page .animation-record {
+    border-left: 0;
+    border-top: 1px solid rgba(232, 230, 224, .16);
+  }
+  .yoneyamai-page .animation-record-index { padding-top: 18px; }
+  .yoneyamai-page .lobby { padding-top: 18vh; }
+  .yoneyamai-page .lobby-grid { grid-template-columns: 1fr; gap: 54px; }
+  .yoneyamai-page .plan { max-width: 560px; }
+  .yoneyamai-page .salon {
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 5vw;
+    row-gap: 8vh;
+  }
+  .yoneyamai-page .s1,
+  .yoneyamai-page .s2,
+  .yoneyamai-page .s3,
+  .yoneyamai-page .s4,
+  .yoneyamai-page .s5,
+  .yoneyamai-page .legend {
+    grid-column: auto;
+    grid-row: auto;
+    margin-top: 0;
+  }
+  .yoneyamai-page .s1 { align-self: start; }
+  .yoneyamai-page .s2 { align-self: end; }
+  .yoneyamai-page .s3 { align-self: start; }
+  .yoneyamai-page .s4 { align-self: end; }
+  .yoneyamai-page .s5 {
+    grid-column: 1 / -1;
+    width: 72%;
+    justify-self: center;
+  }
+  .yoneyamai-page .legend { grid-column: 1 / -1; }
+  .yoneyamai-page .sign li a {
+    grid-template-columns: 58px 36px minmax(0, 1fr) 24px;
+    gap: 12px;
+  }
+  .yoneyamai-page .sg-venue { display: none; }
+}
+
+@media (max-width: 640px) {
+  .yoneyamai-bar {
+    top: 60px;
+    height: 40px;
+    padding: 0 16px;
+  }
+  .yoneyamai-bar-name { display: none; }
+  .yoneyamai-bar-rooms {
+    font-size: 16px;
+    margin-left: auto;
+  }
+  .yoneyamai-bar-rooms a {
+    padding: 4px 6px;
+  }
+  .yoneyamai-page .room-screening {
+    padding: 14vh 16px 20vh;
+    gap: 20px;
+  }
+  .yoneyamai-page .screening-intro { grid-template-columns: 1fr; gap: 12px; }
+  .yoneyamai-page .screening-intro p { font-size: 12px; }
+  .yoneyamai-page .animation-archive-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .yoneyamai-page .animation-source-note {
+    text-align: left;
+    font-size: 10px;
+  }
+  .yoneyamai-page .animation-preview { aspect-ratio: 4 / 3; }
+  .yoneyamai-page .animation-record { padding: 20px 16px; }
+  .yoneyamai-page .animation-record h3 { font-size: 2rem; }
+  .yoneyamai-page .animation-filter { gap: 4px; }
+  .yoneyamai-page .animation-filter button {
+    padding: 7px 8px;
+    font-size: 7px;
+    letter-spacing: .08em;
+  }
+  .yoneyamai-page .animation-filter > span { font-size: 7px; }
+  .yoneyamai-page .animation-catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 9px;
+  }
+  .yoneyamai-page .animation-item-title { font-size: 10px; }
+  .yoneyamai-page .animation-item-credit { font-size: 8px; }
+  .yoneyamai-page .animation-item-credit-source {
+    max-width: calc(100% - 38px);
+    font-size: 6px;
+  }
+  .yoneyamai-page .additional-animation-list { grid-template-columns: 1fr; }
+  .yoneyamai-page .additional-animation-credits summary { font-size: 8px; }
+  .yoneyamai-page .lobby { padding-bottom: 7vh; }
+  .yoneyamai-page .plan { grid-template-rows: repeat(2, 68px); }
+  .yoneyamai-page .plan-room { padding: 7px 8px; font-size: 10px; }
+  .yoneyamai-page .plan-room b { font-size: 20px; }
+  .yoneyamai-page .side-title { display: none; }
+  .yoneyamai-page .room-flare { padding-inline: 4vw; }
+  .yoneyamai-page .label--wall { margin-right: 0; }
+  .yoneyamai-page .corner-numeral { font-size: 7rem; }
+  .yoneyamai-page .room-gallery { --wh: clamp(210px, 40vh, 340px); }
+  .yoneyamai-page .long-wall { padding-left: 8vw; gap: 60px; }
+  .yoneyamai-page .bench { width: 190px; }
+  .yoneyamai-page .seats i { width: 84px; height: 48px; }
+  .yoneyamai-page .seats { gap: 24px; }
+  .yoneyamai-page .label--line { flex-direction: column; gap: 0; }
+  .yoneyamai-page .vinyl-head { left: 6vw; }
+  .yoneyamai-page .room-chronology { padding-inline: 6vw; }
+  .yoneyamai-page .sign-head { font-size: 1.2rem; }
+  .yoneyamai-page .panel-body { grid-template-columns: 96px 1fr; gap: 18px; }
+  .viewer-stage { padding: 64px 0 150px; }
+  .viewer-frame { width: min(94vw, calc((100dvh - 250px) * var(--ar))); }
+  .viewer-foot { flex-direction: column; align-items: flex-start; }
+  .viewer-actions { width: 100%; }
+  .viewer-actions a { margin-right: auto; }
+}
+
+/* ================================================================== */
+/*  Reduced motion + print                                            */
+/* ================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .yoneyamai-page [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .yoneyamai-bar,
+  .yoneyamai-page .loop-btn,
+  .yoneyamai-page .floor-note button {
+    display: none !important;
+  }
+  .yoneyamai-page [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

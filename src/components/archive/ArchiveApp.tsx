@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Nav } from "./Nav";
 import { Hero } from "./Hero";
 import { Gallery, type ArchiveFilter } from "./Gallery";
 import { Featured } from "./Featured";
@@ -9,9 +8,20 @@ import { Timeline } from "./Timeline";
 import { About } from "./About";
 import { Footer } from "./Footer";
 import { Marquee } from "./ui";
-import { Splash, ScrollProgress, BackToTop } from "./Chrome";
-import { currentArtist, type ArtistPage } from "./ArtistSwitcher";
+import { Splash, BackToTop } from "./Chrome";
+import { ArtistSwitcher, currentArtist, type ArtistPage } from "./ArtistSwitcher";
 import { RellaPage } from "./RellaPage";
+import { TamimoonPage } from "./tamimoon/TamimoonPage";
+import { YoneyamaiPage } from "./yoneyamai/YoneyamaiPage";
+import { MikaPikazoPage } from "./mikapikazo/MikaPikazoPage";
+import { DinoillusPage } from "./dinoillus/DinoillusPage";
+import { LamPage } from "./lam/LamPage";
+import { DolmanPage } from "./dolman/DolmanPage";
+import { TatamipiPage } from "./tatamipi/TatamipiPage";
+import { AskziyePage } from "./askziye/AskziyePage";
+import { DoraPage } from "./dora/DoraPage";
+import { KaduisePage } from "./kaduise/KaduisePage";
+import { KdaPage } from "./kda/KdaPage";
 import { artworks } from "@/data";
 import "./archive.css";
 
@@ -44,9 +54,44 @@ export function ArchiveApp({ initialArtist = "sankobite" }: { initialArtist?: Ar
   }, [syncFromUrl]);
 
   useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-archive-artist", artist);
+      document.body.setAttribute("data-archive-artist", artist);
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.documentElement.removeAttribute("data-archive-artist");
+        document.body.removeAttribute("data-archive-artist");
+      }
+    };
+  }, [artist]);
+
+  useEffect(() => {
     document.title =
       artist === "rella"
         ? "Rella | The Artist Archive • studioNeo"
+        : artist === "tamimoon"
+        ? "tamimoon — illustrator (@tami_moon02) • studioNeo"
+        : artist === "yoneyamai"
+        ? "Yoneyama Mai 米山舞 — Museum Archive • studioNeo"
+        : artist === "mikapikazo"
+        ? "Mika Pikazo ミカ・ピカゾ — Illustration Works • studioNeo"
+        : artist === "dinoillus"
+        ? "DINO — @Dino_illus · where light ends • studioNeo"
+        : artist === "lam"
+        ? "LAM | Illustrator & Character Designer • studioNeo"
+        : artist === "dolman"
+        ? "Dolman — A little world of daydreams • studioNeo"
+        : artist === "tatamipi"
+        ? "tatamipi — Illustrator Portfolio • studioNeo"
+        : artist === "askziye"
+        ? "ASK｜偶尔画画的猫爱好者 · Illustrator @askziye • studioNeo"
+        : artist === "dora"
+        ? "哆啦小熙 · Dora’s Studio • studioNeo"
+        : artist === "kaduise"
+        ? "kaduise — everything for the sake of a girl • studioNeo"
+        : artist === "kda"
+        ? "K/DA | FIRESTARTER — Virtual Band • studioNeo"
         : "sankobite | ugoira tribute archive さんこばいと";
   }, [artist]);
 
@@ -70,17 +115,59 @@ export function ArchiveApp({ initialArtist = "sankobite" }: { initialArtist?: Ar
     return <RellaPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
   }
 
+  if (artist === "tamimoon") {
+    return <TamimoonPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
+  }
+
+  if (artist === "yoneyamai") {
+    return <YoneyamaiPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
+  }
+
+  if (artist === "mikapikazo") {
+    return <MikaPikazoPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
+  }
+
+  if (artist === "dinoillus") {
+    return <DinoillusPage />;
+  }
+
+  if (artist === "lam") {
+    return <LamPage />;
+  }
+
+  if (artist === "dolman") {
+    return <DolmanPage />;
+  }
+
+  if (artist === "tatamipi") {
+    return <TatamipiPage />;
+  }
+
+  if (artist === "askziye") {
+    return <AskziyePage />;
+  }
+
+  if (artist === "dora") {
+    return <DoraPage />;
+  }
+
+  if (artist === "kaduise") {
+    return <KaduisePage />;
+  }
+
+  if (artist === "kda") {
+    return <KdaPage />;
+  }
+
   return (
     <div className="sankobite-page min-h-screen">
       <Splash />
-      <ScrollProgress />
       <a
         href="#works"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:bg-ink focus:text-paper focus:px-4 focus:py-2 focus:font-bold focus:border-[3px] focus:border-miku"
       >
         Skip to the artwork
       </a>
-      <Nav onOpenSaved={() => setFilterOverride("saved")} />
       <main id="main-content">
         <Hero onSelectWork={handleSelectWork} />
         <Marquee

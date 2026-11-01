@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Archivo+Black&family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wdth,wght@62..125,100..900&family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
@@ -16,9 +16,50 @@
   --color-sun: #ffd23f;
   --color-coral: #ff7a6b;
 
+  /* tamimoon palette — lifted directly from the paintings */
+  --color-night: #1c1e22;
+  --color-mist: #e7edf0;
+  --color-lav: #c5c6d3;
+  --color-teal: #5ea59d;
+  --color-vermil: #e4472b;
+  --color-pink: #df2f6d;
+  --color-grass: #7db357;
+  --color-indigo: #4b4f93;
+  --color-peri: #b6bddb;
+  --color-peach: #f2d9cd;
+  --color-blush: #e9a899;
+  --color-gold: #c9a24a;
+
+  /* dinoillus palette */
+  --color-ink-950: #0c0a0d;
+  --color-ink-900: #131017;
+  --color-ink-800: #1c1723;
+  --color-ink-700: #2a2433;
+  --color-ink-600: #3a3344;
+  --color-ash-500: #6e6880;
+  --color-ash-400: #8d86a0;
+  --color-ash-300: #aca4bd;
+  --color-bone-50: #f4eee2;
+  --color-bone-100: #ece4d4;
+  --color-bone-300: #cfc5ae;
+  --color-bone-500: #a89a7d;
+  --color-ember-200: #f7dcae;
+  --color-ember-300: #f0c98c;
+  --color-ember-400: #e3ad5e;
+  --color-ember-500: #cf8f3c;
+  --color-ember-600: #a96f2b;
+  --color-dusk-300: #b3a3d1;
+  --color-dusk-400: #8f7cb4;
+  --color-dusk-500: #6f5d96;
+
   --font-display: "Archivo Black", "Zen Kaku Gothic New", sans-serif;
   --font-body: "Zen Kaku Gothic New", sans-serif;
   --font-dot: "DotGothic16", monospace;
+  --font-sans: "Archivo", "Zen Kaku Gothic New", "Hiragino Sans", system-ui, sans-serif;
+  --font-jp: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif;
+
+  --animate-marquee: marquee 60s linear infinite;
+  --animate-ping-slow: ping-slow 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 @layer base {
@@ -87,6 +128,126 @@
   .rella-page a:hover {
     text-decoration: none;
   }
+
+  .tamimoon-page {
+    --color-ink: #111113;
+    --color-paper: #eff1f3;
+    --font-sans: "Archivo", "Zen Kaku Gothic New", "Hiragino Sans", system-ui, sans-serif;
+    font-family: var(--font-sans);
+    background: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .tamimoon-page h1,
+  .tamimoon-page h2,
+  .tamimoon-page h3,
+  .tamimoon-page h4,
+  .tamimoon-page h5,
+  .tamimoon-page h6 {
+    font-family: inherit;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+  }
+
+  .tamimoon-page p {
+    color: inherit;
+    margin: 0;
+  }
+
+  .tamimoon-page a {
+    color: inherit;
+    text-decoration: none;
+    font-weight: inherit;
+  }
+
+  .tamimoon-page a:hover {
+    text-decoration: none;
+  }
+
+  /* Universal Artist Isolation Resets — protects all artist archives from globals.css leakage */
+  .dinoillus-page h1, .dinoillus-page h2, .dinoillus-page h3, .dinoillus-page h4, .dinoillus-page h5, .dinoillus-page h6,
+  .lam-page h1, .lam-page h2, .lam-page h3, .lam-page h4, .lam-page h5, .lam-page h6,
+  .dolman-page h1, .dolman-page h2, .dolman-page h3, .dolman-page h4, .dolman-page h5, .dolman-page h6,
+  .tatamipi-page h1, .tatamipi-page h2, .tatamipi-page h3, .tatamipi-page h4, .tatamipi-page h5, .tatamipi-page h6,
+  .yoneyamai-page h1, .yoneyamai-page h2, .yoneyamai-page h3, .yoneyamai-page h4, .yoneyamai-page h5, .yoneyamai-page h6,
+  .mikapikazo-page h1, .mikapikazo-page h2, .mikapikazo-page h3, .mikapikazo-page h4, .mikapikazo-page h5, .mikapikazo-page h6 {
+    font-family: inherit;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
+  }
+
+  .dinoillus-page p, .lam-page p, .dolman-page p, .tatamipi-page p, .yoneyamai-page p, .mikapikazo-page p {
+    color: inherit;
+    margin: 0;
+  }
+
+  .dinoillus-page a, .lam-page a, .dolman-page a, .tatamipi-page a, .yoneyamai-page a, .mikapikazo-page a {
+    color: inherit;
+    text-decoration: none;
+    font-weight: inherit;
+  }
+
+  .dinoillus-page a:hover, .lam-page a:hover, .dolman-page a:hover, .tatamipi-page a:hover, .yoneyamai-page a:hover, .mikapikazo-page a:hover {
+    text-decoration: none;
+  }
+}
+
+/* Base Body/HTML Artist Theme Synchronization */
+html[data-archive-artist="askziye"], body[data-archive-artist="askziye"] {
+  background-color: #f3ece1 !important;
+  color: #1f1d1a !important;
+}
+html[data-archive-artist="dora"], body[data-archive-artist="dora"] {
+  background-color: #f4f3f7 !important;
+  color: #121017 !important;
+}
+html[data-archive-artist="kaduise"], body[data-archive-artist="kaduise"] {
+  background-color: #efebe1 !important;
+  color: #1a1813 !important;
+}
+html[data-archive-artist="dinoillus"], body[data-archive-artist="dinoillus"] {
+  background-color: #0c0a0d !important;
+  color: #ece4d4 !important;
+}
+html[data-archive-artist="lam"], body[data-archive-artist="lam"] {
+  background-color: #0d0c10 !important;
+  color: #ffffff !important;
+}
+html[data-archive-artist="dolman"], body[data-archive-artist="dolman"] {
+  background-color: #f7f6f0 !important;
+  color: #22251f !important;
+}
+html[data-archive-artist="tatamipi"], body[data-archive-artist="tatamipi"] {
+  background-color: #ffffff !important;
+  color: #161616 !important;
+}
+html[data-archive-artist="mikapikazo"], body[data-archive-artist="mikapikazo"] {
+  background-color: #fffdf6 !important;
+  color: #14101c !important;
+}
+html[data-archive-artist="yoneyamai"], body[data-archive-artist="yoneyamai"] {
+  background-color: #f3f1ec !important;
+  color: #111111 !important;
+}
+html[data-archive-artist="tamimoon"], body[data-archive-artist="tamimoon"] {
+  background-color: #eff1f3 !important;
+  color: #111113 !important;
+}
+html[data-archive-artist="rella"], body[data-archive-artist="rella"] {
+  background-color: #070b14 !important;
+  color: #f3efe6 !important;
+}
+html[data-archive-artist="sankobite"], body[data-archive-artist="sankobite"] {
+  background-color: #f4f8f7 !important;
+  color: #26313f !important;
 }
 
 .sankobite-page ::selection {
@@ -176,12 +337,12 @@
 }
 .pop-in { animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
-.reveal {
+.sankobite-page .reveal {
   opacity: 0;
   transform: translateY(26px);
   transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.reveal.is-visible {
+.sankobite-page .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -190,7 +351,7 @@
   .marquee-track, .marquee-track-rev, .floaty, .spin-slow, .hover-wiggle:hover {
     animation: none;
   }
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .sankobite-page .reveal { opacity: 1; transform: none; transition: none; }
   html { scroll-behavior: auto; }
 }
 

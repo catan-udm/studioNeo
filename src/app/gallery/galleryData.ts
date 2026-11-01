@@ -1,5 +1,6 @@
 import { artworks as sankobiteArtworks } from '@/data';
 import { rellaArtworks } from '@/rellaData';
+import { works as tamimoonArtworks } from '@/tamimoonData';
 
 export interface GalleryWork {
   id: string;
@@ -330,6 +331,27 @@ export function generateGalleryArchive(): GalleryWork[] {
       unlocked: true,
       format: '4K',
       description: r.description,
+    });
+  });
+
+  tamimoonArtworks.forEach((t, idx) => {
+    works.push({
+      id: `tamimoon-${t.id}`,
+      code: `TMM-${String(idx + 1).padStart(2, '0')}`,
+      title: t.title === 'tamimoon' ? `tamimoon · ${t.cast.join(', ').toUpperCase()} (#${t.id})` : t.title,
+      artist: 'tamimoon',
+      artistHandle: 'tamimoon',
+      artistAvatar: 'TM',
+      color: t.tone || '#c5c6d3',
+      svgSrc: t.src,
+      likes: 410 + idx * 19,
+      edition: '2020–2025',
+      price: '$260',
+      category: 'Vectors',
+      isVault: false,
+      unlocked: true,
+      format: '4K',
+      description: `${t.kind} illustration by tamimoon (@tami_moon02) featuring ${t.cast.join(', ')}.`,
     });
   });
 

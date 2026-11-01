@@ -37,6 +37,12 @@ export function Footer() {
                 >
                   Visit Rella Archive →
                 </ArtistLink>
+                <ArtistLink
+                  artist="tamimoon"
+                  className="inline-flex items-center gap-2 bg-paper/10 text-paper font-display uppercase text-xs px-4 py-2.5 border-[3px] border-paper/20 hover:bg-coral hover:text-white transition-colors"
+                >
+                  Visit tamimoon Profile →
+                </ArtistLink>
                 <a
                   href="#top"
                   className="inline-flex items-center gap-2 bg-miku text-ink font-display uppercase text-xs px-4 py-2.5 border-[3px] border-paper/20 hover:bg-sun transition-colors"

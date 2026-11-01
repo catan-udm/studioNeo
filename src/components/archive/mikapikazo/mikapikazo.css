@@ -1,0 +1,479 @@
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap");
+
+/* ========================================================================
+   Mika Pikazo Showcase — Scoped Tokens & Styling
+   Pure Native CSS with Anton & Space Grotesk
+   ======================================================================== */
+
+.mikapikazo-page {
+  --pop: #ff2e7e;
+  --pop2: #eaff00;
+  --pop3: #2b2bff;
+  --on-pop: #14101c;
+  --on-pop2: #14101c;
+  --on-pop3: #fffdf6;
+  --chroma: 1;
+  --mx: 0;
+  --my: 0;
+
+  --color-ink: #14101c;
+  --color-paper: #fffdf6;
+
+  --font-display: "Anton", "Arial Narrow", Impact, sans-serif;
+  --font-body: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-jp: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "Space Grotesk", sans-serif;
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.mikapikazo-page * {
+  box-sizing: border-box;
+}
+
+.mikapikazo-page ::selection {
+  background: var(--pop2);
+  color: var(--on-pop2);
+}
+
+.mikapikazo-page :focus-visible {
+  outline: 3px solid var(--pop3);
+  outline-offset: 3px;
+}
+
+.mikapikazo-page img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ============ typography utilities ============ */
+.mikapikazo-page .font-display {
+  font-family: var(--font-display);
+}
+
+.mikapikazo-page .font-body {
+  font-family: var(--font-body);
+}
+
+.mikapikazo-page .font-jp {
+  font-family: var(--font-jp);
+}
+
+/* ============ color / surface utilities ============ */
+.mikapikazo-page .bg-paper {
+  background-color: var(--color-paper);
+}
+
+.mikapikazo-page .text-paper {
+  color: var(--color-paper);
+}
+
+.mikapikazo-page .border-paper {
+  border-color: var(--color-paper);
+}
+
+.mikapikazo-page .bg-ink {
+  background-color: var(--color-ink);
+}
+
+.mikapikazo-page .text-ink {
+  color: var(--color-ink);
+}
+
+.mikapikazo-page .border-ink {
+  border-color: var(--color-ink);
+}
+
+.mikapikazo-page .bg-pop {
+  background-color: var(--pop);
+}
+
+.mikapikazo-page .text-pop {
+  color: var(--pop);
+}
+
+.mikapikazo-page .border-pop {
+  border-color: var(--pop);
+}
+
+.mikapikazo-page .bg-pop2 {
+  background-color: var(--pop2);
+}
+
+.mikapikazo-page .text-pop2 {
+  color: var(--pop2);
+}
+
+.mikapikazo-page .border-pop2 {
+  border-color: var(--pop2);
+}
+
+.mikapikazo-page .bg-pop3 {
+  background-color: var(--pop3);
+}
+
+.mikapikazo-page .text-pop3 {
+  color: var(--pop3);
+}
+
+.mikapikazo-page .border-pop3 {
+  border-color: var(--pop3);
+}
+
+.mikapikazo-page .text-on-pop {
+  color: var(--on-pop);
+}
+
+.mikapikazo-page .text-on-pop2 {
+  color: var(--on-pop2);
+}
+
+.mikapikazo-page .text-on-pop3 {
+  color: var(--on-pop3);
+}
+
+.mikapikazo-page .bg-pop,
+.mikapikazo-page .bg-pop2,
+.mikapikazo-page .bg-pop3,
+.mikapikazo-page .text-pop,
+.mikapikazo-page .text-pop2,
+.mikapikazo-page .text-pop3 {
+  transition: background-color 420ms ease, color 420ms ease;
+}
+
+/* ============ riso grain overlay ============ */
+.mikapikazo-page.grain::after,
+.mikapikazo-page .grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  animation: mpz-grain-shift 900ms steps(3) infinite;
+}
+
+@keyframes mpz-grain-shift {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-6px, 4px); }
+  66% { transform: translate(5px, -5px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ============ graphic patterns ============ */
+.mikapikazo-page .halftone {
+  background-image: radial-gradient(currentColor 1.6px, transparent 1.9px);
+  background-size: 12px 12px;
+}
+
+.mikapikazo-page .halftone-lg {
+  background-image: radial-gradient(currentColor 3px, transparent 3.4px);
+  background-size: 26px 26px;
+  animation: mpz-drift 24s linear infinite;
+}
+
+.mikapikazo-page .screentone {
+  background-image: radial-gradient(currentColor 1.5px, transparent 1.8px);
+  background-size: 7px 7px;
+  transform: rotate(0deg);
+}
+
+.mikapikazo-page .speedlines {
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    currentColor 0deg 0.7deg,
+    transparent 0.7deg 3.2deg
+  );
+  mask-image: radial-gradient(circle at 50% 50%, transparent 26%, #000 72%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 26%, #000 72%);
+}
+
+.mikapikazo-page .checker {
+  background-image:
+    linear-gradient(45deg, currentColor 25%, transparent 25%, transparent 75%, currentColor 75%),
+    linear-gradient(45deg, currentColor 25%, transparent 25%, transparent 75%, currentColor 75%);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+}
+
+.mikapikazo-page .stripes {
+  background-image: repeating-linear-gradient(45deg, currentColor 0 14px, transparent 14px 30px);
+}
+
+/* ============ saturation control ============ */
+.mikapikazo-page .chroma {
+  filter: saturate(var(--chroma));
+  transition: filter 220ms ease;
+}
+
+/* ============ outline strokes ============ */
+.mikapikazo-page .stroke-ink {
+  -webkit-text-stroke: 3px var(--color-ink);
+  paint-order: stroke fill;
+}
+
+.mikapikazo-page .stroke-paper {
+  -webkit-text-stroke: 3px var(--color-paper);
+  paint-order: stroke fill;
+}
+
+@media (max-width: 640px) {
+  .mikapikazo-page .stroke-ink,
+  .mikapikazo-page .stroke-paper {
+    -webkit-text-stroke-width: 2px;
+  }
+}
+
+.mikapikazo-page .jp-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+/* ============ cut edges ============ */
+.mikapikazo-page .cut-top {
+  clip-path: polygon(0 2.2vw, 100% 0, 100% 100%, 0 100%);
+}
+
+.mikapikazo-page .cut-both {
+  clip-path: polygon(0 2vw, 100% 0, 100% calc(100% - 2vw), 0 100%);
+}
+
+/* ============ masking tape ============ */
+.mikapikazo-page .tape {
+  position: absolute;
+  width: 108px;
+  height: 30px;
+  background: color-mix(in srgb, var(--pop2) 78%, transparent);
+  border-left: 2px dashed rgb(20 16 28 / 0.25);
+  border-right: 2px dashed rgb(20 16 28 / 0.25);
+  box-shadow: 0 2px 0 rgb(20 16 28 / 0.12);
+}
+
+/* ============ interactive dial ============ */
+.mikapikazo-page .dial {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 34px;
+  background: transparent;
+  cursor: grab;
+}
+
+.mikapikazo-page .dial:active {
+  cursor: grabbing;
+}
+
+.mikapikazo-page .dial::-webkit-slider-runnable-track {
+  height: 22px;
+  border: 4px solid var(--color-ink);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pop3) 0 10px,
+    var(--pop) 10px 20px,
+    var(--pop2) 20px 30px
+  );
+}
+
+.mikapikazo-page .dial::-moz-range-track {
+  height: 22px;
+  border: 4px solid var(--color-ink);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pop3) 0 10px,
+    var(--pop) 10px 20px,
+    var(--pop2) 20px 30px
+  );
+}
+
+.mikapikazo-page .dial::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 30px;
+  height: 42px;
+  margin-top: -14px;
+  border: 4px solid var(--color-ink);
+  background: var(--color-paper);
+  box-shadow: 4px 4px 0 var(--color-ink);
+  transition: transform 140ms ease;
+}
+
+.mikapikazo-page .dial::-moz-range-thumb {
+  width: 26px;
+  height: 38px;
+  border: 4px solid var(--color-ink);
+  border-radius: 0;
+  background: var(--color-paper);
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+
+.mikapikazo-page .dial:hover::-webkit-slider-thumb,
+.mikapikazo-page .dial:focus-visible::-webkit-slider-thumb {
+  transform: scaleY(1.12);
+  background: var(--pop2);
+}
+
+/* ============ custom registration cursor ============ */
+.mikapikazo-page .reg-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  mix-blend-mode: difference;
+  color: #fff;
+}
+
+.mikapikazo-page .reg-cursor.on {
+  opacity: 0.9;
+}
+
+.mikapikazo-page .reg-cursor svg {
+  transition: transform 160ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+.mikapikazo-page .reg-cursor.press svg {
+  transform: scale(0.7) rotate(45deg);
+}
+
+/* ============ motion and animations ============ */
+@keyframes mpz-drift {
+  from { background-position: 0 0; }
+  to { background-position: 26px 52px; }
+}
+
+@keyframes mpz-spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes mpz-float-y {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-12px) rotate(-2deg); }
+}
+
+@keyframes mpz-rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mpz-panel-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mpz-pop-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mpz-sfx-in {
+  from { opacity: 0; transform: scale(0.6) rotate(-18deg); }
+  to { opacity: 1; transform: scale(1) rotate(-9deg); }
+}
+
+@keyframes mpz-blink {
+  0%, 45% { opacity: 1; }
+  50%, 100% { opacity: 0.15; }
+}
+
+.mikapikazo-page .spin-slow { animation: mpz-spin-slow 22s linear infinite; }
+.mikapikazo-page .float-slow { animation: mpz-float-y 6s ease-in-out infinite; }
+.mikapikazo-page .blink { animation: mpz-blink 1.4s steps(1) infinite; }
+
+.mikapikazo-page .rise-1,
+.mikapikazo-page .rise-2,
+.mikapikazo-page .rise-3,
+.mikapikazo-page .rise-4 {
+  animation: mpz-rise 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mikapikazo-page .rise-1 { animation-delay: 0.05s; }
+.mikapikazo-page .rise-2 { animation-delay: 0.14s; }
+.mikapikazo-page .rise-3 { animation-delay: 0.24s; }
+.mikapikazo-page .rise-4 { animation-delay: 0.34s; }
+
+.mikapikazo-page .panel-in { animation: mpz-panel-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.mikapikazo-page .pop-in { animation: mpz-pop-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.mikapikazo-page .sfx-in { animation: mpz-sfx-in 0.3s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+
+.mikapikazo-page .par-a {
+  transform: translate3d(calc(var(--mx) * -26px), calc(var(--my) * -18px), 0);
+  transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mikapikazo-page .par-b {
+  transform: translate3d(calc(var(--mx) * 30px), calc(var(--my) * 20px), 0) rotate(12deg);
+  transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mikapikazo-page .par-c {
+  transform: translate3d(calc(var(--mx) * 14px), calc(var(--my) * 12px), 0) rotate(1.5deg);
+}
+
+.mikapikazo-page .reveal,
+.mikapikazo-page [data-reveal] .reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mikapikazo-page [data-reveal].reveal { opacity: 0; }
+
+.mikapikazo-page .revealed,
+.mikapikazo-page .revealed .reveal,
+.mikapikazo-page [data-reveal].revealed.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.mikapikazo-page .snap-track {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pop) transparent;
+}
+
+.mikapikazo-page .snap-track::-webkit-scrollbar { height: 8px; }
+.mikapikazo-page .snap-track::-webkit-scrollbar-track { background: rgb(255 253 246 / 0.14); }
+.mikapikazo-page .snap-track::-webkit-scrollbar-thumb { background: var(--pop); }
+
+/* ============ sticker wall ============ */
+.mikapikazo-page .sticker {
+  position: absolute;
+  touch-action: none;
+  cursor: grab;
+  transition: filter 180ms ease;
+  will-change: transform;
+}
+
+.mikapikazo-page .sticker:active { cursor: grabbing; }
+.mikapikazo-page .sticker.dragging { filter: drop-shadow(10px 12px 0 rgb(20 16 28 / 0.35)); }
+
+/* ============ reduced motion ============ */
+@media (prefers-reduced-motion: reduce) {
+  .mikapikazo-page { scroll-behavior: auto; }
+  .mikapikazo-page *,
+  .mikapikazo-page *::before,
+  .mikapikazo-page *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .mikapikazo-page.grain::after,
+  .mikapikazo-page .grain::after { animation: none; }
+  .mikapikazo-page .reveal,
+  .mikapikazo-page [data-reveal] .reveal,
+  .mikapikazo-page [data-reveal].reveal { opacity: 1; transform: none; }
+  .mikapikazo-page .reg-cursor { display: none; }
+}
