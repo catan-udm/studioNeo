@@ -210,7 +210,6 @@ main#main-content {
   font-size: 0.84rem;
   font-weight: 500;
   letter-spacing: -0.01em;
-  line-height: 1;
   user-select: none;
   white-space: nowrap;
   text-decoration: none;
@@ -626,7 +625,7 @@ main#main-content {
   }
 
   .studio-nav-header.is-scrolled .bubble-island::before,
-  .nav-burger-popover.is-open::before {
+  .nav-burger-popover::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -650,8 +649,49 @@ main#main-content {
     filter: url(#liquid-glass-burger) saturate(165%) contrast(104%) brightness(103%);
   }
 
-  .nav-burger-popover.is-open::before {
+  .nav-burger-popover::before {
     filter: url(#liquid-glass-popover) saturate(165%) contrast(104%) brightness(103%);
+  }
+
+  /*
+   * Chromium paints the island tint and inset rim light above the refracted
+   * backdrop. In Firefox the refracted layer is a child, so it would cover the
+   * island's own background and inset shadows. Re-paint them on ::after, above
+   * the lens, so Firefox and Chrome render identical glass.
+   */
+  .studio-nav-header.is-scrolled .bubble-island::after,
+  .nav-burger-popover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: inherit;
+    box-shadow:
+      inset 0 1px 1px 0 rgb(255 255 255 / 92%),
+      inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%);
+  }
+
+  @media (max-width: 860px) {
+    .studio-nav-header.is-scrolled .bubble-island::after {
+      box-shadow: inset 0 1px 1px rgb(255 255 255 / 72%);
+    }
+  }
+
+  :root[data-theme="dark"] .studio-nav-header.is-scrolled .bubble-island::after,
+  :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .bubble-island::after {
+    box-shadow:
+      inset 0 1px 0.5px rgb(255 255 255 / 40%),
+      inset 0 -1px 1px rgb(0 0 0 / 40%),
+      inset 0 0 12px rgb(255 255 255 / 8%);
+  }
+
+  :root[data-theme="dark"] .nav-burger-popover::after,
+  :root[data-resolved-theme="dark"] .nav-burger-popover::after {
+    box-shadow:
+      inset 0 1.25px 1px rgb(255 255 255 / 38%),
+      inset 0 -1.25px 1.25px rgb(255 255 255 / 14%);
   }
 }
 
