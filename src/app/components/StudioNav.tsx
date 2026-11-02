@@ -1241,10 +1241,10 @@ export default function StudioNav() {
           <div className="studio-nav-right" ref={menuRef}>
             {/* Static Action Buttons (slide horizontally into view on static header) */}
             <div
-              className={`nav-static-actions${menuOpen && !scrolled ? ' is-open' : ''}`}
+              className={`nav-static-actions${menuOpen && !scrolled && !isArtistRoute ? ' is-open' : ''}`}
               role="menu"
               aria-label="Quick Actions"
-              aria-hidden={!menuOpen || scrolled}
+              aria-hidden={!menuOpen || scrolled || isArtistRoute}
             >
               <div
                 className="burger-menu-section burger-menu-horizontal"
@@ -1416,9 +1416,9 @@ export default function StudioNav() {
 
               {/* Scrolled Floating Dynamic Island Popover */}
               <div
-                className={`nav-burger-popover${menuOpen && scrolled ? ' is-open' : ''}`}
+                className={`nav-burger-popover${menuOpen && (scrolled || isArtistRoute) ? ' is-open' : ''}`}
                 id="studio-menu"
-                aria-hidden={!menuOpen || !scrolled}
+                aria-hidden={!menuOpen || (!scrolled && !isArtistRoute)}
                 ref={popoverRef}
               >
                 <div className="popover-quick-actions">
