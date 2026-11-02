@@ -653,6 +653,7 @@ export default function StudioNav() {
   const burgerRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
+  const scrollableHeightRef = useRef<number>(0);
 
   // Only individual artist profile routes (/artist/[handle]) activate the hero glass variant;
   // the main /artist directory page retains standard docked header behavior.
@@ -965,6 +966,14 @@ export default function StudioNav() {
   // Sync scroll position, progress fill, and dynamic backdrop tone
   useEffect(() => {
     let ticking = false;
+
+    const recalcScrollable = () => {
+      scrollableHeightRef.current = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+    };
+
     const updatePosition = () => {
       if (ticking) return;
       ticking = true;
@@ -974,8 +983,7 @@ export default function StudioNav() {
         const isPastThreshold = y > 20;
         setScrolled((prev) => (prev !== isPastThreshold ? isPastThreshold : prev));
 
-        const scrollable =
-          document.documentElement.scrollHeight - window.innerHeight;
+        const scrollable = scrollableHeightRef.current;
         const p = scrollable > 0 ? Math.min(y / scrollable, 1) : 0;
         if (progressFillRef.current) {
           progressFillRef.current.style.transform = `scaleX(${p})`;
@@ -983,12 +991,38 @@ export default function StudioNav() {
         }
       });
     };
+
+    recalcScrollable();
     updatePosition();
+
+    const rafRecalc = requestAnimationFrame(recalcScrollable);
+    const timerRecalc = setTimeout(recalcScrollable, 150);
+
+    const ro =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            recalcScrollable();
+            updatePosition();
+          })
+        : null;
+
+    if (ro && document.body) {
+      ro.observe(document.body);
+    }
+
+    const handleResize = () => {
+      recalcScrollable();
+      updatePosition();
+    };
+
     window.addEventListener('scroll', updatePosition, { passive: true });
-    window.addEventListener('resize', updatePosition);
+    window.addEventListener('resize', handleResize);
     return () => {
+      cancelAnimationFrame(rafRecalc);
+      clearTimeout(timerRecalc);
+      ro?.disconnect();
       window.removeEventListener('scroll', updatePosition);
-      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('resize', handleResize);
     };
   }, [pathname]);
 
