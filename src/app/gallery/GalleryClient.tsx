@@ -148,7 +148,7 @@ export default function GalleryClient() {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [burstHeartId, setBurstHeartId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isSubscriber, setIsSubscriber] = useState<boolean>(false);
+  const [isFeaturedAuthorized, setIsFeaturedAuthorized] = useState<boolean>(false);
   const [modalPreviewMode, setModalPreviewMode] = useState<'canvas' | 'kinetic'>('canvas');
   const [dynamicCels, setDynamicCels] = useState<GalleryWork[]>([]);
 
@@ -180,7 +180,7 @@ export default function GalleryClient() {
             tier.startsWith('artist') ||
             tier.startsWith('illustrator')
           ) {
-            setIsSubscriber(true);
+            setIsFeaturedAuthorized(true);
           }
         }
       }).catch(() => {});
@@ -382,8 +382,8 @@ export default function GalleryClient() {
     (work: GalleryWork, format: 'svg' | 'png' | 'jpg' | 'gif', e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
 
-      if ((work.isVault || format === 'svg' || format === 'gif') && !isSubscriber) {
-        showToast(`Subscriber Vault: Active tier (studio-alpha, studio-atelier, enterprise) required to unlock master ${format.toUpperCase()} for #${work.code}.`);
+      if ((work.isVault || format === 'svg' || format === 'gif') && !isFeaturedAuthorized) {
+        showToast(`Artist Rights Reserved: studioNeo does not distribute illustrator works unless specified as a 'Featured' artist.`);
         return;
       }
 
@@ -481,7 +481,7 @@ export default function GalleryClient() {
         img.src = url;
       }
     },
-    [isSubscriber, showToast]
+    [isFeaturedAuthorized, showToast]
   );
 
   // Handle Download Click (default to SVG vector master)
@@ -532,13 +532,13 @@ export default function GalleryClient() {
         </div>
       )}
 
-      {/* 1. Guest Preview / Mode Notification Bar */}
+      {/* 1. Curatorial Notice Bar */}
       <section className="gallery-notice-bar" aria-label="Archive notification">
         <div className="gallery-notice-inner">
           <div className="gallery-notice-text">
-            <span className="gallery-notice-icon">🔓</span>
+            <span className="gallery-notice-icon">✦</span>
             <span>
-              Guest Preview: Viewing public stream items. Subscribe to unlock full vector masters, SVG stems, and subscriber vaults.
+              Curatorial Exhibition: Individual artists reserve all rights over their works. studioNeo does not distribute illustrator works unless specified as a &apos;Featured&apos; artist.
             </span>
           </div>
           <div className="gallery-notice-actions">
@@ -549,12 +549,9 @@ export default function GalleryClient() {
               <span className="notice-btn-desktop-text">Saved Collection {savedWorkIds.size > 0 ? `(${savedWorkIds.size})` : ''}</span>
               <span className="notice-btn-mobile-text">Saved {savedWorkIds.size > 0 ? `(${savedWorkIds.size})` : ''}</span>
             </Link>
-            <Link href="/membership" className="btn-pill-primary btn-pill-sm" title="Subscribe to Bikko Studio" aria-label="Subscribe">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              <span className="notice-btn-desktop-text">Subscribe — $12/mo</span>
-              <span className="notice-btn-mobile-text">$12/mo</span>
+            <Link href="/licensing" className="btn-pill-secondary btn-pill-sm" title="Content Rights Policy" aria-label="Content Rights Policy">
+              <span className="notice-btn-desktop-text">Content Rights</span>
+              <span className="notice-btn-mobile-text">Rights</span>
             </Link>
             <Link href="/login" className="btn-pill-secondary btn-pill-sm" title="Sign In" aria-label="Sign In">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -579,7 +576,7 @@ export default function GalleryClient() {
             <span className="gallery-heading-count">(128 works)</span>
           </h1>
           <p className="gallery-description">
-            Algorithmic media studies and curated digital cels across the studioNeo collective. Non-subscriber preview displaying unlocked public works.
+            Algorithmic media studies and curated digital cels across the studioNeo collective. Displayed for cultural tribute and educational study.
           </p>
         </div>
 
@@ -826,14 +823,14 @@ export default function GalleryClient() {
                       </div>
                     )}
 
-                    {/* Subscriber Vault Locked Overlay */}
+                    {/* Curatorial Study Overlay */}
                     {work.isVault && (
                       <div className="vault-overlay-content">
                         <div className="vault-lock-badge">
                           <span className="vault-lock-icon">🔒</span>
-                          <span className="vault-label">SUBSCRIBER VAULT</span>
+                          <span className="vault-label">CURATORIAL STUDY</span>
                         </div>
-                        <span className="vault-status">Members Only Cel</span>
+                        <span className="vault-status">Artist Rights Reserved</span>
                       </div>
                     )}
 
@@ -1035,11 +1032,8 @@ export default function GalleryClient() {
           </div>
 
           <div className="unlock-actions-row">
-            <Link href="/membership" className="btn-pill-primary btn-pill-lg">
-              Become a Subscriber ($12/month)
-            </Link>
             <Link href="/login" className="btn-pill-secondary btn-pill-lg">
-              Already a subscriber? Sign in
+              Sign in with passkey
             </Link>
           </div>
         </section>
@@ -1060,8 +1054,7 @@ export default function GalleryClient() {
             <Link href="/gallery" className="footer-link">Archive Index</Link>
             <Link href="/collection" className="footer-link">Saved Collection</Link>
             <Link href="/about" className="footer-link">Curatorial Statement</Link>
-            <Link href="/licensing" className="footer-link">Licensing &amp; Rights</Link>
-            <Link href="/membership" className="footer-link">Membership Tiers</Link>
+            <Link href="/licensing" className="footer-link">Content Rights</Link>
             <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
             <Link href="/terms" className="footer-link">Terms of Service</Link>
             <Link href="/privacy" className="footer-link">Privacy Policy</Link>
@@ -1070,7 +1063,7 @@ export default function GalleryClient() {
 
           <div className="footer-bottom-copy">
             <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-            <span>bikko.studio visual engineering</span>
+            <span>studioNeo visual engineering</span>
           </div>
         </footer>
       </section>
@@ -1196,8 +1189,8 @@ export default function GalleryClient() {
                 {activeWork.isVault && (
                   <div className="vault-overlay-content">
                     <span className="vault-lock-icon" style={{ fontSize: '32px' }}>🔒</span>
-                    <span className="vault-label" style={{ fontSize: '13px' }}>SUBSCRIBER VAULT</span>
-                    <span className="vault-status">Members Only</span>
+                    <span className="vault-label" style={{ fontSize: '13px' }}>CURATORIAL STUDY</span>
+                    <span className="vault-status">Artist Rights Reserved</span>
                   </div>
                 )}
               </div>
@@ -1309,11 +1302,7 @@ export default function GalleryClient() {
                 </div>
 
                 <div className="modal-actions-row">
-                    {activeWork.isVault ? (
-                      <Link href="/membership" className="btn-pill-primary">
-                        Subscribe to Unlock ($12/mo)
-                      </Link>
-                    ) : (
+                  {!activeWork.isVault && (
                     <button
                       type="button"
                       className="btn-pill-primary"

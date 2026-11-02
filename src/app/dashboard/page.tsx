@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import DashboardClient from './DashboardClient';
 
 export const metadata: Metadata = {
-  title: 'Subscriber Dashboard • bikko.studio',
-  description: 'Manage biometric passkeys, account security, and unlocked digital perks.',
+  title: 'Account & Passkey Settings • studioNeo',
+  description: 'Manage biometric passkeys, cryptographic account security, and saved studio preferences.',
   robots: {
     index: false,
     follow: false,

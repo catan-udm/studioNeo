@@ -108,7 +108,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
       if (noticeParam === 'LoggedOut') {
         setInfoMsg('You have been signed out safely.');
       } else if (noticeParam === 'PleaseSignIn') {
-        setInfoMsg('Please sign in to access your subscriber dashboard.');
+        setInfoMsg('Please sign in to access your account dashboard.');
       }
 
       if (stepParam === 'otp') {
@@ -392,7 +392,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                 {step === 'email' &&
                   (mode === 'login'
                     ? 'Sign in to your account to continue.'
-                    : 'Sign up as a subscriber with passwordless email or social SSO.')}
+                    : 'Create an account for biometric passkey authentication and saved bookmarks.')}
                 {step === 'otp' && `We sent a 6-digit code to ${email}`}
                 {step === '2fa' && 'Enter your authenticator app code or backup code.'}
               </p>
@@ -838,7 +838,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
             <div className="terms-header">
               <div>
                 <h2 id="terms-modal-title">Terms &amp; Privacy Notice</h2>
-                <p>Subscriber agreements and privacy policy for Bikko Studio</p>
+                <p>Terms of Service and privacy policy for studioNeo</p>
               </div>
               <button
                 type="button"
@@ -854,24 +854,26 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
               <section className="terms-section">
                 <h3>1. Terms of Service</h3>
                 <p>
-                  Welcome to Bikko Studio. By registering a subscriber account, you agree to comply with
+                  Welcome to studioNeo. By registering an account, you agree to comply with
                   these Terms of Service:
                 </p>
                 <ul>
                   <li>
-                    <strong>Subscriber Access:</strong> Registration grants you personalized, passwordless
-                    access to exclusive project downloads, digital assets, and perks.
+                    <strong>Account Access:</strong> Registration grants you personalized, passwordless
+                    WebAuthn identity, device theme synchronization, and saved curatorial bookmarks.
                   </li>
                   <li>
                     <strong>Account Integrity:</strong> You are responsible for safeguarding your email inbox,
                     FIDO2 passkey hardware, and biometric credentials used for authentication.
                   </li>
                   <li>
-                    <strong>Digital Asset Licensing:</strong> All unlocked digital perk assets are provided under
-                    a revocable, non-exclusive license for subscriber use and may not be resold or re-hosted.
+                    <strong>Artist Rights &amp; Distribution Policy:</strong> Each individual artist reserves the
+                    right on how their content is used. studioNeo does not have the right to distribute illustrator
+                    works unless specified as a &apos;Featured&apos; artist. Accounts are provided solely for personal
+                    bookmarks and passwordless authentication.
                   </li>
                   <li>
-                    <strong>Service Availability:</strong> We strive for continuous availability but reserves the
+                    <strong>Service Availability:</strong> We strive for continuous availability but reserve the
                     right to modify or discontinue features with appropriate notice.
                   </li>
                 </ul>
@@ -896,7 +898,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                     information to third-party ad networks or brokers.
                   </li>
                   <li>
-                    <strong>Subscriber Control:</strong> You have the right to review your data, unlink external
+                    <strong>User Control:</strong> You have the right to review your data, unlink external
                     OAuth providers (Google, Microsoft), and delete registered passkeys at any time.
                   </li>
                 </ul>

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import SettingsClient from './SettingsClient';
 
 export const metadata: Metadata = {
-  title: 'Studio Settings • bikko.studio',
+  title: 'Studio Settings • studioNeo',
   description:
     'Configure real-time appearance themes, typography scaling, fluid kinetic dynamics, and local cache preferences.',
   robots: {

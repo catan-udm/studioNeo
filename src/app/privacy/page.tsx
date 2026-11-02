@@ -4,24 +4,24 @@ import Link from 'next/link';
 import './privacy.css';
 
 export const metadata: Metadata = {
-  title: 'Privacy & Cryptographic Policy • bikko.studio',
+  title: 'Privacy & Cryptographic Policy • studioNeo',
   description:
     'Zero-knowledge biometric passkeys, minimal telemetry, and cryptographic data protection principles at studioNeo.',
   alternates: {
-    canonical: 'https://bikko.studio/privacy',
+    canonical: 'https://studioneo.tech/privacy',
   },
   openGraph: {
-    title: 'Privacy Policy • bikko.studio',
+    title: 'Privacy Policy • studioNeo',
     description:
       'Zero-knowledge biometric passkeys, minimal telemetry, and cryptographic data protection principles at studioNeo.',
-    url: 'https://bikko.studio/privacy',
+    url: 'https://studioneo.tech/privacy',
     type: 'website',
     locale: 'en_US',
-    siteName: 'bikko.studio',
+    siteName: 'studioNeo',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Privacy Policy • bikko.studio',
+    title: 'Privacy Policy • studioNeo',
     description:
       'Zero-knowledge biometric passkeys, minimal telemetry, and cryptographic data protection principles at studioNeo.',
   },
@@ -32,31 +32,31 @@ const privacyStructuredData = {
   '@graph': [
     {
       '@type': 'WebPage',
-      '@id': 'https://bikko.studio/privacy/#webpage',
-      url: 'https://bikko.studio/privacy',
-      name: 'Privacy Policy • bikko.studio',
+      '@id': 'https://studioneo.tech/privacy/#webpage',
+      url: 'https://studioneo.tech/privacy',
+      name: 'Privacy Policy • studioNeo',
       description:
         'Zero-knowledge biometric passkeys, minimal telemetry, and cryptographic data protection principles at studioNeo.',
       inLanguage: 'en-US',
       isPartOf: {
-        '@id': 'https://bikko.studio/#website',
+        '@id': 'https://studioneo.tech/#website',
       },
     },
     {
       '@type': 'BreadcrumbList',
-      '@id': 'https://bikko.studio/privacy/#breadcrumb',
+      '@id': 'https://studioneo.tech/privacy/#breadcrumb',
       itemListElement: [
         {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://bikko.studio',
+          item: 'https://studioneo.tech',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Privacy Policy',
-          item: 'https://bikko.studio/privacy',
+          item: 'https://studioneo.tech/privacy',
         },
       ],
     },
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
           </h1>
           <p className="privacy-lead">
             Our architectural pledge: zero tracking cookies, zero stored biometric indicators,
-            and complete mathematical transparency across every subscriber interaction.
+            and complete mathematical transparency across every user interaction.
           </p>
           <div className="privacy-meta-badge">
             <span>SECURED BY FIDO2 / WEBAUTHN</span>
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
                 <h2 className="privacy-section-title">Zero-Knowledge Biometric Identity</h2>
               </div>
               <p>
-                bikko.studio was built from day one to reject vulnerable password databases. When you authenticate using Touch ID,
+                studioNeo was built from day one to reject vulnerable password databases. When you authenticate using Touch ID,
                 Face ID, Windows Hello, or a YubiKey, your biometric information is processed exclusively within your device&rsquo;s
                 hardware Secure Enclave or Trusted Execution Environment.
               </p>
@@ -142,8 +142,8 @@ export default function PrivacyPage() {
                   to clear your collection at any moment.
                 </li>
                 <li>
-                  <strong>Session Tokens:</strong> Active subscriber sessions use encrypted, HTTP-only, SameSite=Strict cookies
-                  solely for verifying membership and download entitlement.
+                  <strong>Session Tokens:</strong> Active user sessions use encrypted, HTTP-only, SameSite=Strict cookies
+                  solely for verifying cryptographic identity and session state.
                 </li>
               </ul>
             </div>
@@ -152,15 +152,15 @@ export default function PrivacyPage() {
             <div className="privacy-article-section">
               <div className="privacy-section-header">
                 <span className="privacy-section-num">03</span>
-                <h2 className="privacy-section-title">Subscriber Information Collected</h2>
+                <h2 className="privacy-section-title">Account Information Collected</h2>
               </div>
               <p>
-                When subscribing to archive tiers or registering a collector profile, we collect only the minimal data points
-                essential to fulfill digital asset delivery:
+                When registering a cryptographic identity account, we collect only the minimal data points
+                essential for authentication:
               </p>
               <ul>
                 <li>
-                  <strong>Verified Email Address:</strong> Used for transactional notifications, billing receipts, and account
+                  <strong>Verified Email Address:</strong> Used for transactional security notifications and account
                   recovery challenges.
                 </li>
                 <li>
@@ -185,15 +185,15 @@ export default function PrivacyPage() {
               </p>
               <ul>
                 <li>
-                  <strong>Right to Erasure (Forget Me):</strong> You can delete your subscriber profile and detach all registered
+                  <strong>Right to Erasure (Forget Me):</strong> You can delete your user profile and detach all registered
                   passkeys instantly through your Dashboard or by submitting a curatorial request.
                 </li>
                 <li>
                   <strong>Right to Export:</strong> You can download a complete JSON manifest of your account records, linked
-                  credentials, and acquired cel hashes at any time.
+                  credentials, and saved collection hashes at any time.
                 </li>
                 <li>
-                  <strong>No Data Brokerage:</strong> We never sell, rent, or monetize collector or subscriber information to
+                  <strong>No Data Brokerage:</strong> We never sell, rent, or monetize visitor or user information to
                   external brokers or advertising networks.
                 </li>
               </ul>
@@ -207,7 +207,7 @@ export default function PrivacyPage() {
               </div>
               <p>
                 For privacy disclosures, vulnerability reports, or data deletion confirmations, reach our security desk directly at{' '}
-                <Link href="/contact" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>contact@bikko.studio</Link>.
+                <Link href="/contact" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>curator@studioneo.tech</Link>.
               </p>
             </div>
           </article>
@@ -219,8 +219,7 @@ export default function PrivacyPage() {
             <Link href="/gallery" className="footer-link">Archive Index</Link>
             <Link href="/collection" className="footer-link">Saved Collection</Link>
             <Link href="/about" className="footer-link">Curatorial Statement</Link>
-            <Link href="/licensing" className="footer-link">Licensing &amp; Rights</Link>
-            <Link href="/membership" className="footer-link">Membership Tiers</Link>
+            <Link href="/licensing" className="footer-link">Content Rights</Link>
             <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
             <Link href="/terms" className="footer-link">Terms of Service</Link>
             <Link href="/privacy" className="footer-link">Privacy Policy</Link>
@@ -228,7 +227,7 @@ export default function PrivacyPage() {
           </div>
           <div className="footer-bottom-copy">
             <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-            <span>bikko.studio visual engineering</span>
+            <span>studioNeo visual engineering</span>
           </div>
         </footer>
       </main>

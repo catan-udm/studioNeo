@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 
 /**
  * ServiceWorkerRegister
- * Seamlessly registers the bikko.studio Service Worker on the visitor's local device
+ * Seamlessly registers the studioNeo Service Worker on the visitor's local device
  * upon window load. This guarantees that on first visit, core brand identity,
  * media elements, icons, and static chunks are cached locally without competing
  * with critical path LCP (Largest Contentful Paint) resources.

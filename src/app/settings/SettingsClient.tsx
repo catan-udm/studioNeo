@@ -42,7 +42,7 @@ export default function SettingsClient() {
         .then((data) => {
           if (data?.authenticated) {
             setIsAuthenticated(true);
-            setUserEmail(data.subscriber?.email || 'Subscriber');
+            setUserEmail(data.subscriber?.email || 'User');
           }
         })
         .catch(() => {});
@@ -420,7 +420,7 @@ export default function SettingsClient() {
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {isAuthenticated ? (
               <Link href="/dashboard" className="btn-pill-primary">
-                Open Subscriber Dashboard &rarr;
+                Open Account Dashboard &rarr;
               </Link>
             ) : (
               <>

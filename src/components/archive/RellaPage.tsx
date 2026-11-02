@@ -59,7 +59,7 @@ function RellaHeader() {
           <a href="#rella-work">Selected work</a>
           <a href="#rella-about">About Rella</a>
           <Link href="/gallery">Atelier Gallery</Link>
-          <Link href="/membership">Membership</Link>
+          <Link href="/licensing">Content Rights</Link>
           <Link href="/contact">Contact</Link>
           <Link href={authenticated ? "/dashboard" : "/login"}>
             {authenticated ? "Dashboard" : "Sign In"}
@@ -90,7 +90,7 @@ function RellaHeader() {
           <Link href="/projects" onClick={() => setMenuOpen(false)}>Projects &amp; Cuts <ArrowRight size={15} /></Link>
           <Link href="/studio/upload" onClick={() => setMenuOpen(false)}>Creator Studio <ArrowRight size={15} /></Link>
           <Link href="/collection" onClick={() => setMenuOpen(false)}>Saved Vault <ArrowRight size={15} /></Link>
-          <Link href="/membership" onClick={() => setMenuOpen(false)}>Membership <ArrowRight size={15} /></Link>
+          <Link href="/licensing" onClick={() => setMenuOpen(false)}>Content Rights <ArrowRight size={15} /></Link>
           <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact <ArrowRight size={15} /></Link>
           <Link href={authenticated ? "/dashboard" : "/login"} onClick={() => setMenuOpen(false)}>
             {authenticated ? "Dashboard" : "Sign In / Passkey"} <ArrowRight size={15} />

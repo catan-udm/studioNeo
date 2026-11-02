@@ -128,7 +128,7 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ');
 
-  const title = `${artistName} (@${cleanHandle}) • Resident Artist Portfolio • bikko.studio`;
+  const title = `${artistName} (@${cleanHandle}) • Resident Artist Portfolio • studioNeo`;
   const description = resident
     ? resident.bio
     : `Curated digital cels, lossless SVG vector stems, and kinetic algorithmic editions by ${artistName} at studioNeo.`;
@@ -137,15 +137,15 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
     title,
     description,
     alternates: {
-      canonical: `https://bikko.studio/artist/${cleanHandle}`,
+      canonical: `https://studioneo.tech/artist/${cleanHandle}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://bikko.studio/artist/${cleanHandle}`,
+      url: `https://studioneo.tech/artist/${cleanHandle}`,
       type: 'profile',
       locale: 'en_US',
-      siteName: 'bikko.studio',
+      siteName: 'studioNeo',
     },
     twitter: {
       card: 'summary_large_image',

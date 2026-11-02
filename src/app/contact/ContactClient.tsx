@@ -114,7 +114,7 @@ function ContactFormContent() {
 
     const target = ceremonyTargetEmail.trim() || sessionEmail;
     if (!target) {
-      setCeremonyErrorMsg('Please provide a target subscriber email address.');
+      setCeremonyErrorMsg('Please provide a target account email address.');
       setIsCeremonyLoading(false);
       return;
     }
@@ -254,7 +254,7 @@ function ContactFormContent() {
                 >
                   {[
                     { id: 'commission', label: 'Bespoke Commission' },
-                    { id: 'licensing', label: 'Commercial Licensing' },
+                    { id: 'licensing', label: 'Artist Rights & Licensing Inquiries' },
                     { id: 'artist_application', label: 'Resident Artist Portfolio Application' },
                     { id: 'print', label: 'Physical Print Acquisition' },
                     { id: 'general', label: 'General Press' },
@@ -450,7 +450,7 @@ function ContactFormContent() {
             {isCeremonyDrawerOpen && (
               <div style={{ marginTop: '1.25rem', padding: '1.5rem', borderRadius: '16px', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: '0 0 1.25rem' }}>
-                  Curators and administrators can verify artist applications and toggle subscriber roles (<code style={{ fontSize: '0.8rem' }}>artist_resident</code>, <code style={{ fontSize: '0.8rem' }}>illustrator_pro</code>). Active verified accounts unlock immediate minting rights in <Link href="/studio/upload" style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>/studio/upload</Link>.
+                  Curators and administrators can verify artist applications and toggle creator roles (<code style={{ fontSize: '0.8rem' }}>artist_resident</code>, <code style={{ fontSize: '0.8rem' }}>illustrator_pro</code>). Active verified accounts unlock immediate minting rights in <Link href="/studio/upload" style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>/studio/upload</Link>.
                 </p>
 
                 {currentTier && (
@@ -485,7 +485,7 @@ function ContactFormContent() {
                 <form onSubmit={handleExecuteCeremony} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div className="form-row-2">
                     <div className="form-group">
-                      <label className="form-label">SUBSCRIBER EMAIL TO VERIFY</label>
+                      <label className="form-label">ACCOUNT EMAIL TO VERIFY</label>
                       <input
                         type="email"
                         required
@@ -582,8 +582,8 @@ function ContactFormContent() {
                 <span>Explore Full 128-Work Archive</span>
                 <span aria-hidden="true">↗</span>
               </Link>
-              <Link href="/membership" className="quick-link-item">
-                <span>View Membership &amp; Vault Access Tiers</span>
+              <Link href="/licensing" className="quick-link-item">
+                <span>Content Rights &amp; Distribution Policy</span>
                 <span aria-hidden="true">↗</span>
               </Link>
             </div>
@@ -597,8 +597,7 @@ function ContactFormContent() {
           <Link href="/gallery" className="footer-link">Archive Index</Link>
           <Link href="/collection" className="footer-link">Saved Collection</Link>
           <Link href="/about" className="footer-link">Curatorial Statement</Link>
-          <Link href="/licensing" className="footer-link">Licensing &amp; Rights</Link>
-          <Link href="/membership" className="footer-link">Membership Tiers</Link>
+          <Link href="/licensing" className="footer-link">Content Rights</Link>
           <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
           <Link href="/terms" className="footer-link">Terms of Service</Link>
           <Link href="/privacy" className="footer-link">Privacy Policy</Link>
@@ -606,7 +605,7 @@ function ContactFormContent() {
         </div>
         <div className="footer-bottom-copy">
           <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-          <span>studioneo.tech visual engineering</span>
+          <span>studioNeo visual engineering</span>
         </div>
       </footer>
     </main>

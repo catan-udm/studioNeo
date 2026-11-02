@@ -1,7 +1,7 @@
 /* ========================================================================
-   Subscriber Dashboard Local Styles (dashboard.css)
-   Scoped to subscriber profile, passkeys list, OAuth linking,
-   unlocked perk assets, and graceful signout modal.
+   Account & Passkey Dashboard Local Styles (dashboard.css)
+   Scoped to user profile, passkeys list, OAuth linking,
+   authorized study assets, and graceful signout modal.
    ======================================================================== */
 
 /* Graceful Signout Modal & Backdrop Overlay */

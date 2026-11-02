@@ -3,26 +3,26 @@ import AuthSlider from '@/app/components/AuthSlider';
 import './login.css';
 
 export const metadata: Metadata = {
-  title: 'Sign In • Passkey & Passwordless Authentication • bikko.studio',
+  title: 'Sign In • studioNeo • Passkey & Cryptographic Identity',
   description:
-    'Sign in securely with biometric WebAuthn passkeys, Touch ID, Face ID, Windows Hello, or Magic Link OTP.',
+    'Sign in securely to studioNeo with biometric WebAuthn passkeys, Touch ID, Face ID, Windows Hello, or Magic Link OTP.',
   alternates: {
-    canonical: 'https://bikko.studio/login',
+    canonical: 'https://studioneo.tech/login',
   },
   openGraph: {
-    title: 'Sign In • bikko.studio',
+    title: 'Sign In • studioNeo • Passkey & Cryptographic Identity',
     description:
-      'Sign in securely with biometric WebAuthn passkeys, Touch ID, Face ID, Windows Hello, or Magic Link OTP.',
-    url: 'https://bikko.studio/login',
+      'Sign in securely to studioNeo with biometric WebAuthn passkeys, Touch ID, Face ID, Windows Hello, or Magic Link OTP.',
+    url: 'https://studioneo.tech/login',
     type: 'website',
     locale: 'en_US',
-    siteName: 'bikko.studio',
+    siteName: 'studioNeo',
   },
   twitter: {
     card: 'summary',
-    title: 'Sign In • bikko.studio',
+    title: 'Sign In • studioNeo • Passkey & Cryptographic Identity',
     description:
-      'Sign in securely with biometric WebAuthn passkeys, Touch ID, Face ID, Windows Hello, or Magic Link OTP.',
+      'Sign in securely to studioNeo with biometric WebAuthn passkeys, Touch ID, Face ID, Windows Hello, or Magic Link OTP.',
   },
 };
 

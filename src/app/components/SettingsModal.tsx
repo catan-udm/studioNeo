@@ -228,7 +228,7 @@ export default function SettingsModal() {
                 </span>
               </div>
               <p className="settings-preview-text">
-                bikko.studio • Creative Code, Kinetic Motion &amp; Next-Gen Identity.
+                studioNeo • Creative Code, Kinetic Motion &amp; Next-Gen Identity.
               </p>
             </div>
           </section>

@@ -48,8 +48,6 @@ interface DevDbStore {
     is_verified: number;
     tier: string;
     subscription_status: string;
-    stripe_customer_id: string | null;
-    stripe_subscription_id: string | null;
     created_at: string;
     updated_at: string;
   }>;
@@ -135,23 +133,19 @@ function initDevDbStore(): DevDbStore {
     subscribers: [
       {
         id: 1,
-        email: 'subscriber@bikko.studio',
+        email: 'member@studioneo.tech',
         is_verified: 1,
         tier: 'collector',
         subscription_status: 'active',
-        stripe_customer_id: 'mock_cus_1',
-        stripe_subscription_id: 'mock_sub_1',
         created_at: now,
         updated_at: now,
       },
       {
         id: 2,
-        email: 'artist@bikko.studio',
+        email: 'artist@studioneo.tech',
         is_verified: 1,
         tier: 'artist_resident',
         subscription_status: 'active',
-        stripe_customer_id: null,
-        stripe_subscription_id: null,
         created_at: now,
         updated_at: now,
       },
@@ -489,8 +483,6 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
       is_verified: isVerified,
       tier: 'free',
       subscription_status: 'active',
-      stripe_customer_id: null,
-      stripe_subscription_id: null,
       created_at: now,
       updated_at: now,
     });
@@ -521,8 +513,6 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
             is_verified: 1,
             tier,
             subscription_status: 'active',
-            stripe_customer_id: null,
-            stripe_subscription_id: null,
             created_at: now,
             updated_at: now,
           };
@@ -537,8 +527,6 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
       const sub = store.subscribers.find((s) => s.id === subId);
       if (sub) {
         sub.tier = tier;
-        if (params.length > 3 && params[1]) sub.stripe_customer_id = String(params[1]);
-        if (params.length > 3 && params[2]) sub.stripe_subscription_id = String(params[2]);
         sub.updated_at = now;
         return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
       }

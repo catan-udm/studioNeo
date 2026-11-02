@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'bikko.studio • Creative Code, Kinetic Motion & Next-Gen Identity',
-    short_name: 'bikko.studio',
+    name: 'studioNeo • Creative Code, Kinetic Motion & Next-Gen Identity',
+    short_name: 'studioNeo',
     description:
       'Creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey authentication.',
     start_url: '/',

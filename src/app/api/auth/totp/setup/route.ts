@@ -26,7 +26,7 @@ export async function GET() {
     const formattedSecret = formatSecretForDisplay(secret);
 
     // 2. Build standard RFC 6238 Key URI (compatible with Google Authenticator, Apple Passwords, etc.)
-    const otpauthUri = generateOtpauthUri(secret, session.email, 'bikko.studio');
+    const otpauthUri = generateOtpauthUri(secret, session.email, 'studioNeo');
 
     // 3. Generate high-contrast standalone SVG QR code and data URL
     const qrCodeSvg = generateQrCodeSvg(otpauthUri, { size: 220 });

@@ -21,7 +21,6 @@ import {
   rsGeneratorPoly,
   rsComputeECC,
 } from '../src/lib/totp';
-import { createCheckoutSession, applySubscriptionToSubscriber } from '../src/lib/stripe';
 import { execute, queryRow, queryRows, CelRecord } from '../src/lib/db';
 import { ALL_GALLERY_WORKS, RESIDENT_ARTISTS, generateStandaloneSvg } from '../src/app/gallery/galleryData';
 import { NextRequest } from 'next/server';
@@ -196,7 +195,7 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
     'ashy-mushroom-07675a400.6.azurestaticapps.net'
   );
   assert.strictEqual(cleanDomain('http://localhost:3000/'), 'localhost');
-  assert.strictEqual(cleanDomain('bikko.studio'), 'bikko.studio');
+  assert.strictEqual(cleanDomain('studioneo.tech'), 'studioneo.tech');
   assert.strictEqual(
     cleanOrigin('https://ashy-mushroom-07675a400.6.azurestaticapps.net/api/auth/callback'),
     'https://ashy-mushroom-07675a400.6.azurestaticapps.net'
@@ -230,7 +229,7 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
     const hash = hashToken(otp);
     const token = createSessionToken({
       subscriberId: i,
-      email: `benchmark_${i}@bikko.studio`,
+      email: `benchmark_${i}@studioneo.tech`,
       isVerified: true,
     });
     const verified = verifySessionToken(token);
@@ -260,10 +259,10 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
     assert.strictEqual(formatted.split(' ').length, 8, 'Formatted secret must have 8 four-character groups');
   }
 
-  const testUri = generateOtpauthUri('JBSWY3DPEHPK3PXP', 'subscriber@bikko.studio', 'bikko.studio');
+  const testUri = generateOtpauthUri('JBSWY3DPEHPK3PXP', 'member@studioneo.tech', 'studioNeo');
   assert.ok(testUri.startsWith('otpauth://totp/'), 'URI must use otpauth://totp/ scheme');
   assert.ok(testUri.includes('secret=JBSWY3DPEHPK3PXP'), 'URI must include secret parameter');
-  assert.ok(testUri.includes('issuer=bikko.studio'), 'URI must include issuer parameter');
+  assert.ok(testUri.includes('issuer=studioNeo'), 'URI must include issuer parameter');
   assert.ok(testUri.includes('digits=6'), 'URI must specify 6 digits');
   assert.ok(testUri.includes('period=30'), 'URI must specify 30s period');
   console.log('  -> PASS: Base32 secret generation, formatting, and RFC 6238 Key URI validated.\n');
@@ -272,7 +271,7 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
   // Test 10: Pure TypeScript ISO/IEC 18004 SVG QR Code Engine
   // ------------------------------------------------------------------------
   console.log('[Test 10] Pure TypeScript SVG QR Code Generator (Zero Dependency)');
-  const sampleUri = 'otpauth://totp/bikko.studio:test@bikko.studio?secret=JBSWY3DPEHPK3PXP';
+  const sampleUri = 'otpauth://totp/studioNeo:test@studioneo.tech?secret=JBSWY3DPEHPK3PXP';
   const qrSvg = generateQrCodeSvg(sampleUri);
   assert.ok(qrSvg.startsWith('<svg'), 'QR Code must produce valid SVG XML root');
   assert.ok(qrSvg.endsWith('</svg>'), 'QR Code SVG must have closing tag');
@@ -329,24 +328,9 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
   console.log('  -> PASS: Emergency backup recovery codes format and cryptographic hashing validated.\n');
 
   // ------------------------------------------------------------------------
-  // Test 12: Stripe Checkout Flow, Mock Tier Lifecycle & Multi-Format Vector Export
+  // Test 12: Multi-Format Vector Export Architecture
   // ------------------------------------------------------------------------
-  console.log('[Test 12] Stripe Checkout Flow & Multi-Format Vector Export Architecture');
-  const checkoutRes = await createCheckoutSession({
-    tier: 'collector',
-    billingCycle: 'monthly',
-    subscriberId: 99,
-    email: 'test_collector@bikko.studio',
-    baseUrl: 'https://bikko.studio',
-  });
-
-  assert.ok(checkoutRes.sessionId.length > 0, 'Checkout session ID must be generated');
-  assert.ok(checkoutRes.url.includes('/dashboard?subscription=success'), 'Mock checkout must resolve to dashboard success url');
-  assert.strictEqual(checkoutRes.isMock, true, 'Mock checkout must be flag marked in test environment');
-
-  // Test applySubscriptionToSubscriber tier changes
-  await applySubscriptionToSubscriber(99, 'studio', 'cust_mock_99', 'sub_mock_99');
-
+  console.log('[Test 12] Multi-Format Vector Export Architecture');
   // Test multi-format artwork generator across all sample works
   assert.ok(ALL_GALLERY_WORKS.length >= 10, 'Gallery archive works must be populated');
   const sampleWork = ALL_GALLERY_WORKS[0];
@@ -476,7 +460,7 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
   assert.strictEqual(isArtistTier('illustrator'), true, 'illustrator is granted creator studio access');
 
   // 14.2 Curator role toggle ceremony via database
-  const targetEmail = 'applicant_curator_test@bikko.studio';
+  const targetEmail = 'applicant_curator_test@studioneo.tech';
   await execute('UPDATE subscribers SET tier = ? WHERE email = ?', ['artist_resident', targetEmail]);
   const verifiedArtist = await queryRow<{ id: number; email: string; tier: string }>(
     'SELECT id, email, tier FROM subscribers WHERE email = ? LIMIT 1',

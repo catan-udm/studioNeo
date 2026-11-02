@@ -2,24 +2,24 @@ import type { Metadata } from 'next';
 import LandingClient from './LandingClient';
 
 export const metadata: Metadata = {
-  title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
+  title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
   description:
     'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
   alternates: {
-    canonical: 'https://bikko.studio',
+    canonical: 'https://studioneo.tech',
   },
   openGraph: {
-    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
+    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
     description:
       'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
-    url: 'https://bikko.studio',
+    url: 'https://studioneo.tech',
     type: 'website',
     locale: 'en_US',
     siteName: 'studioNeo',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
+    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
     description:
       'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
   },
@@ -28,17 +28,17 @@ export const metadata: Metadata = {
 const homeStructuredData = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  '@id': 'https://bikko.studio/#webpage',
-  url: 'https://bikko.studio',
-  name: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
+  '@id': 'https://studioneo.tech/#webpage',
+  url: 'https://studioneo.tech',
+  name: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
   description:
     'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
   inLanguage: 'en-US',
   isPartOf: {
-    '@id': 'https://bikko.studio/#website',
+    '@id': 'https://studioneo.tech/#website',
   },
   about: {
-    '@id': 'https://bikko.studio/#organization',
+    '@id': 'https://studioneo.tech/#organization',
   },
 };
 

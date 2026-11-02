@@ -17,7 +17,7 @@ Their job is:
 src/app/page.tsx (Page Route + SEO Metadata)
       └── renders ──> src/app/LandingClient.tsx
                             └── renders ──> src/components/landing/StudioLanding.tsx
-                                                  ├── <h1>bikko.studio</h1>
+                                                  ├── <h1>studioNeo</h1>
                                                   ├── <p>Taglines & descriptions</p>
                                                   └── <Link>Buttons & Actions</Link>
 ```
@@ -30,15 +30,13 @@ Use this table to find the exact file you need to open to change headlines, para
 
 | Page / URL | Route Wrapper (`page.tsx`) | **Actual File to Edit Content & H1** | Key Content Found There |
 |---|---|---|---|
-| **Home (`/`)** | `src/app/page.tsx` | [`src/components/landing/StudioLanding.tsx`](file:///home/sankobite/studioNeo_ehh/src/components/landing/StudioLanding.tsx) | Hero headline (`bikko.studio`), tagline, action buttons, About section (`Creative Code, Kinetic Motion...`), and the 3 core tenets (`Kinetic Motion`, `Zero Passwords`, `Vector Topology`). |
+| **Home (`/`)** | `src/app/page.tsx` | [`src/components/landing/StudioLanding.tsx`](file:///home/sankobite/studioNeo_ehh/src/components/landing/StudioLanding.tsx) | Hero headline (`studioNeo`), tagline, action buttons, About section (`Creative Code, Kinetic Motion...`), and the 3 core tenets (`Kinetic Motion`, `Zero Passwords`, `Vector Topology`). |
 | **Artists Directory (`/artist`)** | `src/app/artist/page.tsx` | [`src/app/artist/ArtistIndexClient.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/artist/ArtistIndexClient.tsx) | Headline (`Artists of studioNeo`), section titles (`Enter an archive`, `The complete directory`), search bar labels. |
 | **Artist Roster Data** | — | [`src/data/illustrators.ts`](file:///home/sankobite/studioNeo_ehh/src/data/illustrators.ts) | The 64 illustrators: names, handles, avatars, follower counts, and links. |
 | **Artist Socials Data** | — | [`src/app/artist/artistSocials.ts`](file:///home/sankobite/studioNeo_ehh/src/app/artist/artistSocials.ts) | Pixiv IDs, X/Twitter handles, and custom archive link overrides. |
 | **Projects (`/projects`)** | `src/app/projects/page.tsx` | [`src/app/projects/ProjectsClient.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/projects/ProjectsClient.tsx) | Page headline (`PROJECTS`), subheading, category filters (`All`, `Animation`, `Artwork`, `Interactive`). |
 | **Projects Data** | — | [`src/app/projects/projectsData.ts`](file:///home/sankobite/studioNeo_ehh/src/app/projects/projectsData.ts) | List of projects: title, subtitle, client, year, descriptions, and media links. |
-| **Licensing (`/licensing`)** | [`src/app/licensing/page.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/licensing/page.tsx) | Directly in `src/app/licensing/page.tsx` | Headline (`Licensing & Rights`), tier cards (`Tier A`, `Tier B`, etc.), terms, lists of rights. |
-| **Membership (`/membership`)** | `src/app/membership/page.tsx` | [`src/app/membership/MembershipClient.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/membership/MembershipClient.tsx) | Membership tiers, pricing, subscriber vault access descriptions, FAQ. |
-| **Store / Cels (`/store`)** | `src/app/store/page.tsx` | [`src/app/gallery/GalleryClient.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/gallery/GalleryClient.tsx) | Gallery and cel collection headers, filters, checkout buttons. |
+| **Content Rights (`/licensing`)** | [`src/app/licensing/page.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/licensing/page.tsx) | Directly in `src/app/licensing/page.tsx` | Headline (`Content Rights & Distribution Policy`), policy cards, individual artist rights reservations, Featured artist distribution criteria. |
 | **Contact (`/contact`)** | `src/app/contact/page.tsx` | [`src/app/contact/ContactClient.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/contact/ContactClient.tsx) | Contact headline, inquiries copy, form input labels and button text. |
 | **Terms of Service (`/terms`)** | [`src/app/terms/page.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/terms/page.tsx) | Directly in `src/app/terms/page.tsx` | Headline (`Terms of Service`), effective date, legal articles 01 to 08. |
 | **Privacy Policy (`/privacy`)** | [`src/app/privacy/page.tsx`](file:///home/sankobite/studioNeo_ehh/src/app/privacy/page.tsx) | Directly in `src/app/privacy/page.tsx` | Headline (`Privacy Policy`), data protection articles. |
@@ -77,11 +75,11 @@ When visiting an individual tribute archive (e.g. `/artist/yoneyamai`, `/artist/
 2. Locate lines 37–40:
    ```tsx
    <div className="landing-copy">
-     <h1 id="landing-title">bikko.studio</h1>
+     <h1 id="landing-title">studioNeo</h1>
      <p>Go ahead and say just a little more about what you do.</p>
    </div>
    ```
-3. Change `bikko.studio` or the `<p>` text to whatever you desire.
+3. Change `studioNeo` or the `<p>` text to whatever you desire.
 4. Save the file. Your dev server updates immediately with hot-reloading.
 
 ### Example 2: Changing the Second Homepage Section ("Creative Code...")

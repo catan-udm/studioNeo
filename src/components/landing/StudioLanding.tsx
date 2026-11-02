@@ -35,7 +35,7 @@ export default function StudioLanding() {
           <PaletteArtwork />
           <div className="landing-content">
             <div className="landing-copy">
-              <h1 id="landing-title">bikko.studio</h1>
+              <h1 id="landing-title">studioNeo</h1>
               <p>Go ahead and say just a little more about what you do.</p>
             </div>
             <div className="landing-actions" role="group" aria-label="Primary landing actions">
@@ -61,7 +61,7 @@ export default function StudioLanding() {
           {/* Header Block (Center-Aligned) */}
           <header className="about-header">
             <span className="about-overline">
-              bikko.studio &bull; Est. <time dateTime="2026">2026</time>
+              studioNeo &bull; Est. <time dateTime="2026">2026</time>
             </span>
             <h1 className="about-title">
               Creative Code, Kinetic Motion &amp; Next-Gen Identity.
@@ -113,8 +113,8 @@ export default function StudioLanding() {
             <Link href="/projects" className="about-pill-btn about-pill-secondary">
               View Projects
             </Link>
-            <Link href="/membership" className="about-pill-btn about-pill-secondary">
-              Membership Tiers
+            <Link href="/licensing" className="about-pill-btn about-pill-secondary">
+              Content Rights
             </Link>
             <Link href="/contact" className="about-pill-btn about-pill-secondary">
               Contact Studio
@@ -145,7 +145,7 @@ export default function StudioLanding() {
       {/* Site Footer */}
       <footer className="site-footer">
         <Link className="site-footer-brand" href="/">
-          bikko.studio
+          studioNeo
         </Link>
         <span>{illustrators.length} illustrators · official profile links</span>
         <nav aria-label="Footer navigation">

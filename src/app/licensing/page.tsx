@@ -4,26 +4,26 @@ import Link from 'next/link';
 import './licensing.css';
 
 export const metadata: Metadata = {
-  title: 'Licensing & Rights • Digital Asset Specifications • bikko.studio',
+  title: 'Content Rights & Distribution Policy • studioNeo',
   description:
-    'Digital licensing specifications, personal collector rights, and commercial production clearances for studioNeo.',
+    "Each individual artist reserves the right on how their content is used. studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist.",
   alternates: {
-    canonical: 'https://bikko.studio/licensing',
+    canonical: 'https://studioneo.tech/licensing',
   },
   openGraph: {
-    title: 'Licensing & Rights • bikko.studio',
+    title: 'Content Rights & Distribution Policy • studioNeo',
     description:
-      'Digital licensing specifications, personal collector rights, and commercial production clearances for studioNeo.',
-    url: 'https://bikko.studio/licensing',
+      "Each individual artist reserves the right on how their content is used. studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist.",
+    url: 'https://studioneo.tech/licensing',
     type: 'website',
     locale: 'en_US',
-    siteName: 'bikko.studio',
+    siteName: 'studioNeo',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Licensing & Rights • bikko.studio',
+    title: 'Content Rights & Distribution Policy • studioNeo',
     description:
-      'Digital licensing specifications, personal collector rights, and commercial production clearances for studioNeo.',
+      "Each individual artist reserves the right on how their content is used. studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist.",
   },
 };
 
@@ -32,31 +32,31 @@ const licensingStructuredData = {
   '@graph': [
     {
       '@type': 'WebPage',
-      '@id': 'https://bikko.studio/licensing/#webpage',
-      url: 'https://bikko.studio/licensing',
-      name: 'Licensing & Rights • bikko.studio',
+      '@id': 'https://studioneo.tech/licensing/#webpage',
+      url: 'https://studioneo.tech/licensing',
+      name: 'Content Rights & Distribution Policy • studioNeo',
       description:
-        'Digital licensing specifications, personal collector rights, and commercial production clearances for studioNeo.',
+        'Each individual artist reserves the right on how their content is used. studioNeo does not have the right to distribute illustrator works unless specified as a Featured artist.',
       inLanguage: 'en-US',
       isPartOf: {
-        '@id': 'https://bikko.studio/#website',
+        '@id': 'https://studioneo.tech/#website',
       },
     },
     {
       '@type': 'BreadcrumbList',
-      '@id': 'https://bikko.studio/licensing/#breadcrumb',
+      '@id': 'https://studioneo.tech/licensing/#breadcrumb',
       itemListElement: [
         {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://bikko.studio',
+          item: 'https://studioneo.tech',
         },
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'Licensing & Rights',
-          item: 'https://bikko.studio/licensing',
+          name: 'Content Rights & Distribution Policy',
+          item: 'https://studioneo.tech/licensing',
         },
       ],
     },
@@ -75,78 +75,88 @@ export default function LicensingPage() {
         <section className="licensing-header" aria-labelledby="licensing-heading">
           <span className="licensing-overline">LEGAL &amp; CURATORIAL FRAMEWORK</span>
           <h1 id="licensing-heading" className="licensing-title">
-            Licensing &amp; Rights
+            Content Rights &amp; Distribution Policy
           </h1>
           <p className="licensing-lead">
-            Comprehensive rights specifications for collectors, creative agencies, and kinetic media installations across the studioNeo archive.
+            {"Each individual artist reserves the right on how their content is used. studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist."}
           </p>
         </section>
 
-        {/* 2. License Tiers Overview */}
+        {/* 2. Content Rights & Distribution Cards */}
         <div className="licensing-container">
-          <section className="license-card" aria-labelledby="tier-a-heading">
-            <div className="license-badge">TIER A</div>
-            <h2 id="tier-a-heading">Personal &amp; Collector Cel License</h2>
+          <section className="license-card" aria-labelledby="policy-1-heading">
+            <div className="license-badge">POLICY 01</div>
+            <h2 id="policy-1-heading">Individual Artist Sovereignty &amp; Rights Reservation</h2>
             <p className="license-summary">
-              Granted automatically with any collector membership, unlocked cel acquisition, or physical edition print purchase.
+              Each individual artist reserves the right on how their content is used across all media, formats, and derivatives.
             </p>
             <ul className="license-rights-list">
               <li>
                 <span className="right-check" aria-hidden="true">✓</span>
                 <div>
-                  <strong>Personal Display:</strong> High-resolution display on personal screens, holographic frames, and domestic environments.
+                  <strong>Exclusive Creator Copyright:</strong> All artworks, characters, illustrations, and vector stems hosted or referenced on studioNeo remain the exclusive intellectual property and copyright of their respective individual creators.
                 </div>
               </li>
               <li>
                 <span className="right-check" aria-hidden="true">✓</span>
                 <div>
-                  <strong>Lossless Archiving:</strong> Storage and uncompressed backup of raw 4K cels and mathematical SVG vector stems.
-                </div>
-              </li>
-              <li>
-                <span className="right-check" aria-hidden="true">✓</span>
-                <div>
-                  <strong>Secondary Trading:</strong> Transfer of authenticated physical or cryptographic cel provenance to another collector.
+                  <strong>Attribution &amp; Provenance:</strong> Every work exhibited in the archive credits the original creator and links directly to their verified official portfolios.
                 </div>
               </li>
               <li className="right-prohibited">
                 <span className="right-cross" aria-hidden="true">✕</span>
                 <div>
-                  <strong>Commercial Resale:</strong> Reselling raw vector stems, mass manufacturing physical goods, or broadcasting without attribution.
+                  <strong>No Third-Party Licensing by Platform:</strong> studioNeo does not sell, license, or convey distribution rights to any third party.
                 </div>
               </li>
             </ul>
           </section>
 
-          <section className="license-card" aria-labelledby="tier-b-heading">
-            <div className="license-badge">TIER B</div>
-            <h2 id="tier-b-heading">Studio &amp; Commercial Production License</h2>
+          <section className="license-card" aria-labelledby="policy-2-heading">
+            <div className="license-badge">POLICY 02</div>
+            <h2 id="policy-2-heading">Distribution Restrictions &amp; &ldquo;Featured&rdquo; Artist Criteria</h2>
             <p className="license-summary">
-              Available through the Studio Commercial membership or direct per-project licensing agreements.
+              {"studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist."}
             </p>
             <ul className="license-rights-list">
               <li>
                 <span className="right-check" aria-hidden="true">✓</span>
                 <div>
-                  <strong>Broadcast &amp; Interactive Media:</strong> Use in commercial motion broadcasts, game assets, interactive stages, and brand campaigns.
+                  <strong>Featured Artist Authorization:</strong> Distribution and master stem downloads are strictly restricted and only permitted for designated <strong>&ldquo;Featured&rdquo;</strong> artist projects with formal creator authorization.
                 </div>
               </li>
               <li>
                 <span className="right-check" aria-hidden="true">✓</span>
                 <div>
-                  <strong>Vector Stem Integration:</strong> Importing, manipulating, and re-rendering SVG layers in commercial 2D/3D pipelines.
+                  <strong>Curatorial Study &amp; Referral:</strong> Non-featured works are exhibited solely for non-commercial curatorial study, appreciation, and direct traffic referral to verified artist profiles.
+                </div>
+              </li>
+              <li className="right-prohibited">
+                <span className="right-cross" aria-hidden="true">✕</span>
+                <div>
+                  <strong>No Paid Access Tiers:</strong> studioNeo does not sell paid access tiers or commercial distribution licenses for illustrator works.
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <section className="license-card" aria-labelledby="policy-3-heading" style={{ gridColumn: '1 / -1' }}>
+            <div className="license-badge">POLICY 03</div>
+            <h2 id="policy-3-heading">Commercial Clearance &amp; Direct Artist Channels</h2>
+            <p className="license-summary">
+              All commercial inquiries, commission requests, and usage clearances are handled directly by the respective illustrator.
+            </p>
+            <ul className="license-rights-list">
+              <li>
+                <span className="right-check" aria-hidden="true">✓</span>
+                <div>
+                  <strong>Direct Creator Clearance:</strong> Inquiries for commercial licensing, advertising, publishing, or commissions must be cleared directly with the individual artist via their verified channels (Pixiv, Twitter/X, Booth, or official agency desk).
                 </div>
               </li>
               <li>
                 <span className="right-check" aria-hidden="true">✓</span>
                 <div>
-                  <strong>Worldwide Non-Exclusive:</strong> Perpetual, worldwide distribution across digital and streaming channels.
-                </div>
-              </li>
-              <li>
-                <span className="right-check" aria-hidden="true">✓</span>
-                <div>
-                  <strong>Multi-Seat Clearance:</strong> Internal agency and production crew usage up to 5 individual seats.
+                  <strong>Artist Takedown &amp; Curation Control:</strong> Creators may request immediate updates, attribution changes, or removal of any curatorial entry at any time via our rights desk.
                 </div>
               </li>
             </ul>
@@ -156,7 +166,7 @@ export default function LicensingPage() {
           <section className="provenance-section" aria-labelledby="provenance-heading">
             <h2 id="provenance-heading">Cryptographic Provenance &amp; Verification</h2>
             <p>
-              Every archived cel across the studioNeo index is stamped with an immutable cryptographic ledger record containing its unique catalog code, generation timestamp, master artist identity, and mathematical SVG parameters.
+              Every archived cel across the studioNeo index is stamped with an immutable cryptographic ledger record containing its unique catalog code, generation timestamp, master artist attribution, and mathematical SVG parameters.
             </p>
             <div className="provenance-grid">
               <div className="provenance-item">
@@ -177,10 +187,10 @@ export default function LicensingPage() {
           {/* Action Row */}
           <div className="licensing-actions">
             <Link href="/contact?topic=licensing" className="btn-pill-primary btn-pill-lg">
-              Inquire for Custom Commercial Licensing
+              Contact Artist Rights &amp; Curation Desk
             </Link>
-            <Link href="/gallery" className="btn-pill-secondary btn-pill-lg">
-              Browse Archive Index
+            <Link href="/artist" className="btn-pill-secondary btn-pill-lg">
+              Browse Verified Artist Directory
             </Link>
           </div>
         </div>
@@ -191,8 +201,7 @@ export default function LicensingPage() {
             <Link href="/gallery" className="footer-link">Archive Index</Link>
             <Link href="/collection" className="footer-link">Saved Collection</Link>
             <Link href="/about" className="footer-link">Curatorial Statement</Link>
-            <Link href="/licensing" className="footer-link">Licensing &amp; Rights</Link>
-            <Link href="/membership" className="footer-link">Membership Tiers</Link>
+            <Link href="/licensing" className="footer-link">Content Rights</Link>
             <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
             <Link href="/terms" className="footer-link">Terms of Service</Link>
             <Link href="/privacy" className="footer-link">Privacy Policy</Link>
@@ -200,7 +209,7 @@ export default function LicensingPage() {
           </div>
           <div className="footer-bottom-copy">
             <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-            <span>bikko.studio visual engineering</span>
+            <span>studioNeo visual engineering</span>
           </div>
         </footer>
       </main>

@@ -194,7 +194,7 @@ function Footer() {
     <footer className="artist-footer" aria-label="Footer">
       <div className="artist-footer-inner">
         <Link href="/" className="artist-footer-brand">
-          bikko.studio
+          studioNeo
         </Link>
         <span className="artist-footer-meta">
           {illustrators.length} illustrators · official profile links

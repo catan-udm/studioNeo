@@ -139,27 +139,27 @@ export async function GET(
     }
 
     // B. High-quality / original master assets (raw vector SVG master, 4K render, kinetic master GIF)
-    // and Subscriber Vault cels require authentication and active membership tier
+    // and Curatorial Study cels require Featured artist authorization
     const session = await getSessionUser();
-    let isSubscriber = false;
+    let isAuthorized = false;
 
     if (session && session.subscriberId) {
       const subRecord = await queryRow<SubscriberTierRecord>(
         'SELECT id, tier FROM subscribers WHERE id = ? LIMIT 1',
         [session.subscriberId]
       );
-      isSubscriber = Boolean(subRecord && isVaultSubscriberTier(subRecord.tier));
+      isAuthorized = Boolean(subRecord && isVaultSubscriberTier(subRecord.tier));
     }
 
     // Handle Gallery Work master downloads
     if (matchedWork) {
-      if ((matchedWork.isVault || requestedFormat === 'svg' || requestedFormat === 'gif' || requestedFormat === 'raw' || requestedFormat === '4k') && !isSubscriber) {
+      if ((matchedWork.isVault || requestedFormat === 'svg' || requestedFormat === 'gif' || requestedFormat === 'raw' || requestedFormat === '4k') && !isAuthorized) {
         return NextResponse.json(
           {
             error:
-              'Access denied. High-quality master vector stems (SVG), 4K renders, and subscriber vault cels are reserved for active membership tier holders (studio-alpha, studio-atelier, enterprise).',
+              "Artist Rights Reserved: studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist.",
             slug: cleanSlug,
-            requiresUpgrade: true,
+            requiresUpgrade: false,
           },
           { status: 403 }
         );
@@ -208,13 +208,13 @@ export async function GET(
 
     // Handle DB Cel master downloads
     if (dbCel) {
-      if ((dbCel.is_vault === 1 || requestedFormat === 'svg' || requestedFormat === 'gif') && !isSubscriber) {
+      if ((dbCel.is_vault === 1 || requestedFormat === 'svg' || requestedFormat === 'gif') && !isAuthorized) {
         return NextResponse.json(
           {
             error:
-              'Access denied. High-quality master assets and subscriber vaults require an active membership tier.',
+              "Artist Rights Reserved: studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist.",
             slug: cleanSlug,
-            requiresUpgrade: true,
+            requiresUpgrade: false,
           },
           { status: 403 }
         );
@@ -248,7 +248,7 @@ export async function GET(
       [session.subscriberId, cleanSlug]
     );
 
-    if (!perk && isSubscriber) {
+    if (!perk && isAuthorized) {
       perk = await queryRow<PerkDownloadRecord>(
         'SELECT id, slug, title, storage_file_path FROM perks WHERE slug = ? LIMIT 1',
         [cleanSlug]
@@ -259,7 +259,7 @@ export async function GET(
       return NextResponse.json(
         {
           error:
-            'Access denied. This digital perk has not been unlocked for your subscriber account.',
+            'Access denied. This digital study file has not been authorized for your account.',
           slug: cleanSlug,
         },
         { status: 403 }

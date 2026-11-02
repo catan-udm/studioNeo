@@ -394,8 +394,7 @@ export default function ProjectsClient() {
           <Link href="/gallery" className="footer-link">Archive Index</Link>
           <Link href="/collection" className="footer-link">Saved Collection</Link>
           <Link href="/about" className="footer-link">Curatorial Statement</Link>
-          <Link href="/licensing" className="footer-link">Licensing &amp; Rights</Link>
-          <Link href="/membership" className="footer-link">Membership Tiers</Link>
+          <Link href="/licensing" className="footer-link">Content Rights</Link>
           <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
           <Link href="/terms" className="footer-link">Terms of Service</Link>
           <Link href="/privacy" className="footer-link">Privacy Policy</Link>
@@ -403,7 +402,7 @@ export default function ProjectsClient() {
         </div>
         <div className="footer-bottom-copy">
           <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-          <span>bikko.studio visual engineering</span>
+          <span>studioNeo visual engineering</span>
         </div>
       </footer>
 

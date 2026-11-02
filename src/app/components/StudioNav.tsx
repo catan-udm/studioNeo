@@ -463,9 +463,9 @@ function TermsModal({ onClose }: { onClose: () => void }) {
           </p>
           <p>
             <strong>3. Non-Affiliation:</strong> This is an independent, non-commercial
-            discovery directory and curatorial study inspired by the studioNeo /
-            bikko.studio aesthetic. It is not endorsed by, sponsored by, or formally
-            affiliated with X Corp., Pixiv, or the individual artists.
+            discovery directory and curatorial study inspired by the studioNeo aesthetic.
+            It is not endorsed by, sponsored by, or formally affiliated with X Corp.,
+            Pixiv, or the individual artists.
           </p>
           <p>
             <strong>4. Direct Links:</strong> Each card and grid tile directs visitors
@@ -1157,7 +1157,7 @@ export default function StudioNav() {
             <Link
               className="studio-nav-brand-link"
               href="/"
-              aria-label="Bikko Studio home"
+              aria-label="studioNeo home"
               onClick={() => selectSection('studio')}
             >
               <StudioMark />

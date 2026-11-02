@@ -106,7 +106,7 @@ export default function CollectionClient() {
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'commercial'>('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [checkoutWork, setCheckoutWork] = useState<GalleryWork | null>(null);
-  const [isSubscriber, setIsSubscriber] = useState(false);
+  const [isFeaturedAuthorized, setIsFeaturedAuthorized] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   // Load from localStorage & check session on mount
@@ -116,7 +116,7 @@ export default function CollectionClient() {
         if (session.authenticated && session.subscriber) {
           const tier = session.subscriber.tier;
           if (tier === 'collector' || tier === 'studio') {
-            setIsSubscriber(true);
+            setIsFeaturedAuthorized(true);
           }
         }
       })
@@ -230,9 +230,9 @@ export default function CollectionClient() {
   // Download master cel in requested format
   const handleDownloadCel = useCallback(
     (work: GalleryWork, format: 'svg' | 'png' | 'jpg' | 'gif' = 'svg') => {
-      // Gating for subscriber-only Digital Vault works
-      if (work.isVault && !isSubscriber) {
-        showToast(`Subscriber access required for Digital Vault work #${work.code}.`);
+      // Gating for Curatorial Study works
+      if (work.isVault && !isFeaturedAuthorized) {
+        showToast(`Artist Rights Reserved: studioNeo does not distribute illustrator works unless specified as a 'Featured' artist.`);
         return;
       }
 
@@ -309,7 +309,7 @@ export default function CollectionClient() {
 
       img.src = url;
     },
-    [isSubscriber, showToast]
+    [isFeaturedAuthorized, showToast]
   );
 
   // Filtered list
@@ -595,14 +595,14 @@ export default function CollectionClient() {
               </button>
             </div>
 
-            {checkoutWork.isVault && !isSubscriber ? (
+            {checkoutWork.isVault && !isFeaturedAuthorized ? (
               <div>
                 <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
-                  <strong>{checkoutWork.title}</strong> (#{checkoutWork.code}) is an exclusive Digital Vault edition reserved for studioNeo subscribers. Upgrade your membership to unlock master vector stems, animated kinetic cels, and high-resolution exports.
+                  <strong>{checkoutWork.title}</strong> (#{checkoutWork.code}) — This work is exhibited under curatorial study. studioNeo does not distribute illustrator works unless specified as a &apos;Featured&apos; artist. Visit the creator&apos;s official profile to support them directly.
                 </p>
                 <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                  <Link href="/membership" className="btn-pill-primary">
-                    Upgrade to Unlock Vault
+                  <Link href={`/artist/${checkoutWork.artistHandle}`} className="btn-pill-primary">
+                    View Artist Profile
                   </Link>
                   <button
                     type="button"
@@ -664,8 +664,7 @@ export default function CollectionClient() {
           <Link href="/gallery" className="footer-link">Archive Index</Link>
           <Link href="/collection" className="footer-link">Saved Collection</Link>
           <Link href="/about" className="footer-link">Curatorial Statement</Link>
-          <Link href="/licensing" className="footer-link">Licensing &amp; Rights</Link>
-          <Link href="/membership" className="footer-link">Membership Tiers</Link>
+          <Link href="/licensing" className="footer-link">Content Rights</Link>
           <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
           <Link href="/terms" className="footer-link">Terms of Service</Link>
           <Link href="/privacy" className="footer-link">Privacy Policy</Link>
@@ -673,7 +672,7 @@ export default function CollectionClient() {
         </div>
         <div className="footer-bottom-copy">
           <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-          <span>bikko.studio visual engineering</span>
+          <span>studioNeo visual engineering</span>
         </div>
       </footer>
     </main>

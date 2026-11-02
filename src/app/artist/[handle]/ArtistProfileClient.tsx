@@ -135,7 +135,7 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
   const [activeWork, setActiveWork] = useState<GalleryWork | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isSubscriber, setIsSubscriber] = useState(false);
+  const [isFeaturedAuthorized, setIsFeaturedAuthorized] = useState(false);
   const [dynamicCels, setDynamicCels] = useState<GalleryWork[]>([]);
 
   const showToast = useCallback((msg: string) => {
@@ -160,7 +160,7 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
             t.startsWith('artist') ||
             t.startsWith('illustrator')
           ) {
-            setIsSubscriber(true);
+            setIsFeaturedAuthorized(true);
           }
         }
       }).catch(() => {});
@@ -300,9 +300,9 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
         return;
       }
 
-      // Rule 5: High-quality / original master assets (raw vector SVG, kinetic GIF) are locked behind subscriber vaults
-      if ((work.isVault || format === 'svg' || format === 'gif') && !isSubscriber) {
-        showToast(`Subscriber Vault: Subscribe to unlock lossless ${format.toUpperCase()} stem for #${work.code}.`);
+      // Rule 5: High-quality / original master assets (raw vector SVG, kinetic GIF) are restricted to Featured artist authorization
+      if ((work.isVault || format === 'svg' || format === 'gif') && !isFeaturedAuthorized) {
+        showToast("Artist Rights Reserved: studioNeo does not distribute illustrator works unless specified as a 'Featured' artist. Official profile links are provided below.");
         return;
       }
 
@@ -347,7 +347,7 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
       URL.revokeObjectURL(url);
       showToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
     },
-    [isSubscriber, showToast]
+    [isFeaturedAuthorized, showToast]
   );
 
   return (
@@ -443,7 +443,7 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
           </div>
           <div className="artist-stat-box">
             <span className="stat-value">{artistWorks.filter((w) => w.isVault).length}</span>
-            <span className="stat-caption">Subscriber Vaults</span>
+            <span className="stat-caption">Curated Works</span>
           </div>
         </div>
       </section>
@@ -592,7 +592,7 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
                   <div>
                     <span style={{ color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase' }}>STATUS:</span>
                     <div style={{ fontWeight: 600, color: activeWork.isVault ? '#f43f5e' : '#10b981' }}>
-                      {activeWork.isVault ? 'Subscriber Vault' : 'Public Stream'}
+                      {activeWork.isVault ? 'Curatorial Study' : 'Featured Cut'}
                     </div>
                   </div>
                 </div>

@@ -127,8 +127,6 @@ function DashboardContent() {
     const timer = setTimeout(() => {
       const linked = searchParams.get('linked');
       const error = searchParams.get('error');
-      const subscriptionParam = searchParams.get('subscription');
-      const tierParam = searchParams.get('tier');
 
       if (linked) {
         setActionMsg({
@@ -140,13 +138,6 @@ function DashboardContent() {
         setActionMsg({
           type: 'error',
           text: `Account linking error: ${decodeURIComponent(error)}`,
-        });
-        window.history.replaceState({}, '', '/dashboard');
-      } else if (subscriptionParam === 'success') {
-        const tierName = tierParam === 'studio' ? 'Studio Commercial Lab' : 'Archive Member (Collector)';
-        setActionMsg({
-          type: 'success',
-          text: `Welcome to ${tierName}! Your subscription is active, and digital vaults and perk assets are now fully unlocked.`,
         });
         window.history.replaceState({}, '', '/dashboard');
       }
@@ -175,7 +166,7 @@ function DashboardContent() {
 
   const handleUnlinkOAuth = async (provider: 'google' | 'microsoft') => {
     const name = provider === 'google' ? 'Google' : 'Microsoft';
-    if (!confirm(`Disconnect your ${name} account from this subscriber profile?`)) {
+    if (!confirm(`Disconnect your ${name} account from this user profile?`)) {
       return;
     }
 
@@ -366,12 +357,12 @@ function DashboardContent() {
 
   const downloadBackupCodes = () => {
     if (totpBackupCodes.length === 0) return;
-    const content = `bikko.studio • Emergency Two-Factor Recovery Codes\nGenerated: ${new Date().toISOString()}\nAccount: ${subscriber?.email}\n\n${totpBackupCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nNote: Each code is single-use only. Keep in a secure location.`;
+    const content = `studioNeo • Emergency Two-Factor Recovery Codes\nGenerated: ${new Date().toISOString()}\nAccount: ${subscriber?.email}\n\n${totpBackupCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nNote: Each code is single-use only. Keep in a secure location.`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bikko-studio-backup-codes.txt`;
+    a.download = `studioneo-backup-codes.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -392,7 +383,7 @@ function DashboardContent() {
     return (
       <main id="main-content" className="container" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
         <div className="spinner" style={{ margin: '0 auto 1rem', width: '2rem', height: '2rem' }} />
-        <p>Loading subscriber dashboard...</p>
+        <p>Loading account dashboard...</p>
       </main>
     );
   }
@@ -403,11 +394,9 @@ function DashboardContent() {
 
   const currentTier = subscriber.tier || 'free';
   const tierDisplayName =
-    currentTier === 'studio'
-      ? 'Studio Commercial Lab'
-      : currentTier === 'collector'
-      ? 'Archive Member (Collector)'
-      : 'Public Preview';
+    currentTier === 'artist_resident' || currentTier === 'illustrator_pro'
+      ? 'Featured Artist'
+      : 'Cryptographic Identity';
 
   return (
     <main id="main-content" className="container stack" style={{ gap: '2rem', paddingTop: '2rem', paddingBottom: '3rem' }}>
@@ -441,16 +430,16 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Subscriber Profile Header */}
+      {/* Account Profile Header */}
       <section className="card">
         <div className="cluster-between">
           <div className="stack" style={{ gap: '0.35rem' }}>
             <div className="cluster" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
-              <h2>Subscriber Dashboard</h2>
+              <h2>Account &amp; Passkey Settings</h2>
               <span className="badge badge-success">
                 {subscriber.is_verified ? 'Verified' : 'Pending Verification'}
               </span>
-              <span className={`badge ${currentTier !== 'free' ? 'badge-success' : 'badge-warning'}`}>
+              <span className="badge badge-success">
                 {tierDisplayName}
               </span>
               {subscriber.passkeyCount && subscriber.passkeyCount > 0 ? (
@@ -463,7 +452,7 @@ function DashboardContent() {
               )}
             </div>
             <p style={{ margin: 0 }}>
-              Signed in as <strong>{subscriber.email}</strong> (Subscriber ID: #{subscriber.id})
+              Signed in as <strong>{subscriber.email}</strong> (Account ID: #{subscriber.id})
             </p>
           </div>
 
@@ -479,17 +468,17 @@ function DashboardContent() {
         </div>
       </section>
 
-      {/* Membership & Subscription Status Card */}
+      {/* Security & Identity Profile Card */}
       <section className="card stack">
         <header className="cluster-between">
           <div>
-            <h3>Membership &amp; Subscription Status</h3>
+            <h3>Security &amp; Identity Profile</h3>
             <p style={{ margin: 0 }}>
-              Your current access entitlement for digital cels, private vaults, and lossless vector stems.
+              Your hardware-backed cryptographic identity, saved curatorial bookmarks, and artist content rights policy.
             </p>
           </div>
-          <Link href="/membership" className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
-            {currentTier === 'free' ? 'Upgrade to Collector ($12/mo)' : 'Manage / Change Tier'}
+          <Link href="/licensing" className="btn btn-outline" style={{ fontSize: '0.85rem' }}>
+            Content Rights Policy
           </Link>
         </header>
 
@@ -509,10 +498,10 @@ function DashboardContent() {
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>CURRENT PLAN</span>
-            <h4 style={{ margin: '0.25rem 0', fontSize: '1.15rem' }}>{tierDisplayName}</h4>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>IDENTITY PROTOCOL</span>
+            <h4 style={{ margin: '0.25rem 0', fontSize: '1.15rem' }}>FIDO2 WebAuthn Credentials Synced</h4>
             <span className="hint">
-              Status: <strong style={{ color: 'var(--color-success)' }}>{subscriber.subscriptionStatus || 'Active'}</strong>
+              Status: <strong style={{ color: 'var(--color-success)' }}>Active</strong>
             </span>
           </div>
 
@@ -524,16 +513,12 @@ function DashboardContent() {
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>ENTITLEMENTS</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACCOUNT PURPOSE</span>
             <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>
-              {currentTier === 'studio'
-                ? 'All 128 Works + 11 Vaults + Commercial License'
-                : currentTier === 'collector'
-                ? 'All 128 Works + 11 Vaults + Lossless Stems'
-                : '8 Public Cels (Preview mode)'}
+              Passkey Authentication, Device Theme Sync &amp; Saved Bookmarks
             </p>
-            <Link href="/gallery" className="hint" style={{ color: 'var(--brand-primary)', textDecoration: 'none' }}>
-              Browse Digital Vault &rarr;
+            <Link href="/collection" className="hint" style={{ color: 'var(--brand-primary)', textDecoration: 'none' }}>
+              View Saved Collection &rarr;
             </Link>
           </div>
 
@@ -545,11 +530,11 @@ function DashboardContent() {
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>BILLING PIPELINE</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>CONTENT RIGHTS</span>
             <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>
-              Stripe Customer Portal &amp; Webhook Integration
+              Individual Artists Reserve All Rights
             </p>
-            <span className="hint">Encrypted PCI-DSS Level 1</span>
+            <span className="hint">Accounts convey no distribution rights</span>
           </div>
         </div>
       </section>
@@ -952,9 +937,9 @@ function DashboardContent() {
 
         {perks.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-            <p>No perk unlocks found for this subscriber yet.</p>
+            <p>No authorized study files found for this account yet.</p>
             <p className="hint">
-              Subscribe or acquire editions to unlock digital guides, audio stems, and architectural starter kits.
+              Featured artist study guides and architectural kits appear here when authorized for your account.
             </p>
           </div>
         ) : (
@@ -968,7 +953,7 @@ function DashboardContent() {
                       {perk.slug}
                     </code>
                   </div>
-                  <p>{perk.description || 'Exclusive subscriber digital asset.'}</p>
+                  <p>{perk.description || 'Authorized curatorial study asset.'}</p>
                   <span className="hint">
                     Unlocked on: <time dateTime={new Date(perk.unlocked_at).toISOString()}>{new Date(perk.unlocked_at).toLocaleDateString()}</time>
                   </span>
@@ -1047,7 +1032,7 @@ function DashboardContent() {
           <div>
             <h3>Display &amp; Studio Settings</h3>
             <p style={{ margin: 0 }}>
-              Configure appearance themes, typography scaling, and fluid kinetic dynamics for your subscriber session.
+              Configure appearance themes, typography scaling, and fluid kinetic dynamics for your user session.
             </p>
           </div>
           <Link href="/settings" className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>

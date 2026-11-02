@@ -38,7 +38,7 @@ const STUDIO_LINKS = [
   { href: "/projects", label: "Projects & Cuts", jp: "企画", icon: FolderKanban },
   { href: "/studio/upload", label: "Creator Studio", jp: "投稿", icon: Upload },
   { href: "/collection", label: "Saved Vault", jp: "保存", icon: Heart },
-  { href: "/membership", label: "Membership", jp: "会員", icon: Crown },
+  { href: "/licensing", label: "Content Rights", jp: "権利", icon: Crown },
   { href: "/contact", label: "Commissions & Contact", jp: "連絡", icon: Mail },
 ];
 

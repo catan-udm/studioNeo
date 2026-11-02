@@ -64,8 +64,7 @@ export function Footer() {
               <Link href="/projects" className="hover:text-sun transition-colors">Projects &amp; Cuts</Link>
               <Link href="/studio/upload" className="hover:text-sun transition-colors">Creator Studio</Link>
               <Link href="/collection" className="hover:text-sun transition-colors">Saved Vault</Link>
-              <Link href="/membership" className="hover:text-sun transition-colors">Membership</Link>
-              <Link href="/licensing" className="hover:text-sun transition-colors">Licensing</Link>
+              <Link href="/licensing" className="hover:text-sun transition-colors">Content Rights</Link>
               <Link href="/contact" className="hover:text-sun transition-colors">Contact</Link>
               <Link href="/login" className="hover:text-sun transition-colors">Sign In / Passkey</Link>
             </div>

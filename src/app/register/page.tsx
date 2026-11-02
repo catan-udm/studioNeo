@@ -3,26 +3,26 @@ import AuthSlider from '@/app/components/AuthSlider';
 import './register.css';
 
 export const metadata: Metadata = {
-  title: 'Sign Up • Create Collector Account • bikko.studio',
+  title: 'Register • studioNeo • Passkey & Cryptographic Identity',
   description:
-    'Register for a bikko.studio account with biometric passkeys or passwordless email verification.',
+    'Create a studioNeo cryptographic identity account with biometric passkeys, device theme sync, and saved bookmarks.',
   alternates: {
-    canonical: 'https://bikko.studio/register',
+    canonical: 'https://studioneo.tech/register',
   },
   openGraph: {
-    title: 'Sign Up • bikko.studio',
+    title: 'Register • studioNeo • Passkey & Cryptographic Identity',
     description:
-      'Register for a bikko.studio account with biometric passkeys or passwordless email verification.',
-    url: 'https://bikko.studio/register',
+      'Create a studioNeo cryptographic identity account with biometric passkeys, device theme sync, and saved bookmarks.',
+    url: 'https://studioneo.tech/register',
     type: 'website',
     locale: 'en_US',
-    siteName: 'bikko.studio',
+    siteName: 'studioNeo',
   },
   twitter: {
     card: 'summary',
-    title: 'Sign Up • bikko.studio',
+    title: 'Register • studioNeo • Passkey & Cryptographic Identity',
     description:
-      'Register for a bikko.studio account with biometric passkeys or passwordless email verification.',
+      'Create a studioNeo cryptographic identity account with biometric passkeys, device theme sync, and saved bookmarks.',
   },
 };
 

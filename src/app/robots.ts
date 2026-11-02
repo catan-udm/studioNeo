@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/dashboard/', '/settings/'],
       },
     ],
-    sitemap: 'https://bikko.studio/sitemap.xml',
-    host: 'https://bikko.studio',
+    sitemap: 'https://studioneo.tech/sitemap.xml',
+    host: 'https://studioneo.tech',
   };
 }

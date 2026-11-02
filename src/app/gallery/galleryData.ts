@@ -98,7 +98,7 @@ export const RESIDENT_ARTISTS: ResidentArtist[] = [
   },
 ];
 
-// Flat vibrant solid color palette inspired by bikko.studio core tokens
+// Flat vibrant solid color palette inspired by studioNeo core tokens
 const VIBRANT_PALETTE = [
   '#c496ff', // Lavender
   '#f4cc7f', // Warm Gold
@@ -189,12 +189,12 @@ const BASE_WORKS: Partial<GalleryWork>[] = [
   { code: 'SYNTH-48', title: 'Mono Synth 48', likes: 180, edition: 'Ed. 15', price: '$280', category: 'Mono', color: '#38bdf8', format: 'RAW', description: 'Subtractive synthesis filter cutoff sweep.' },
 ];
 
-// Special Subscriber Vault items as shown in PDF 3 & 4
+// Special Curatorial Study items as shown in PDF 3 & 4
 const VAULT_ITEMS: Partial<GalleryWork>[] = [
-  { code: 'VAULT-01', title: 'Artist 1 - Work 05 (Vault)', likes: 420, edition: 'Private', price: 'Unlock', category: 'Generative', color: '#f43f5e', isVault: true, unlocked: false, description: 'Exclusive subscriber vector master and 4K uncompressed stem.' },
-  { code: 'VAULT-02', title: 'Artist 1 - Work 06 (Vault)', likes: 388, edition: 'Private', price: 'Unlock', category: 'Kinetic', color: '#8b5cf6', isVault: true, unlocked: false, gifSrc: KINETIC_GIF_URLS[8], description: 'Exclusive subscriber interactive kinetic script with passkey authentication.' },
-  { code: 'VAULT-03', title: 'Artist 1 - Work 07 (Vault)', likes: 512, edition: 'Private', price: 'Unlock', category: 'Vectors', color: '#06b6d4', isVault: true, unlocked: false, description: 'Exclusive subscriber raw SVG layers and full Figma component tokens.' },
-  { code: 'VAULT-04', title: 'Artist 1 - Work 08 (Vault)', likes: 475, edition: 'Private', price: 'Unlock', category: 'Mono', color: '#10b981', isVault: true, unlocked: false, description: 'Exclusive subscriber cel animations from the Tokyo 2025 archive.' },
+  { code: 'VAULT-01', title: 'Artist 1 - Work 05 (Study)', likes: 420, edition: 'Private', price: 'Study', category: 'Generative', color: '#f43f5e', isVault: true, unlocked: false, description: 'Curatorial visual cel and study asset.' },
+  { code: 'VAULT-02', title: 'Artist 1 - Work 06 (Study)', likes: 388, edition: 'Private', price: 'Study', category: 'Kinetic', color: '#8b5cf6', isVault: true, unlocked: false, gifSrc: KINETIC_GIF_URLS[8], description: 'Curatorial visual cel and study asset.' },
+  { code: 'VAULT-03', title: 'Artist 1 - Work 07 (Study)', likes: 512, edition: 'Private', price: 'Study', category: 'Vectors', color: '#06b6d4', isVault: true, unlocked: false, description: 'Curatorial visual cel and study asset.' },
+  { code: 'VAULT-04', title: 'Artist 1 - Work 08 (Study)', likes: 475, edition: 'Private', price: 'Study', category: 'Mono', color: '#10b981', isVault: true, unlocked: false, description: 'Curatorial visual cel and study asset.' },
 ];
 
 // Build the full 128-work archive
@@ -238,20 +238,20 @@ export function generateGalleryArchive(): GalleryWork[] {
     works.push({
       id: `vault-${idx + 1}`,
       code: vault.code || `VAULT-0${idx + 1}`,
-      title: vault.title || `Subscriber Vault ${idx + 1}`,
+      title: vault.title || `Curatorial Study ${idx + 1}`,
       artist: 'Artist 1',
       artistHandle: 'neo_tokyo',
       artistAvatar: 'A1',
       color: vault.color || '#333333',
       likes: vault.likes || 400,
       edition: 'Private',
-      price: 'Unlock',
+      price: 'Study',
       category: cat,
       gifSrc: gif,
       isVault: true,
       unlocked: false,
       format: '4K',
-      description: vault.description || 'Subscriber vault exclusive asset.',
+      description: vault.description || 'Curatorial visual cel and study asset.',
     });
   });
 

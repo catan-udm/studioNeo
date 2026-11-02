@@ -31,10 +31,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://bikko.studio'),
+  metadataBase: new URL('https://studioneo.tech'),
   title: {
-    default: 'bikko.studio • Creative Code, Kinetic Motion & Next-Gen Identity',
-    template: '%s • bikko.studio',
+    default: 'studioNeo • Creative Code, Kinetic Motion & Next-Gen Identity',
+    template: '%s • studioNeo',
   },
   description:
     'Creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey authentication.',
@@ -46,19 +46,19 @@ export const metadata: Metadata = {
     'SVG vector stems',
     'passkeys',
     'WebAuthn',
-    'bikko studio',
+    'studioNeo',
     'FIDO2 authentication',
   ],
-  authors: [{ name: 'studioNeo Atelier', url: 'https://bikko.studio/about' }],
-  creator: 'bikko.studio',
-  publisher: 'bikko.studio',
+  authors: [{ name: 'studioNeo Atelier', url: 'https://studioneo.tech/about' }],
+  creator: 'studioNeo',
+  publisher: 'studioNeo',
   category: 'Design & Technology',
   classification: 'Creative Technology & Digital Art',
   referrer: 'no-referrer',
   alternates: {
-    canonical: 'https://bikko.studio',
+    canonical: 'https://studioneo.tech',
     languages: {
-      'en-US': 'https://bikko.studio',
+      'en-US': 'https://studioneo.tech',
     },
   },
   robots: {
@@ -75,15 +75,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://bikko.studio',
-    siteName: 'bikko.studio',
-    title: 'bikko.studio • Creative Code & Kinetic Archive',
+    url: 'https://studioneo.tech',
+    siteName: 'studioNeo',
+    title: 'studioNeo • Creative Code & Kinetic Archive',
     description:
       'Algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkeys.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'bikko.studio • Creative Code & Kinetic Archive',
+    title: 'studioNeo • Creative Code & Kinetic Archive',
     description:
       'Algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkeys.',
   },
@@ -105,11 +105,11 @@ const structuredData = {
   '@graph': [
     {
       '@type': 'Organization',
-      '@id': 'https://bikko.studio/#organization',
-      name: 'bikko.studio',
+      '@id': 'https://studioneo.tech/#organization',
+      name: 'studioNeo',
       alternateName: 'studioNeo Atelier',
-      url: 'https://bikko.studio',
-      logo: 'https://bikko.studio/icon.svg',
+      url: 'https://studioneo.tech',
+      logo: 'https://studioneo.tech/icon.svg',
       description:
         'Creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey authentication.',
       foundingDate: '2026-01-01',
@@ -120,22 +120,22 @@ const structuredData = {
         addressCountry: 'JP',
       },
       sameAs: [
-        'https://github.com/bikkostudio',
-        'https://twitter.com/bikkostudio',
+        'https://github.com/studioneo',
+        'https://twitter.com/studioneo',
       ],
     },
     {
       '@type': 'WebSite',
-      '@id': 'https://bikko.studio/#website',
-      url: 'https://bikko.studio',
-      name: 'bikko.studio',
+      '@id': 'https://studioneo.tech/#website',
+      url: 'https://studioneo.tech',
+      name: 'studioNeo',
       inLanguage: 'en-US',
       publisher: {
-        '@id': 'https://bikko.studio/#organization',
+        '@id': 'https://studioneo.tech/#organization',
       },
       potentialAction: {
         '@type': 'SearchAction',
-        target: 'https://bikko.studio/gallery?q={search_term_string}',
+        target: 'https://studioneo.tech/gallery?q={search_term_string}',
         'query-input': 'required name=search_term_string',
       },
     },

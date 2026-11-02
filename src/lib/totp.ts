@@ -44,7 +44,7 @@ export function formatSecretForDisplay(secret: string): string {
 export function generateOtpauthUri(
   secret: string,
   email: string,
-  issuer = 'bikko.studio'
+  issuer = 'studioNeo'
 ): string {
   const cleanEmail = email.trim();
   const cleanIssuer = issuer.trim();

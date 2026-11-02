@@ -157,7 +157,7 @@ export default function StudioUploadClient() {
   // Fast-track dev activation for testing
   const handleFastTrackCurator = async () => {
     try {
-      const target = userEmail || 'resident_creator@bikko.studio';
+      const target = userEmail || 'resident_creator@studioneo.tech';
       const res = await fetch('/api/curator/toggle-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -563,7 +563,7 @@ export default function StudioUploadClient() {
               />
             </div>
 
-            {/* Subscriber Vault Gating Switch */}
+            {/* Curatorial Study Gating Switch */}
             <label className="vault-switch-box">
               <input
                 type="checkbox"
@@ -571,9 +571,9 @@ export default function StudioUploadClient() {
                 onChange={(e) => setIsVault(e.target.checked)}
               />
               <div className="vault-switch-text">
-                <span className="vault-switch-title">Lock in Subscriber Vault (Members Only)</span>
+                <span className="vault-switch-title">Restrict as Curatorial Study (Featured Authorization Only)</span>
                 <span className="vault-switch-desc">
-                  When enabled, lossless SVG master and kinetic loop are gated to active membership tier holders (studio-alpha, studio-atelier, enterprise).
+                  When enabled, lossless SVG master and kinetic loop downloads are restricted unless explicitly authorized as a Featured artist release.
                 </span>
               </div>
             </label>

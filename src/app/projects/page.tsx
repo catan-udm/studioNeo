@@ -2,24 +2,24 @@ import type { Metadata } from 'next';
 import ProjectsClient from './ProjectsClient';
 
 export const metadata: Metadata = {
-  title: 'Projects & Key Works • Animated Cuts & Vector Topologies • bikko.studio',
+  title: 'Projects & Key Works • Animated Cuts & Vector Topologies • studioNeo',
   description:
     'Experimental animated cuts, looped character stickers, and interactive media frames curated by studioNeo.',
   alternates: {
-    canonical: 'https://bikko.studio/projects',
+    canonical: 'https://studioneo.tech/projects',
   },
   openGraph: {
-    title: 'Projects & Key Works • bikko.studio',
+    title: 'Projects & Key Works • studioNeo',
     description:
       'Experimental animated cuts, looped character stickers, and interactive media frames curated by studioNeo.',
-    url: 'https://bikko.studio/projects',
+    url: 'https://studioneo.tech/projects',
     type: 'website',
     locale: 'en_US',
-    siteName: 'bikko.studio',
+    siteName: 'studioNeo',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Projects & Key Works • bikko.studio',
+    title: 'Projects & Key Works • studioNeo',
     description:
       'Experimental animated cuts, looped character stickers, and interactive media frames curated by studioNeo.',
   },
@@ -30,31 +30,31 @@ const projectsStructuredData = {
   '@graph': [
     {
       '@type': 'CollectionPage',
-      '@id': 'https://bikko.studio/projects/#webpage',
-      url: 'https://bikko.studio/projects',
-      name: 'Projects & Key Works • bikko.studio',
+      '@id': 'https://studioneo.tech/projects/#webpage',
+      url: 'https://studioneo.tech/projects',
+      name: 'Projects & Key Works • studioNeo',
       description:
         'Experimental animated cuts, looped character stickers, and interactive media frames curated by studioNeo.',
       inLanguage: 'en-US',
       isPartOf: {
-        '@id': 'https://bikko.studio/#website',
+        '@id': 'https://studioneo.tech/#website',
       },
     },
     {
       '@type': 'BreadcrumbList',
-      '@id': 'https://bikko.studio/projects/#breadcrumb',
+      '@id': 'https://studioneo.tech/projects/#breadcrumb',
       itemListElement: [
         {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://bikko.studio',
+          item: 'https://studioneo.tech',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Projects',
-          item: 'https://bikko.studio/projects',
+          item: 'https://studioneo.tech/projects',
         },
       ],
     },
