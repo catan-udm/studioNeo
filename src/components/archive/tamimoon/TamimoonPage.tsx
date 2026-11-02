@@ -1,5 +1,6 @@
 "use client";
 
+import Nav from "./Nav";
 import Hero from "./Hero";
 import About from "./About";
 import Anatomy from "./Anatomy";
@@ -35,6 +36,8 @@ export function TamimoonPage({
       >
         Skip to content
       </a>
+
+      <Nav />
 
       <main>
         <Hero />

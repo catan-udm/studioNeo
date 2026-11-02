@@ -62,7 +62,7 @@ export function Nav() {
   }, []);
 
   return (
-    <div className="fixed inset-x-0 top-0 z-50">
+    <div className="fixed inset-x-0 top-0 z-50 kaduise-top-nav">
       <div
         className={cn(
           "transition-colors duration-500",
@@ -230,7 +230,7 @@ export function Hero() {
   }, []);
 
   return (
-    <header
+    <section
       id="top"
       ref={ref}
       className="relative isolate min-h-[100svh] overflow-hidden pt-[68px]"
@@ -440,6 +440,6 @@ export function Hero() {
           ]}
         />
       </div>
-    </header>
+    </section>
   );
 }

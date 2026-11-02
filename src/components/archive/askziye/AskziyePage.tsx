@@ -8,6 +8,7 @@ import { Lightbox } from "./Lightbox";
 import { ScrollChrome, setLive, ToastProvider, toneOf, useStored, useToast } from "./lib";
 import { Shortcuts, StyleStudy, Timeline } from "./Sections";
 import { About, Contact, Footer, Hero, Intro, Spotlight, Stage, Toc } from "./Static";
+import { cn } from "@/utils/cn";
 import "./askziye.css";
 
 export function AskziyePage() {
@@ -17,6 +18,15 @@ export function AskziyePage() {
     </ToastProvider>
   );
 }
+
+const SECTIONS = [
+  { id: "works", label: "作品", en: "Works" },
+  { id: "study", label: "研究", en: "Study" },
+  { id: "stage", label: "角色", en: "Design" },
+  { id: "timeline", label: "年表", en: "Timeline" },
+  { id: "about", label: "履历", en: "Atelier" },
+  { id: "contact", label: "联系", en: "Contact" },
+];
 
 const BASE_TITLE = "ASK｜偶尔画画的猫爱好者 · Illustrator @askziye";
 
@@ -125,7 +135,7 @@ function Site() {
       <Petals />
       <BrushCursor />
       <ScrollChrome />
-      {/* Top navigation bar replaced by studioNeo StudioNav */}
+      <Nav night={night} setNight={setNight} onRandom={random} onHelp={() => setHelp(true)} favCount={favs.length} />
       <Spine />
       <Hero />
       <Toc />
@@ -162,6 +172,99 @@ function Spine() {
       <span className="h-10 w-px bg-ink/15" aria-hidden />
       <span className="seal h-6 w-6 text-[7px]">画</span>
     </div>
+  );
+}
+
+function Nav({
+  night,
+  setNight,
+  onRandom,
+  onHelp,
+  favCount,
+}: {
+  night: boolean;
+  setNight: (v: boolean) => void;
+  onRandom: () => void;
+  onHelp: () => void;
+  favCount: number;
+}) {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState("");
+
+  useEffect(() => {
+    const on = () => {
+      setScrolled(window.scrollY > 24);
+      let cur = "";
+      for (const s of SECTIONS) {
+        const el = document.getElementById(s.id);
+        if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) cur = s.id;
+      }
+      setCurrent(cur);
+    };
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+
+  const iconBtn = "grid h-9 w-9 place-items-center rounded-full border border-ink/15 text-sm transition hover:border-cinnabar hover:text-cinnabar";
+
+  return (
+    <header className={cn("fixed inset-x-0 top-0 z-40 transition-all duration-500", scrolled || open ? "nav-blur border-b border-ink/10" : "")}>
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 md:px-8">
+        <a href="#top" className="flex items-center gap-3">
+          <span className="seal h-8 w-8 text-[9px] font-semibold">ASK</span>
+          <span className="font-display text-lg tracking-[0.28em]">ASK</span>
+        </a>
+        <nav className="hidden items-center gap-6 lg:flex">
+          {SECTIONS.map((l) => (
+            <a
+              key={l.id}
+              href={`#${l.id}`}
+              aria-current={current === l.id ? "true" : undefined}
+              className="group relative flex flex-col items-center text-[10px] tracking-[0.22em] uppercase"
+            >
+              <span className={cn("transition", current === l.id ? "text-cinnabar" : "text-ink-soft")}>{l.en}</span>
+              <span className={cn("mt-0.5 font-display text-[13px] tracking-widest", current === l.id ? "text-cinnabar" : "text-ink/70 group-hover:text-cinnabar")}>
+                {l.label}
+              </span>
+              <span className={cn("absolute -bottom-2 h-px bg-cinnabar transition-all", current === l.id ? "w-full" : "w-0")} />
+            </a>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2">
+          <a href="#works" className={cn(iconBtn, "relative w-auto px-3 text-[11px]")} title="Saved plates">
+            ♥ {favCount}
+          </a>
+          <button onClick={onRandom} className={iconBtn} title="Random plate (R)" aria-label="Random plate">
+            ⚄
+          </button>
+          <button onClick={() => setNight(!night)} className={iconBtn} title="Night studio (N)" aria-label="Toggle theme">
+            {night ? "☀" : "☾"}
+          </button>
+          <button onClick={onHelp} className={cn(iconBtn, "hidden sm:grid")} title="Shortcuts (?)" aria-label="Shortcuts">
+            ?
+          </button>
+          <button className="ml-1 lg:hidden" aria-label="Menu" onClick={() => setOpen(!open)}>
+            <span className={cn("block h-px w-6 bg-ink transition", open && "translate-y-[3.5px] rotate-45")} />
+            <span className={cn("mt-1.5 block h-px bg-ink transition", open ? "w-6 -translate-y-[3.5px] -rotate-45" : "w-4")} />
+          </button>
+        </div>
+      </div>
+      {open && (
+        <div className="border-t border-ink/10 px-5 py-6 lg:hidden">
+          {SECTIONS.map((l) => (
+            <a key={l.id} href={`#${l.id}`} onClick={() => setOpen(false)} className="flex items-baseline justify-between py-2 font-display text-2xl">
+              <span>{l.label}</span>
+              <span className="text-xs tracking-[0.2em] text-ink-soft uppercase">{l.en}</span>
+            </a>
+          ))}
+          <a href="https://x.com/askziye" target="_blank" rel="noreferrer" className="mt-4 block text-sm text-cinnabar">
+            @askziye ↗
+          </a>
+        </div>
+      )}
+    </header>
   );
 }
 

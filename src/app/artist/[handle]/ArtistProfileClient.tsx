@@ -364,7 +364,7 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
       <nav className="artist-breadcrumb-nav" aria-label="Breadcrumb">
         <Link href="/" className="artist-breadcrumb-link">Home</Link>
         <span className="artist-breadcrumb-sep">/</span>
-        <Link href="/gallery" className="artist-breadcrumb-link">Gallery Archive</Link>
+        <Link href="/artist" className="artist-breadcrumb-link">Artists</Link>
         <span className="artist-breadcrumb-sep">/</span>
         <span className="artist-breadcrumb-current">@{artist.handle}</span>
       </nav>

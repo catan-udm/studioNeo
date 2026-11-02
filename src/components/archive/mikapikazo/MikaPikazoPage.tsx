@@ -77,7 +77,7 @@ export function MikaPikazoPage({
   };
 
   return (
-    <div className="mikapikazo-page grain min-h-screen bg-paper font-body text-ink pt-[64px] md:pt-[72px]">
+    <div className="mikapikazo-page grain min-h-screen bg-paper font-body text-ink">
       <div ref={cursorRef} className="reg-cursor" aria-hidden="true">
         <RegMark className="h-full w-full" />
       </div>
@@ -90,7 +90,7 @@ export function MikaPikazoPage({
       </a>
 
       {/* ---------------- spine / header ---------------- */}
-      <header className="sticky top-[64px] md:top-[72px] z-30 border-b-[4px] border-ink bg-ink text-paper">
+      <header className="sticky top-0 z-50 border-b-[4px] border-ink bg-ink text-paper">
         <div className="mx-auto flex h-[64px] max-w-[1500px] items-center gap-4 px-4 md:px-8">
           <a href="#top" className="group flex items-center gap-3" onClick={() => setMenuOpen(false)}>
             <span className="grid h-10 w-10 -rotate-3 place-items-center border-[3px] border-paper bg-pop2 font-display text-lg leading-none text-on-pop2 transition-transform duration-300 group-hover:rotate-6">

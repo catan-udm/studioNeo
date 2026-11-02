@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Hero } from "./Hero";
 import { Gallery, type ArchiveFilter } from "./Gallery";
 import { Featured } from "./Featured";
@@ -8,8 +8,9 @@ import { Timeline } from "./Timeline";
 import { About } from "./About";
 import { Footer } from "./Footer";
 import { Marquee } from "./ui";
-import { Splash, BackToTop } from "./Chrome";
+import { Splash, BackToTop, ScrollProgress } from "./Chrome";
 import { ArtistSwitcher, currentArtist, type ArtistPage } from "./ArtistSwitcher";
+import { Nav } from "./Nav";
 import { RellaPage } from "./RellaPage";
 import { TamimoonPage } from "./tamimoon/TamimoonPage";
 import { YoneyamaiPage } from "./yoneyamai/YoneyamaiPage";
@@ -111,63 +112,67 @@ export function ArchiveApp({ initialArtist = "sankobite" }: { initialArtist?: Ar
     []
   );
 
+  const renderArtistPage = (page: ReactNode) => page;
+
   if (artist === "rella") {
-    return <RellaPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
+    return renderArtistPage(<RellaPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />);
   }
 
   if (artist === "tamimoon") {
-    return <TamimoonPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
+    return renderArtistPage(<TamimoonPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />);
   }
 
   if (artist === "yoneyamai") {
-    return <YoneyamaiPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
+    return renderArtistPage(<YoneyamaiPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />);
   }
 
   if (artist === "mikapikazo") {
-    return <MikaPikazoPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />;
+    return renderArtistPage(<MikaPikazoPage selectedWorkId={selectedWorkId} onSelectWork={handleSelectWork} />);
   }
 
   if (artist === "dinoillus") {
-    return <DinoillusPage />;
+    return renderArtistPage(<DinoillusPage />);
   }
 
   if (artist === "lam") {
-    return <LamPage />;
+    return renderArtistPage(<LamPage />);
   }
 
   if (artist === "dolman") {
-    return <DolmanPage />;
+    return renderArtistPage(<DolmanPage />);
   }
 
   if (artist === "tatamipi") {
-    return <TatamipiPage />;
+    return renderArtistPage(<TatamipiPage />);
   }
 
   if (artist === "askziye") {
-    return <AskziyePage />;
+    return renderArtistPage(<AskziyePage />);
   }
 
   if (artist === "dora") {
-    return <DoraPage />;
+    return renderArtistPage(<DoraPage />);
   }
 
   if (artist === "kaduise") {
-    return <KaduisePage />;
+    return renderArtistPage(<KaduisePage />);
   }
 
   if (artist === "kda") {
-    return <KdaPage />;
+    return renderArtistPage(<KdaPage />);
   }
 
-  return (
+  return renderArtistPage(
     <div className="sankobite-page min-h-screen">
       <Splash />
+      <ScrollProgress />
       <a
         href="#works"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:bg-ink focus:text-paper focus:px-4 focus:py-2 focus:font-bold focus:border-[3px] focus:border-miku"
       >
         Skip to the artwork
       </a>
+      <Nav onOpenSaved={() => setFilterOverride("saved")} />
       <main id="main-content">
         <Hero onSelectWork={handleSelectWork} />
         <Marquee

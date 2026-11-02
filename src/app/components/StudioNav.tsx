@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
   useCallback,
+  useMemo,
 } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -15,17 +16,17 @@ import { illustrators } from '@/data/illustrators';
 const useIsomorphicLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
-type RouteId = 'studio' | 'projects' | 'gallery' | 'about';
+type RouteId = 'studio' | 'projects' | 'artist';
 type ModalType = 'settings' | 'profile' | 'terms' | 'auth' | null;
 type Theme = 'light' | 'dark' | 'system';
 type UiScale = 'compact' | 'default' | 'comfortable';
 type MotionPref = 'full' | 'interactive' | 'reduced';
+type DockPosition = 'right' | 'left' | 'top';
 
 const navigation: { id: RouteId; label: string; path: string }[] = [
   { id: 'studio', label: 'Studio', path: '/' },
   { id: 'projects', label: 'Projects', path: '/projects' },
-  { id: 'gallery', label: 'Gallery', path: '/gallery' },
-  { id: 'about', label: 'About', path: '/about' },
+  { id: 'artist', label: 'Artists', path: '/artist' },
 ];
 
 function StudioMark() {
@@ -117,21 +118,16 @@ function NavIcon({ id }: { id: RouteId }) {
         <path d="M7 3v18M17 3v18M3 12h18M3 7.5h4M3 16.5h4M17 7.5h4M17 16.5h4" />
       </svg>
     );
-  if (id === 'gallery')
+  if (id === 'artist')
     return (
       <svg {...common}>
-        <rect width="7" height="7" x="3" y="3" rx="1.5" />
-        <rect width="7" height="7" x="14" y="3" rx="1.5" />
-        <rect width="7" height="7" x="14" y="14" rx="1.5" />
-        <rect width="7" height="7" x="3" y="14" rx="1.5" />
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     );
-  return (
-    <svg {...common}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 16v-4M12 8h.01" />
-    </svg>
-  );
+  return null;
 }
 
 function ArrowIcon({ size = 19 }: { size?: number }) {
@@ -617,25 +613,56 @@ export default function StudioNav() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [indicator, setIndicator] = useState({ x: 4, width: 0 });
+  const [indicator, setIndicator] = useState({ x: 4, y: 4, width: 0, height: 0 });
   const [modal, setModal] = useState<ModalType>(null);
 
   const [theme, setThemeState] = useState<Theme>('system');
   const [uiScale, setUiScaleState] = useState<UiScale>('default');
   const [motion, setMotionState] = useState<MotionPref>('full');
 
+  // Mobile Drag Dock state (clips to 'right', 'left', or 'top')
+  const [dockPosition, setDockPosition] = useState<DockPosition>('right');
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const [hoverDock, setHoverDock] = useState<DockPosition | null>(null);
+
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    pointerId: number;
+    target: HTMLElement | null;
+    isDragging: boolean;
+    hasMoved: boolean;
+  } | null>(null);
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const justDraggedRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const savedDock = localStorage.getItem('bikko_mobile_dock') as DockPosition | null;
+      if (savedDock && ['right', 'left', 'top'].includes(savedDock)) {
+        setDockPosition(savedDock);
+      }
+    } catch {}
+  }, []);
+
   const menuRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const burgerRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
 
-  const getRouteFromPath = useCallback((path: string): RouteId => {
+  // Only individual artist profile routes (/artist/[handle]) activate the hero glass variant;
+  // the main /artist directory page retains standard docked header behavior.
+  const isArtistRoute = pathname ? pathname.startsWith('/artist/') : false;
+
+  const getRouteFromPath = useCallback((path: string): RouteId | null => {
+    if (path === '/') return 'studio';
     if (path.startsWith('/projects')) return 'projects';
-    if (path.startsWith('/gallery')) return 'gallery';
-    if (path.startsWith('/about')) return 'about';
-    return 'studio';
+    if (path === '/artist' || path.startsWith('/artist')) return 'artist';
+    return null;
   }, []);
 
   const route = getRouteFromPath(pathname);
@@ -645,16 +672,242 @@ export default function StudioNav() {
     sliderRef: navRef,
     burgerRef,
     popoverRef,
-    deps: [route, scrolled, menuOpen],
+    deps: [route, scrolled, menuOpen, dockPosition],
   });
 
-  // Sync scroll position & progress fill
+  const isMobileOrLandscape = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.innerWidth <= 780 ||
+      (window.innerWidth <= 950 &&
+        window.innerHeight <= 520 &&
+        window.matchMedia('(orientation: landscape)').matches)
+    );
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLElement>) => {
+    if (!isMobileOrLandscape() || e.button !== 0) return;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    dragRef.current = {
+      startX,
+      startY,
+      pointerId: e.pointerId,
+      target: e.currentTarget,
+      isDragging: false,
+      hasMoved: false,
+    };
+
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    holdTimerRef.current = setTimeout(() => {
+      if (!dragRef.current) return;
+      dragRef.current.isDragging = true;
+      setIsDragging(true);
+      setDragPos({ x: startX, y: startY });
+      try {
+        dragRef.current.target?.setPointerCapture(e.pointerId);
+      } catch {}
+    }, 180);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (!dragRef.current || dragRef.current.pointerId !== e.pointerId) return;
+
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    const dist = Math.hypot(dx, dy);
+
+    if (!dragRef.current.isDragging && dist > 8) {
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+      dragRef.current.isDragging = true;
+      setIsDragging(true);
+      try {
+        dragRef.current.target?.setPointerCapture(e.pointerId);
+      } catch {}
+    }
+
+    if (dragRef.current.isDragging) {
+      dragRef.current.hasMoved = true;
+      const x = e.clientX;
+      const y = e.clientY;
+      setDragPos({ x, y });
+
+      const W = window.innerWidth;
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      const topThreshold = isLandscape ? 120 : 160;
+      if (y < topThreshold) {
+        setHoverDock('top');
+      } else if (x < W / 2) {
+        setHoverDock('left');
+      } else {
+        setHoverDock('right');
+      }
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLElement>) => {
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    if (!dragRef.current) return;
+
+    if (dragRef.current.isDragging) {
+      const W = window.innerWidth;
+      const x = e.clientX;
+      const y = e.clientY;
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      const topThreshold = isLandscape ? 120 : 160;
+      let targetDock: DockPosition = 'right';
+      if (y < topThreshold) {
+        targetDock = 'top';
+      } else if (x < W / 2) {
+        targetDock = 'left';
+      } else {
+        targetDock = 'right';
+      }
+
+      setDockPosition(targetDock);
+      try {
+        localStorage.setItem('bikko_mobile_dock', targetDock);
+      } catch {}
+
+      justDraggedRef.current = true;
+      setTimeout(() => {
+        justDraggedRef.current = false;
+      }, 220);
+
+      try {
+        dragRef.current.target?.releasePointerCapture(e.pointerId);
+      } catch {}
+    }
+
+    setIsDragging(false);
+    setHoverDock(null);
+    dragRef.current = null;
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLElement>) => {
+    if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    if (dragRef.current) {
+      try {
+        dragRef.current.target?.releasePointerCapture(e.pointerId);
+      } catch {}
+    }
+    setIsDragging(false);
+    setHoverDock(null);
+    dragRef.current = null;
+  };
+
+  // Per-pixel adaptive glyphs (black on light, white on dark, down to part of a
+  // letter / part of a stroke). Each glyph (label text, logo stroke, icon) gets
+  // an alpha mask of its exact shape; a sibling layer clipped by that mask runs
+  // `backdrop-filter: grayscale(1) invert(1) contrast(100)` over whatever is
+  // actually painted behind it (page, artwork, video, island glass).
   useEffect(() => {
+    const header = headerRef.current;
+    if (!header || typeof CSS === 'undefined') return;
+    const ua = navigator.userAgent;
+    const isBlink = /Chrome\/|Chromium\/|Edg\//.test(ua) && !/Firefox\//.test(ua);
+    const supported =
+      isBlink &&
+      CSS.supports('backdrop-filter', 'grayscale(1) invert(1) contrast(100)') &&
+      CSS.supports('mask-image', 'url("data:image/png;base64,AA==")');
+    if (!supported) return;
+
+    const root = document.documentElement;
+
+    const textMask = (el: HTMLElement): string => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const text = el.textContent ?? '';
+      if (!w || !h || !text) return '';
+      const cs = getComputedStyle(el);
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(w * dpr);
+      canvas.height = Math.ceil(h * dpr);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return '';
+      ctx.scale(dpr, dpr);
+      ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing =
+        cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#000';
+      const m = ctx.measureText(text);
+      const ascent = m.fontBoundingBoxAscent ?? parseFloat(cs.fontSize) * 0.8;
+      const descent = m.fontBoundingBoxDescent ?? parseFloat(cs.fontSize) * 0.2;
+      ctx.fillText(text, 0, (h - (ascent + descent)) / 2 + ascent);
+      return canvas.toDataURL('image/png');
+    };
+
+    const svgMask = (svg: SVGElement): string => {
+      const clone = svg.cloneNode(true) as SVGElement;
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      const markup = new XMLSerializer()
+        .serializeToString(clone)
+        .replace(/currentColor/g, '#000');
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
+    };
+
+    const apply = (el: HTMLElement, uri: string) => {
+      if (!uri) return;
+      el.style.setProperty('--glyph-mask', `url("${uri}")`);
+      el.setAttribute('data-glyph-ready', 'true');
+    };
+
+    const buildAll = () => {
+      header
+        .querySelectorAll<HTMLElement>('.nav-pill-text, .popover-action-text')
+        .forEach((el) => apply(el, textMask(el)));
+      header
+        .querySelectorAll<HTMLElement>('.studio-nav-brand-link, .nav-pill-icon, .popover-action-icon')
+        .forEach((el) => {
+          const svg = el.querySelector<SVGElement>('svg');
+          if (svg) apply(el, svgMask(svg));
+        });
+    };
+
+    buildAll();
+    root.setAttribute('data-adaptive-glyphs', 'true');
+
+    let cancelled = false;
+    document.fonts?.ready.then(() => {
+      if (!cancelled) buildAll();
+    });
+    const ro =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(buildAll) : null;
+    header
+      .querySelectorAll<HTMLElement>('.nav-pill-text, .popover-action-text')
+      .forEach((el) => ro?.observe(el));
+    window.addEventListener('resize', buildAll);
+
+    return () => {
+      cancelled = true;
+      ro?.disconnect();
+      window.removeEventListener('resize', buildAll);
+    };
+  }, [pathname]);
+
+  // Sync scroll position, progress fill, and dynamic backdrop tone
+  useEffect(() => {
+    let ticking = false;
     const updatePosition = () => {
-      setScrolled(window.scrollY > 20);
-      const scrollable =
-        document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = window.scrollY;
+        const isPastThreshold = y > 20;
+        setScrolled((prev) => (prev !== isPastThreshold ? isPastThreshold : prev));
+
+        const scrollable =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const p = scrollable > 0 ? Math.min(y / scrollable, 1) : 0;
+        if (progressFillRef.current) {
+          progressFillRef.current.style.transform = `scaleX(${p})`;
+          progressFillRef.current.style.opacity = p > 0.004 ? '1' : '0';
+        }
+      });
     };
     updatePosition();
     window.addEventListener('scroll', updatePosition, { passive: true });
@@ -663,7 +916,7 @@ export default function StudioNav() {
       window.removeEventListener('scroll', updatePosition);
       window.removeEventListener('resize', updatePosition);
     };
-  }, [route]);
+  }, [pathname]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -672,11 +925,18 @@ export default function StudioNav() {
   // Precise capsule indicator measurement with ResizeObserver & fonts.ready
   useIsomorphicLayoutEffect(() => {
     const updateIndicator = () => {
-      const active = navRef.current?.querySelector<HTMLElement>(
-        `[data-route="${route}"]`,
-      );
+      const active = route
+        ? navRef.current?.querySelector<HTMLElement>(`[data-route="${route}"]`)
+        : null;
       if (active) {
-        setIndicator({ x: active.offsetLeft, width: active.offsetWidth });
+        setIndicator({
+          x: active.offsetLeft,
+          y: active.offsetTop,
+          width: active.offsetWidth,
+          height: active.offsetHeight,
+        });
+      } else {
+        setIndicator({ x: 0, y: 0, width: 0, height: 0 });
       }
     };
 
@@ -688,12 +948,24 @@ export default function StudioNav() {
     if (ro && navRef.current) ro.observe(navRef.current);
     document.fonts?.ready?.then(updateIndicator);
     window.addEventListener('resize', updateIndicator);
+    window.addEventListener('orientationchange', updateIndicator);
+
+    const mql =
+      typeof window !== 'undefined'
+        ? window.matchMedia('(orientation: landscape)')
+        : null;
+    const handleMql = () => {
+      requestAnimationFrame(updateIndicator);
+    };
+    mql?.addEventListener?.('change', handleMql);
 
     return () => {
       ro?.disconnect();
       window.removeEventListener('resize', updateIndicator);
+      window.removeEventListener('orientationchange', updateIndicator);
+      mql?.removeEventListener?.('change', handleMql);
     };
-  }, [route]);
+  }, [route, dockPosition]);
 
   // Close menus on outside click or Escape key
   useEffect(() => {
@@ -784,17 +1056,25 @@ export default function StudioNav() {
       {/* Top Reading Progress Bar */}
       <div className="page-top-progress-bar" aria-hidden="true">
         <div
+          ref={progressFillRef}
           className="page-top-progress-fill"
-          style={{
-            transform: `scaleX(${progress})`,
-            opacity: progress > 0.004 ? 1 : 0,
-          }}
         />
       </div>
 
+      {/* Mobile Drag Dock Drop Zones */}
+      {isDragging && (
+        <div className="dock-drop-zones-layer" aria-hidden="true">
+          <div className={`dock-drop-zone dock-drop-zone-top visible${hoverDock === 'top' ? ' active' : ''}`} />
+          <div className={`dock-drop-zone dock-drop-zone-left visible${hoverDock === 'left' ? ' active' : ''}`} />
+          <div className={`dock-drop-zone dock-drop-zone-right visible${hoverDock === 'right' ? ' active' : ''}`} />
+        </div>
+      )}
+
       {/* Sticky Liquid Glass Navbar */}
       <header
+        ref={headerRef}
         className={`studio-nav-header${scrolled ? ' is-scrolled' : ''}${menuOpen ? ' menu-open' : ''}`}
+        data-artist-route={isArtistRoute ? 'true' : undefined}
         role="banner"
       >
         <div className="studio-nav-inner">
@@ -812,21 +1092,44 @@ export default function StudioNav() {
 
           {/* Island 2: Center Navigation Capsule Slider */}
           <div
-            className={`studio-nav-center${menuOpen ? ' nav-menu-open' : ''}`}
+            className={`studio-nav-center${menuOpen ? ' nav-menu-open' : ''}${isDragging ? ' is-dragging' : ''}`}
+            data-dock={dockPosition}
+            style={
+              isDragging && dragPos
+                ? {
+                    position: 'fixed',
+                    left: `${dragPos.x}px`,
+                    top: `${dragPos.y}px`,
+                    right: 'auto',
+                    bottom: 'auto',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 1005,
+                    transition: 'none',
+                  }
+                : undefined
+            }
           >
             <nav
               className="studio-nav-slider bubble-island"
               aria-label="Main navigation"
               ref={navRef}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerCancel}
             >
               <span
                 className="nav-slider-indicator"
                 aria-hidden="true"
-                style={{
-                  transform: `translateX(${indicator.x}px)`,
-                  width: indicator.width,
-                  opacity: indicator.width ? 1 : 0,
-                }}
+                style={
+                  {
+                    '--indicator-x': `${indicator.x}px`,
+                    '--indicator-y': `${indicator.y}px`,
+                    '--indicator-w': `${indicator.width}px`,
+                    '--indicator-h': `${indicator.height}px`,
+                    opacity: indicator.width || indicator.height ? 1 : 0,
+                  } as React.CSSProperties
+                }
               />
               {navigation.map((item) => (
                 <Link
@@ -837,6 +1140,10 @@ export default function StudioNav() {
                   aria-label={item.label}
                   aria-current={route === item.id ? 'page' : undefined}
                   onClick={(e) => {
+                    if (justDraggedRef.current || isDragging) {
+                      e.preventDefault();
+                      return;
+                    }
                     if (pathname === item.path) {
                       e.preventDefault();
                       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1037,21 +1344,6 @@ export default function StudioNav() {
                 aria-hidden={!menuOpen || !scrolled}
                 ref={popoverRef}
               >
-                <span className="menu-heading">Explore the studio</span>
-                {navigation.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={item.path}
-                    className={route === item.id ? ' is-current' : undefined}
-                    onClick={() => selectSection(item.id)}
-                    tabIndex={menuOpen && scrolled ? 0 : -1}
-                  >
-                    {item.label}
-                    <ArrowIcon size={15} />
-                  </Link>
-                ))}
-                <div className="burger-menu-divider burger-divider-vertical" />
-                <span className="menu-heading">Quick Actions</span>
                 <div className="popover-quick-actions">
                   <button
                     type="button"
@@ -1061,7 +1353,8 @@ export default function StudioNav() {
                       setMenuOpen(false);
                     }}
                   >
-                    <svg
+                    <span className="popover-action-icon">
+                      <svg
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
@@ -1075,7 +1368,8 @@ export default function StudioNav() {
                       <circle cx="12" cy="12" r="3" />
                       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                     </svg>
-                    <span>Settings</span>
+                    </span>
+                    <span className="popover-action-text">Settings</span>
                   </button>
                   <button
                     type="button"
@@ -1085,7 +1379,8 @@ export default function StudioNav() {
                       setMenuOpen(false);
                     }}
                   >
-                    <svg
+                    <span className="popover-action-icon">
+                      <svg
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
@@ -1099,7 +1394,8 @@ export default function StudioNav() {
                       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
-                    <span>Profile</span>
+                    </span>
+                    <span className="popover-action-text">Profile</span>
                   </button>
                   <button
                     type="button"
@@ -1109,7 +1405,8 @@ export default function StudioNav() {
                       setMenuOpen(false);
                     }}
                   >
-                    <svg
+                    <span className="popover-action-icon">
+                      <svg
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
@@ -1126,7 +1423,8 @@ export default function StudioNav() {
                       <line x1="16" y1="17" x2="8" y2="17" />
                       <line x1="10" y1="9" x2="8" y2="9" />
                     </svg>
-                    <span>Terms & Policies</span>
+                    </span>
+                    <span className="popover-action-text">Terms & Policies</span>
                   </button>
                   <button
                     type="button"
@@ -1136,7 +1434,8 @@ export default function StudioNav() {
                       setMenuOpen(false);
                     }}
                   >
-                    <svg
+                    <span className="popover-action-icon">
+                      <svg
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
@@ -1151,7 +1450,8 @@ export default function StudioNav() {
                       <polyline points="10 17 15 12 10 7" />
                       <line x1="15" y1="12" x2="3" y2="12" />
                     </svg>
-                    <span>Sign In / Sign Up</span>
+                    </span>
+                    <span className="popover-action-text">Sign In / Sign Up</span>
                   </button>
                 </div>
               </div>

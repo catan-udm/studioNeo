@@ -16,7 +16,7 @@
 .artist-breadcrumb-nav {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1.5rem 2rem 0;
+  padding: clamp(4.25rem, 6.5vw, 5rem) 2rem 0;
   display: flex;
   align-items: center;
   gap: 8px;

@@ -138,7 +138,7 @@ const volumes: Volume[] = [
       },
       {
         kind: "image",
-        src: "/images/lam-visions2027-detail.jpg",
+        src: "/images/lam-eyes.jpg",
         fallbackSrc:
           "https://img.kai-you.net/storage/2026/07/dcd31f09-f36d-46fd-9250-63574e72f764/main/71yleIvsKXL._SL1500_.webp",
         alt: "Detail of LAM's VISIONS 2027 cover illustration, focusing on the character's eyes.",

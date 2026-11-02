@@ -82,6 +82,9 @@
 .bubble-island {
   position: relative;
   box-sizing: border-box;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .studio-nav-left {
@@ -95,7 +98,9 @@
   border: 1px solid transparent;
   border-radius: 9999px;
   pointer-events: auto;
-  transition: transform 480ms cubic-bezier(0.34, 1.3, 0.64, 1), background-color 350ms ease, border-color 350ms ease, box-shadow 480ms cubic-bezier(0.34, 1.3, 0.64, 1), backdrop-filter 350ms ease;
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), background 350ms ease, border-color 350ms ease, box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .studio-nav-header.is-scrolled .studio-nav-left {
@@ -137,12 +142,13 @@
   align-items: center;
   justify-content: center;
   pointer-events: auto;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(0);
+  will-change: transform;
   transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), opacity 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .studio-nav-header.is-scrolled .studio-nav-center {
-  transform: translate(-50%, -50%) translateY(12px);
+  transform: translate(-50%, -50%) translateY(12px) translateZ(0);
 }
 
 .studio-nav-slider {
@@ -156,7 +162,7 @@
   background: rgb(241 245 249 / 85%);
   border: 1px solid rgb(226 232 240 / 95%);
   border-radius: 9999px;
-  transition: background-color 350ms ease, border-color 350ms ease, box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 350ms ease;
+  transition: background 350ms ease, border-color 350ms ease, box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .liquid-glass-svg-defs {
@@ -180,11 +186,13 @@ main#main-content {
   left: 0;
   z-index: 1;
   pointer-events: none;
+  width: var(--indicator-w, 0px);
+  transform: translateX(var(--indicator-x, 0px));
   background: #fff;
   border: 0.5px solid rgb(0 0 0 / 4%);
   border-radius: 9999px;
   box-shadow: 0 2px 5px rgb(0 0 0 / 8%), 0 1px 1.5px rgb(0 0 0 / 4%);
-  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), width 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease, background-color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), width 320ms cubic-bezier(0.16, 1, 0.3, 1), height 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease, background-color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
 }
 
 /* Scrolled active indicator with crisp glass depth */
@@ -449,7 +457,9 @@ main#main-content {
   border: 1px solid transparent;
   border-radius: 9999px;
   pointer-events: auto;
-  transition: transform 480ms cubic-bezier(0.34, 1.3, 0.64, 1), background-color 350ms ease, border-color 350ms ease, box-shadow 480ms cubic-bezier(0.34, 1.3, 0.64, 1), backdrop-filter 350ms ease;
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), background 350ms ease, border-color 350ms ease, box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .studio-nav-header.is-scrolled .nav-burger-bubble {
@@ -472,7 +482,7 @@ main#main-content {
   background: #f4f4f5;
   border: 1px solid #e5e7eb;
   border-radius: 9999px;
-  transition: transform 150ms ease, background-color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+  transition: transform 150ms ease, background 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
 }
 
 .hamburger-btn:hover {
@@ -513,8 +523,8 @@ main#main-content {
   right: 0;
   display: flex;
   flex-direction: column;
-  width: 238px;
-  padding: 12px;
+  width: 216px;
+  padding: 8px;
   overflow: hidden;
   background: rgb(255 255 255 / 26%);
   border: 1px solid rgb(255 255 255 / 72%);
@@ -524,8 +534,8 @@ main#main-content {
     0 16px 40px -4px rgb(0 0 0 / 16%),
     inset 0 1px 1px rgb(255 255 255 / 92%),
     inset 0 -1px 1.5px rgb(255 255 255 / 42%);
-  -webkit-backdrop-filter: blur(18px) saturate(175%) contrast(104%);
-  backdrop-filter: blur(18px) saturate(175%) contrast(104%);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
   opacity: 0;
   pointer-events: none;
   transform: translateY(-8px) scale(0.94);
@@ -534,9 +544,14 @@ main#main-content {
 }
 
 :root[data-liquid-refraction="true"] .nav-burger-popover {
-  background: rgb(255 255 255 / 22%);
-  -webkit-backdrop-filter: url(#liquid-glass-popover) saturate(165%) contrast(104%) brightness(103%);
-  backdrop-filter: url(#liquid-glass-popover) saturate(165%) contrast(104%) brightness(103%);
+  background: rgb(255 255 255 / 16%);
+  -webkit-backdrop-filter: url(#liquid-glass-popover);
+  backdrop-filter: url(#liquid-glass-popover);
+  will-change: transform, backdrop-filter;
+}
+
+:root[data-liquid-refraction="true"] .nav-burger-popover.is-open {
+  animation: liveIslandBackdropPopover 2s linear infinite;
 }
 
 .nav-burger-popover > * {
@@ -589,7 +604,7 @@ main#main-content {
 /* Scrolled detached floating islands — refraction scoped strictly to each island */
 .studio-nav-header.is-scrolled .bubble-island {
   overflow: hidden;
-  background: rgb(255 255 255 / 18%);
+  background: rgb(255 255 255 / 8%);
   border: 1px solid rgb(255 255 255 / 72%);
   border-color: rgb(255 255 255 / 92%) rgb(255 255 255 / 72%) rgb(255 255 255 / 54%);
   box-shadow:
@@ -598,23 +613,105 @@ main#main-content {
     0 20px 48px -6px rgb(15 23 42 / 10%),
     inset 0 1px 1px 0 rgb(255 255 255 / 92%),
     inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%);
-  -webkit-backdrop-filter: blur(16px) saturate(175%) contrast(104%);
-  backdrop-filter: blur(16px) saturate(175%) contrast(104%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  will-change: transform, backdrop-filter;
+  animation: liveIslandBackdropFallback 2s linear infinite;
 }
 
 :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-left {
-  -webkit-backdrop-filter: url(#liquid-glass-left) saturate(165%) contrast(104%) brightness(103%);
-  backdrop-filter: url(#liquid-glass-left) saturate(165%) contrast(104%) brightness(103%);
+  -webkit-backdrop-filter: url(#liquid-glass-left);
+  backdrop-filter: url(#liquid-glass-left);
+  animation: liveIslandBackdropLeft 2s linear infinite;
 }
 
 :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider {
-  -webkit-backdrop-filter: url(#liquid-glass-slider) saturate(165%) contrast(104%) brightness(103%);
-  backdrop-filter: url(#liquid-glass-slider) saturate(165%) contrast(104%) brightness(103%);
+  -webkit-backdrop-filter: url(#liquid-glass-slider);
+  backdrop-filter: url(#liquid-glass-slider);
+  animation: liveIslandBackdropSlider 2s linear infinite;
 }
 
 :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .nav-burger-bubble {
-  -webkit-backdrop-filter: url(#liquid-glass-burger) saturate(165%) contrast(104%) brightness(103%);
-  backdrop-filter: url(#liquid-glass-burger) saturate(165%) contrast(104%) brightness(103%);
+  -webkit-backdrop-filter: url(#liquid-glass-burger);
+  backdrop-filter: url(#liquid-glass-burger);
+  animation: liveIslandBackdropBurger 2s linear infinite;
+}
+
+/* Zero-cost GPU compositor invalidation keyframes:
+   Continuously marks the backdrop filter surface dirty so Chromium samples
+   live video and animated GIF frames on every compositor frame without
+   stalling or freezing on stationary islands, using an invisible 0.005% step
+   around 100% identity saturation for 100% true-color accuracy. */
+@keyframes liveIslandBackdropFallback {
+  0%, 100% {
+    -webkit-backdrop-filter: blur(16px) saturate(100%);
+    backdrop-filter: blur(16px) saturate(100%);
+  }
+  50% {
+    -webkit-backdrop-filter: blur(16px) saturate(100.005%);
+    backdrop-filter: blur(16px) saturate(100.005%);
+  }
+}
+
+@keyframes liveIslandBackdropLeft {
+  0%, 100% {
+    -webkit-backdrop-filter: url(#liquid-glass-left) saturate(100%);
+    backdrop-filter: url(#liquid-glass-left) saturate(100%);
+  }
+  50% {
+    -webkit-backdrop-filter: url(#liquid-glass-left) saturate(100.005%);
+    backdrop-filter: url(#liquid-glass-left) saturate(100.005%);
+  }
+}
+
+@keyframes liveIslandBackdropSlider {
+  0%, 100% {
+    -webkit-backdrop-filter: url(#liquid-glass-slider) saturate(100%);
+    backdrop-filter: url(#liquid-glass-slider) saturate(100%);
+  }
+  50% {
+    -webkit-backdrop-filter: url(#liquid-glass-slider) saturate(100.005%);
+    backdrop-filter: url(#liquid-glass-slider) saturate(100.005%);
+  }
+}
+
+@keyframes liveIslandBackdropBurger {
+  0%, 100% {
+    -webkit-backdrop-filter: url(#liquid-glass-burger) saturate(100%);
+    backdrop-filter: url(#liquid-glass-burger) saturate(100%);
+  }
+  50% {
+    -webkit-backdrop-filter: url(#liquid-glass-burger) saturate(100.005%);
+    backdrop-filter: url(#liquid-glass-burger) saturate(100.005%);
+  }
+}
+
+@keyframes liveIslandBackdropPopover {
+  0%, 100% {
+    -webkit-backdrop-filter: url(#liquid-glass-popover) saturate(100%);
+    backdrop-filter: url(#liquid-glass-popover) saturate(100%);
+  }
+  50% {
+    -webkit-backdrop-filter: url(#liquid-glass-popover) saturate(100.005%);
+    backdrop-filter: url(#liquid-glass-popover) saturate(100.005%);
+  }
+}
+
+:root[data-motion="reduced"] .studio-nav-header.is-scrolled .bubble-island,
+:root[data-motion="reduced"] .nav-burger-popover {
+  -webkit-backdrop-filter: blur(16px) !important;
+  backdrop-filter: blur(16px) !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .bubble-island,
+  .studio-nav-header.is-scrolled .bubble-island,
+  .nav-burger-popover {
+    -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) !important;
+    animation: none !important;
+  }
 }
 
 /* Firefox per-island shape-aware edge refraction via live -moz-element(#main-content) */
@@ -638,19 +735,19 @@ main#main-content {
   }
 
   .studio-nav-header.is-scrolled .studio-nav-left::before {
-    filter: url(#liquid-glass-left) saturate(165%) contrast(104%) brightness(103%);
+    filter: url(#liquid-glass-left);
   }
 
   .studio-nav-header.is-scrolled .studio-nav-slider::before {
-    filter: url(#liquid-glass-slider) saturate(165%) contrast(104%) brightness(103%);
+    filter: url(#liquid-glass-slider);
   }
 
   .studio-nav-header.is-scrolled .nav-burger-bubble::before {
-    filter: url(#liquid-glass-burger) saturate(165%) contrast(104%) brightness(103%);
+    filter: url(#liquid-glass-burger);
   }
 
   .nav-burger-popover::before {
-    filter: url(#liquid-glass-popover) saturate(165%) contrast(104%) brightness(103%);
+    filter: url(#liquid-glass-popover);
   }
 
   /*
@@ -729,6 +826,13 @@ main#main-content {
   .nav-burger-popover {
     background: rgb(255 255 255 / 88%);
   }
+
+  :root[data-theme="dark"] .studio-nav-header.is-scrolled .bubble-island,
+  :root[data-theme="dark"] .nav-burger-popover,
+  :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .bubble-island,
+  :root[data-resolved-theme="dark"] .nav-burger-popover {
+    background: #18191f;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -739,12 +843,8 @@ main#main-content {
   }
 }
 
-@media (max-width: 780px) {
-  .studio-nav-header {
-    --nav-slider-height: 42px;
-    --nav-slider-padding: 3px;
-  }
-
+@media (max-width: 780px),
+       (orientation: landscape) and (max-height: 520px) and (max-width: 950px) {
   .nav-pill-icon {
     display: inline-flex;
   }
@@ -753,22 +853,414 @@ main#main-content {
     display: none;
   }
 
-  .studio-nav-slider {
+  /* Dock navbar capsule to screen edges (right, left, or top) */
+  .studio-nav-center {
+    position: fixed;
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    will-change: transform, top, left, right;
+    transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), top 350ms cubic-bezier(0.16, 1, 0.3, 1), left 350ms cubic-bezier(0.16, 1, 0.3, 1), right 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Default and Right Dock */
+  .studio-nav-center[data-dock="right"],
+  .studio-nav-center:not([data-dock]) {
+    top: 50%;
+    right: 12px;
+    left: auto;
+    bottom: auto;
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="right"],
+  .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock]) {
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  /* Left Dock */
+  .studio-nav-center[data-dock="left"] {
+    top: 50%;
+    left: 12px;
+    right: auto;
+    bottom: auto;
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="left"] {
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  /* Top Dock: Return to default desktop studioNav position in the header */
+  .studio-nav-center[data-dock="top"] {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%, -50%) translateZ(0);
+  }
+
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] {
+    transform: translate(-50%, -50%) translateY(12px) translateZ(0);
+  }
+
+  /* Active Dragging Elevation */
+  .studio-nav-center.is-dragging {
+    z-index: 1005 !important;
+    transition: none !important;
+  }
+
+  .studio-nav-center.is-dragging .studio-nav-slider {
+    cursor: grabbing !important;
+    transform: scale(1.08) !important;
+    box-shadow:
+      0 16px 40px -4px rgba(0, 0, 0, 0.45),
+      0 0 0 2px rgba(255, 255, 255, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .studio-nav-header.menu-open .studio-nav-center,
+  .studio-nav-header.menu-open:not(.is-scrolled) .studio-nav-center {
+    opacity: 0.15;
+    pointer-events: none;
+    transform: translateY(-50%) scale(0.92);
+  }
+
+  .studio-nav-header.menu-open .studio-nav-center[data-dock="top"],
+  .studio-nav-header.menu-open:not(.is-scrolled) .studio-nav-center[data-dock="top"] {
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+
+  /* Vertical Capsule Island (Default for left/right) */
+  .studio-nav-slider,
+  .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
+  .studio-nav-header.is-scrolled .studio-nav-slider {
+    flex-direction: column;
+    width: 44px;
+    height: auto;
+    min-height: auto;
+    padding: 4px;
+    gap: 6px;
+    border-radius: 9999px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+    background: rgb(255 255 255 / 8%) !important;
+    border: 1px solid rgb(255 255 255 / 72%) !important;
+    border-color: rgb(255 255 255 / 92%) rgb(255 255 255 / 72%) rgb(255 255 255 / 54%) !important;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 4%),
+      0 8px 24px -2px rgb(15 23 42 / 12%),
+      0 20px 48px -6px rgb(15 23 42 / 10%),
+      inset 0 1px 1px 0 rgb(255 255 255 / 92%),
+      inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+
+  /* Horizontal layout when docked at top (default header position) */
+  .studio-nav-center[data-dock="top"] .studio-nav-slider,
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"] .studio-nav-slider,
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
+    flex-direction: row;
+    width: auto;
+    height: var(--nav-slider-height, 42px);
+    min-height: auto;
+    padding: var(--nav-slider-padding, 3px) 5px;
     gap: 3px;
+    border-radius: 9999px;
   }
 
-  .nav-slider-indicator {
-    top: 3px;
-    bottom: 3px;
+  /* Docked header surface when un-scrolled at top and not dragging */
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"]:not(.is-dragging) .studio-nav-slider {
+    background: rgb(241 245 249 / 85%) !important;
+    border: 1px solid rgb(226 232 240 / 95%) !important;
+    box-shadow: none !important;
   }
 
-  .nav-pill,
-  .studio-nav-header.is-scrolled .nav-pill {
+  :root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"]:not(.is-dragging) .studio-nav-slider,
+  :root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"]:not(.is-dragging) .studio-nav-slider {
+    background: rgba(26, 29, 36, 0.88) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.08), 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  /* Scrolled floating island when docked at top (translucent liquid glass) */
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
+    background: rgb(255 255 255 / 8%) !important;
+    border: 1px solid rgb(255 255 255 / 72%) !important;
+    border-color: rgb(255 255 255 / 92%) rgb(255 255 255 / 72%) rgb(255 255 255 / 54%) !important;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 4%),
+      0 8px 24px -2px rgb(15 23 42 / 12%),
+      0 20px 48px -6px rgb(15 23 42 / 10%),
+      inset 0 1px 1px 0 rgb(255 255 255 / 92%),
+      inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+
+  :root[data-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider,
+  :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
+    background: rgba(22, 24, 31, 0.35) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.16) rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.45),
+      0 12px 28px -2px rgba(0, 0, 0, 0.65),
+      0 28px 56px -6px rgba(0, 0, 0, 0.75),
+      inset 0 1px 0.5px rgba(255, 255, 255, 0.35),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+      inset 0 0 12px rgba(255, 255, 255, 0.06) !important;
+  }
+
+  /* Top Dock Active Indicator: Geometry & Positioning */
+  .studio-nav-center[data-dock="top"] .nav-slider-indicator,
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"] .nav-slider-indicator,
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .nav-slider-indicator {
+    top: var(--indicator-y, 3px) !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: auto !important;
+    width: var(--indicator-w, 36px) !important;
+    height: var(--indicator-h, 36px) !important;
+    transform: translateX(var(--indicator-x, 0px)) !important;
+    border-radius: 9999px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 1 !important;
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), width 320ms cubic-bezier(0.16, 1, 0.3, 1), height 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease, background 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+  }
+
+  /* Docked mode (scrollY === 0 and NOT dragging) on light/dark header sheet: solid crisp contrast */
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"]:not(.is-dragging) .nav-slider-indicator {
+    background: #ffffff !important;
+    border: 0.5px solid rgb(0 0 0 / 6%) !important;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 8%), 0 1px 1.5px rgb(0 0 0 / 4%) !important;
+  }
+
+  :root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"]:not(.is-dragging) .nav-slider-indicator,
+  :root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center[data-dock="top"]:not(.is-dragging) .nav-slider-indicator {
+    background: #252832 !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.16) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Floating mode (.is-scrolled or dragging): Translucent glass depth matching desktop floating islands */
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .nav-slider-indicator,
+  .studio-nav-center[data-dock="top"].is-dragging .nav-slider-indicator {
+    background: linear-gradient(180deg, rgb(255 255 255 / 86%), rgb(255 255 255 / 58%)) !important;
+    border: 0.5px solid rgb(255 255 255 / 92%) !important;
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / 98%), inset 0 -1px 1px rgb(255 255 255 / 45%), 0 2px 8px rgb(15 23 42 / 10%) !important;
+  }
+
+  :root[data-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .nav-slider-indicator,
+  :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .nav-slider-indicator,
+  :root[data-theme="dark"] .studio-nav-center[data-dock="top"].is-dragging .nav-slider-indicator,
+  :root[data-resolved-theme="dark"] .studio-nav-center[data-dock="top"].is-dragging .nav-slider-indicator {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12)) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Top Dock Nav Pills (text/icon color contrast) */
+  .studio-nav-center[data-dock="top"] .nav-pill {
+    position: relative;
+    z-index: 2;
+    color: #475569 !important;
+    background: transparent !important;
+    transition: color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .studio-nav-center[data-dock="top"] .nav-pill:hover {
+    color: #0f172a !important;
+  }
+
+  .studio-nav-center[data-dock="top"] .nav-pill.active {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+  }
+
+  :root[data-theme="dark"] .studio-nav-center[data-dock="top"] .nav-pill,
+  :root[data-resolved-theme="dark"] .studio-nav-center[data-dock="top"] .nav-pill {
+    color: #94a3b8 !important;
+  }
+
+  :root[data-theme="dark"] .studio-nav-center[data-dock="top"] .nav-pill:hover,
+  :root[data-resolved-theme="dark"] .studio-nav-center[data-dock="top"] .nav-pill:hover {
+    color: #f9fafb !important;
+  }
+
+  :root[data-theme="dark"] .studio-nav-center[data-dock="top"] .nav-pill.active,
+  :root[data-resolved-theme="dark"] .studio-nav-center[data-dock="top"] .nav-pill.active {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+
+  /* Drop Zone Guides Layer */
+  .dock-drop-zones-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 996;
+  }
+
+  .dock-drop-zone {
+    position: fixed;
+    pointer-events: none;
+    border-radius: 9999px;
+    border: 1.5px dashed rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    box-sizing: border-box;
+    transition: opacity 180ms ease, border-color 180ms ease, background-color 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  :root[data-theme="dark"] .dock-drop-zone,
+  :root[data-resolved-theme="dark"] .dock-drop-zone {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .dock-drop-zone.visible {
+    opacity: 0.65;
+  }
+
+  .dock-drop-zone.active {
+    opacity: 1;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow:
+      0 0 24px rgba(255, 255, 255, 0.35),
+      inset 0 0 12px rgba(255, 255, 255, 0.25);
+  }
+
+  :root[data-theme="dark"] .dock-drop-zone.active,
+  :root[data-resolved-theme="dark"] .dock-drop-zone.active {
+    border-color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 0 24px rgba(255, 255, 255, 0.25),
+      inset 0 0 12px rgba(255, 255, 255, 0.15);
+  }
+
+  .dock-drop-zone-right {
+    top: 50%;
+    right: 12px;
+    width: 44px;
+    height: 130px;
+    transform: translateY(-50%);
+  }
+
+  .dock-drop-zone-right.active {
+    transform: translateY(-50%) scale(1.06);
+  }
+
+  .dock-drop-zone-left {
+    top: 50%;
+    left: 12px;
+    width: 44px;
+    height: 130px;
+    transform: translateY(-50%);
+  }
+
+  .dock-drop-zone-left.active {
+    transform: translateY(-50%) scale(1.06);
+  }
+
+  .dock-drop-zone-top {
+    top: 13px;
+    left: 50%;
+    width: 130px;
+    height: 42px;
+    transform: translateX(-50%);
+  }
+
+  .dock-drop-zone-top.active {
+    transform: translateX(-50%) scale(1.06);
+  }
+
+  :root[data-theme="dark"] .studio-nav-slider,
+  :root[data-resolved-theme="dark"] .studio-nav-slider,
+  :root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
+  :root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
+  :root[data-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-slider,
+  :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-slider {
+    background: rgba(22, 24, 31, 0.35) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.16) rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.45),
+      0 12px 28px -2px rgba(0, 0, 0, 0.65),
+      0 28px 56px -6px rgba(0, 0, 0, 0.75),
+      inset 0 1px 0.5px rgba(255, 255, 255, 0.35),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+      inset 0 0 12px rgba(255, 255, 255, 0.06) !important;
+  }
+
+  :root[data-liquid-refraction="true"] .studio-nav-slider,
+  :root[data-liquid-refraction="true"] .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
+  :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider {
+    -webkit-backdrop-filter: url(#liquid-glass-slider);
+    backdrop-filter: url(#liquid-glass-slider);
+    animation: liveIslandBackdropSlider 2s linear infinite;
+  }
+
+  /* Vertical Active Indicator (side docks) */
+  .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator,
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator,
+  .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator {
+    top: 0;
+    bottom: auto;
+    left: 4px;
+    right: 4px;
+    width: calc(100% - 8px);
+    height: var(--indicator-h, 36px);
+    transform: translateY(var(--indicator-y, 4px));
+    border-radius: 9999px;
+    background: linear-gradient(180deg, rgb(255 255 255 / 86%), rgb(255 255 255 / 58%)) !important;
+    border: 0.5px solid rgb(255 255 255 / 92%) !important;
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / 98%), inset 0 -1px 1px rgb(255 255 255 / 45%), 0 2px 8px rgb(15 23 42 / 10%) !important;
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), height 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
+  }
+
+  :root[data-theme="dark"] .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator,
+  :root[data-resolved-theme="dark"] .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator,
+  :root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator,
+  :root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator,
+  :root[data-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator,
+  :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12)) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) .nav-pill {
     width: 36px;
     min-width: 36px;
     max-width: 36px;
     height: 36px;
     padding: 0;
+    color: #0f172a;
+    background: transparent;
+  }
+
+  :root[data-theme="dark"] .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  :root[data-resolved-theme="dark"] .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  :root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  :root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  :root[data-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) .nav-pill {
+    color: #cbd5e1;
   }
 }
 
@@ -777,14 +1269,14 @@ main#main-content {
     padding: 0 12px;
   }
 
-  .studio-nav-header.is-scrolled .studio-nav-center {
-    transform: translate(-50%, -50%) translateY(12px);
+  .studio-nav-center:not([data-dock="top"]),
+  .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) {
+    transform: translateY(-50%) translateZ(0);
   }
 }
 
 @media (max-width: 520px) {
   .studio-nav-header {
-    --nav-slider-height: 40px;
     --nav-control-size: 38px;
   }
 
@@ -798,26 +1290,106 @@ main#main-content {
     height: 23px;
   }
 
+  .studio-nav-center[data-dock="right"],
+  .studio-nav-center:not([data-dock]) {
+    right: 10px;
+    left: auto;
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="right"],
+  .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock]) {
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  .studio-nav-center[data-dock="left"] {
+    left: 10px;
+    right: auto;
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="left"] {
+    transform: translateY(-50%) translateZ(0);
+  }
+
+  .studio-nav-center[data-dock="top"] {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%) translateZ(0);
+  }
+
+  .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] {
+    transform: translate(-50%, -50%) translateY(12px) translateZ(0);
+  }
+
   .studio-nav-slider {
-    gap: 2px;
+    width: 42px;
+    padding: 3px;
+    gap: 5px;
   }
 
-  .nav-pill,
-  .studio-nav-header.is-scrolled .nav-pill {
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
-    height: 34px;
+  .studio-nav-center[data-dock="top"] .studio-nav-slider {
+    width: auto;
+    padding: 3px 5px;
+    gap: 3px;
   }
 
-  .nav-slider-indicator {
-    top: 3px;
-    bottom: 3px;
+  .studio-nav-center:not([data-dock="top"]) .nav-slider-indicator {
+    left: 3px;
+    right: 3px;
+    width: calc(100% - 6px);
+  }
+
+  .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  .studio-nav-header:not(.is-scrolled) .studio-nav-center:not([data-dock="top"]) .nav-pill,
+  .studio-nav-header.is-scrolled .studio-nav-center:not([data-dock="top"]) .nav-pill {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    height: 36px;
   }
 
   .hamburger-btn {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* Landscape Mobile: Display words like desktop nav when docked at top */
+@media (max-width: 780px) and (orientation: landscape),
+       (orientation: landscape) and (max-height: 520px) and (max-width: 950px) {
+  .studio-nav-center[data-dock="top"] .nav-pill-icon {
+    display: none !important;
+  }
+
+  .studio-nav-center[data-dock="top"] .nav-pill-text {
+    display: inline-block !important;
+  }
+
+  .studio-nav-center[data-dock="top"] .nav-pill {
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    height: 36px !important;
+    padding: 0.38rem 1.05rem !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Montserrat", sans-serif !important;
+    font-size: 0.84rem !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+    white-space: nowrap !important;
+  }
+
+  .studio-nav-center[data-dock="top"] .studio-nav-slider {
+    flex-direction: row !important;
+    width: auto !important;
+    height: var(--nav-slider-height, 46px) !important;
+    padding: var(--nav-slider-padding, 4px) 6px !important;
+    gap: 4px !important;
+  }
+
+  .dock-drop-zone-top {
+    width: 260px !important;
   }
 }
 
@@ -1189,70 +1761,141 @@ main#main-content {
 
 :root[data-theme="dark"] .studio-nav-header::before,
 :root[data-resolved-theme="dark"] .studio-nav-header::before {
-  background-color: #121316e0;
-  border-bottom-color: #2d313acc;
+  background-color: rgba(18, 19, 22, 0.88);
+  border-bottom-color: rgba(45, 49, 58, 0.75);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
 }
 
+/* Static Mode: Center Capsule Slider */
+:root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
+:root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .studio-nav-slider {
+  background: rgba(26, 29, 36, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.08), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Static Mode: Active Slider Indicator */
+:root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-slider-indicator,
+:root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-slider-indicator {
+  background: #252832;
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Static Mode: Navigation Pills */
+:root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-pill,
+:root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-pill {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-pill:hover,
+:root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-pill:hover {
+  color: #f9fafb;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-pill.active,
+:root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .nav-pill.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Scrolled / Island Mode: Floating Glass Islands */
 :root[data-theme="dark"] .studio-nav-header.is-scrolled .bubble-island,
 :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .bubble-island {
-  background: rgb(24 26 33 / 24%);
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-color: rgb(255 255 255 / 28%) rgb(255 255 255 / 18%) rgb(255 255 255 / 10%);
+  background: rgba(22, 24, 31, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.16) rgba(255, 255, 255, 0.08);
   box-shadow:
-    0 2px 6px rgb(0 0 0 / 45%),
-    0 12px 28px -2px rgb(0 0 0 / 65%),
-    0 28px 56px -6px rgb(0 0 0 / 75%),
-    inset 0 1px 0.5px rgb(255 255 255 / 40%),
-    inset 0 -1px 1px rgb(0 0 0 / 40%),
-    inset 0 0 12px rgb(255 255 255 / 8%);
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    0 12px 28px -2px rgba(0, 0, 0, 0.65),
+    0 28px 56px -6px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    inset 0 0 12px rgba(255, 255, 255, 0.06);
 }
 
+/* Scrolled / Island Mode: Slider Indicator */
 :root[data-theme="dark"] .studio-nav-header.is-scrolled .nav-slider-indicator,
 :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .nav-slider-indicator {
-  background: linear-gradient(180deg, rgb(255 255 255 / 28%), rgb(255 255 255 / 14%));
-  border-color: rgb(255 255 255 / 38%);
-  box-shadow: inset 0 1px 1px rgb(255 255 255 / 45%), inset 0 -1px 1px rgb(255 255 255 / 15%), 0 2px 8px rgb(0 0 0 / 30%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* Scrolled / Island Mode: Navigation Pills */
 :root[data-theme="dark"] .studio-nav-header.is-scrolled .nav-pill,
 :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .nav-pill {
-  color: #f3f4f6;
-  text-shadow: 0 0 10px rgb(0 0 0 / 92%), 0 1px 2px rgb(0 0 0 / 88%);
+  color: #cbd5e1;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
-:root[data-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-brand-link svg,
-:root[data-theme="dark"] .studio-nav-header.is-scrolled .hamburger-line,
-:root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-brand-link svg,
-:root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .hamburger-line {
-  filter: drop-shadow(0 0 5px rgb(0 0 0 / 85%));
+:root[data-theme="dark"] .studio-nav-header.is-scrolled .nav-pill:hover,
+:root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .nav-pill:hover {
+  color: #ffffff;
 }
 
 :root[data-theme="dark"] .studio-nav-header.is-scrolled .nav-pill.active,
 :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .nav-pill.active {
-  color: #fff;
+  color: #ffffff;
+  background: transparent;
+}
+
+:root[data-theme="dark"] .studio-nav-brand-link,
+:root[data-resolved-theme="dark"] .studio-nav-brand-link {
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-brand-link svg,
+:root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .studio-nav-brand-link svg {
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.85));
+}
+
+:root[data-theme="dark"] .hamburger-line,
+:root[data-resolved-theme="dark"] .hamburger-line {
+  background: #f9fafb;
+}
+
+:root[data-theme="dark"] .studio-nav-header.is-scrolled .hamburger-line,
+:root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .hamburger-line {
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.85));
+}
+
+:root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .hamburger-btn,
+:root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .hamburger-btn {
+  background: #191b20;
+  border-color: #2d313a;
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .studio-nav-header:not(.is-scrolled) .hamburger-btn:hover,
+:root[data-resolved-theme="dark"] .studio-nav-header:not(.is-scrolled) .hamburger-btn:hover {
+  background: #252832;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 :root[data-theme="dark"] .nav-slider-indicator,
 :root[data-resolved-theme="dark"] .nav-slider-indicator {
-  background-color: #ffffff29;
-  border-color: #ffffff26;
-  box-shadow: 0 2px 8px #0006, inset 0 1px 1px #fff3;
+  background-color: #252832;
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 :root[data-theme="dark"] .nav-pill,
 :root[data-resolved-theme="dark"] .nav-pill {
-  color: #d1d5db;
+  color: #94a3b8;
 }
 
 :root[data-theme="dark"] .nav-pill:hover,
 :root[data-resolved-theme="dark"] .nav-pill:hover {
-  color: #fff;
-  background-color: #ffffff14;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 :root[data-theme="dark"] .nav-pill.active,
 :root[data-resolved-theme="dark"] .nav-pill.active {
-  color: #fff;
+  color: #ffffff;
 }
 
 :root[data-theme="dark"] .landing-page,
@@ -1359,6 +2002,44 @@ main#main-content {
   color: #f9fafb;
 }
 
+:root[data-theme="dark"] .burger-icon-btn:hover,
+:root[data-resolved-theme="dark"] .burger-icon-btn:hover {
+  background: #2a2e39;
+  border-color: #3b404d;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .burger-signup-btn,
+:root[data-resolved-theme="dark"] .burger-signup-btn {
+  background: #f9fafb !important;
+  color: #0f172a !important;
+  border-color: #f9fafb !important;
+}
+
+:root[data-theme="dark"] .burger-signup-btn:hover,
+:root[data-resolved-theme="dark"] .burger-signup-btn:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+:root[data-theme="dark"] .burger-menu-divider,
+:root[data-resolved-theme="dark"] .burger-menu-divider {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .burger-icon-tooltip,
+:root[data-resolved-theme="dark"] .burger-icon-tooltip {
+  background: #1e222d;
+  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="dark"] .burger-menu-horizontal .burger-icon-tooltip::after,
+:root[data-resolved-theme="dark"] .burger-menu-horizontal .burger-icon-tooltip::after {
+  border-bottom-color: #1e222d;
+}
+
 :root[data-theme="dark"] .studio-nav-header.is-scrolled .hamburger-btn,
 :root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .hamburger-btn {
   background: transparent;
@@ -1377,6 +2058,95 @@ main#main-content {
   color: #f9fafb;
 }
 
+:root[data-theme="dark"] .settings-modal-header,
+:root[data-resolved-theme="dark"] .settings-modal-header {
+  border-bottom: 1px solid #2d313a;
+}
+
+:root[data-theme="dark"] .settings-modal-footer,
+:root[data-resolved-theme="dark"] .settings-modal-footer {
+  border-top: 1px solid #2d313a;
+}
+
+:root[data-theme="dark"] .settings-modal-title-icon,
+:root[data-resolved-theme="dark"] .settings-modal-title-icon {
+  background: #252832;
+  border: 1px solid #2d313a;
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .settings-modal-close-btn:hover,
+:root[data-resolved-theme="dark"] .settings-modal-close-btn:hover {
+  background: #252832;
+  border-color: #2d313a;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .settings-modal-subtitle,
+:root[data-resolved-theme="dark"] .settings-modal-subtitle,
+:root[data-theme="dark"] .settings-section-title,
+:root[data-resolved-theme="dark"] .settings-section-title,
+:root[data-theme="dark"] .settings-status-note,
+:root[data-resolved-theme="dark"] .settings-status-note {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .settings-reset-btn,
+:root[data-resolved-theme="dark"] .settings-reset-btn {
+  border-color: #2d313a;
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .settings-reset-btn:hover,
+:root[data-resolved-theme="dark"] .settings-reset-btn:hover {
+  border-color: #4b5563;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .settings-footer-link,
+:root[data-resolved-theme="dark"] .settings-footer-link {
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .profile-badge-card,
+:root[data-resolved-theme="dark"] .profile-badge-card {
+  background: #1c1f26;
+  border-color: #2d313a;
+}
+
+:root[data-theme="dark"] .profile-detail-item,
+:root[data-resolved-theme="dark"] .profile-detail-item {
+  background: #191b20;
+  border-color: #2d313a;
+}
+
+:root[data-theme="dark"] .profile-detail-label,
+:root[data-resolved-theme="dark"] .profile-detail-label {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .passkey-glyph,
+:root[data-resolved-theme="dark"] .passkey-glyph {
+  background: #252832;
+  border-color: #2d313a;
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .terms-text-body p,
+:root[data-resolved-theme="dark"] .terms-text-body p,
+:root[data-theme="dark"] .auth-prompt-box p,
+:root[data-theme="dark"] .auth-success-box p,
+:root[data-resolved-theme="dark"] .auth-prompt-box p,
+:root[data-resolved-theme="dark"] .auth-success-box p {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .terms-text-body code,
+:root[data-resolved-theme="dark"] .terms-text-body code {
+  background: #252832;
+  color: #f9fafb;
+}
+
 :root[data-theme="dark"] .nav-burger-popover,
 :root[data-resolved-theme="dark"] .nav-burger-popover {
   background: rgb(16 18 26 / 42%);
@@ -1387,6 +2157,21 @@ main#main-content {
     0 8px 24px rgb(0 0 0 / 38%),
     0 20px 44px rgb(0 0 0 / 28%);
   color: #f9fafb;
+}
+
+:root[data-theme="dark"] .nav-burger-popover a,
+:root[data-resolved-theme="dark"] .nav-burger-popover a {
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .nav-burger-popover a svg,
+:root[data-resolved-theme="dark"] .nav-burger-popover a svg {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .menu-heading,
+:root[data-resolved-theme="dark"] .menu-heading {
+  color: #94a3b8;
 }
 
 :root[data-theme="dark"] .nav-burger-popover a:hover,
@@ -1443,6 +2228,12 @@ main#main-content {
   color: #f9fafb;
 }
 
+:root[data-theme="dark"] .popover-action-highlight,
+:root[data-resolved-theme="dark"] .popover-action-highlight {
+  color: #ffffff;
+  font-weight: 600;
+}
+
 :root[data-theme="dark"] .studio-nav-brand-link,
 :root[data-theme="dark"] .text-link,
 :root[data-resolved-theme="dark"] .studio-nav-brand-link,
@@ -1456,4 +2247,396 @@ main#main-content {
   border-top: 1px solid #1c1f26;
 }
 
+/* ========================================================================
+   Authoritative StudioNav Navigation Across All Artist Pages
+   SystemNav (StudioNav) is the sole authoritative navigation bar everywhere,
+   providing a completely clear 1:1 copy of the base StudioNav.
+   ======================================================================== */
+
+/* 1. Hide redundant bespoke micro-site top headers */
+.rella-header,
+.sankobite-page > header,
+.tamimoon-page > header,
+.tamimoon-page header,
+.mikapikazo-page > header,
+.dinoillus-page > header,
+.lam-page > header,
+.lam-page header.header,
+.lam-page .hero > header.header,
+.lam-wrapper .header,
+.dolman-page .site-header,
+.tatamipi-page .site-header,
+.askziye-page > header,
+.kaduise-top-nav,
+.kaduise-page > div.fixed.top-0,
+.kda-page header,
+.kda-page .site-header {
+  display: none !important;
+}
+
+/* Redundant micro-site progress bars overridden by authoritative SystemNav */
+.sankobite-page .fixed.top-0.h-\[3px\],
+.tamimoon-page .fixed.top-0.h-\[3px\],
+.lam-page .scroll-progress,
+.askziye-page .fixed.top-0.h-\[2px\] {
+  display: none !important;
+}
+
+/* In-flow hero clearance below fixed authoritative SystemNav */
+.mikapikazo-page main#top {
+  padding-top: 68px;
+}
+
+.dolman-page .hero {
+  padding-top: clamp(84px, 10vw, 110px) !important;
+}
+
+.tatamipi-page .hero {
+  padding-top: clamp(84px, 9vw, 110px) !important;
+}
+
+/* ========================================================================
+   2. Dynamic Island Contrast Adaptation (Backdrop Tone Luminance)
+   When floating over a dark background in light mode, the dynamic island
+   dynamically whitens for high contrast. Vice versa in dark mode over a
+   light background, the dynamic island dynamically darkens.
+   ======================================================================== */
+
+.nav-pill,
+.nav-slider-indicator,
+.studio-nav-brand-link svg,
+.nav-burger-bubble svg {
+  transition: color 250ms ease, background 250ms ease, border-color 250ms ease, box-shadow 250ms ease, fill 250ms ease;
+}
+
+/* ========================================================================
+   2. Artist Page Embedded Starting Header
+   On artist pages, the starting header navbar has no background strip,
+   appearing seamlessly embedded directly into the page's artwork/hero.
+   Main headers retain their default top bar.
+   ======================================================================== */
+
+.studio-nav-header[data-artist-route="true"]:not(.is-scrolled)::before {
+  display: none !important;
+}
+
+/* Artist starting header: the same clear liquid-glass islands (with warp) the
+   scrolled state uses, sitting directly on the artwork. No frosted tint, no
+   blur, no opaque pill. */
+:root .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island {
+  overflow: hidden;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-color: rgb(255 255 255 / 92%) rgb(255 255 255 / 72%) rgb(255 255 255 / 54%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 4%),
+    0 8px 24px -2px rgb(15 23 42 / 12%),
+    inset 0 1px 1px 0 rgb(255 255 255 / 92%),
+    inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%);
+}
+
+:root[data-theme="dark"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island,
+:root[data-resolved-theme="dark"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island {
+  background: rgba(22, 24, 31, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.16) rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    0 12px 28px -2px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    inset 0 0 12px rgba(255, 255, 255, 0.06);
+}
+
+:root .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .hamburger-btn,
+:root[data-theme="dark"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .hamburger-btn,
+:root[data-resolved-theme="dark"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .hamburger-btn {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+:root .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .nav-slider-indicator {
+  background: linear-gradient(180deg, rgb(255 255 255 / 86%), rgb(255 255 255 / 58%));
+  border-color: rgb(255 255 255 / 92%);
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / 98%), inset 0 -1px 1px rgb(255 255 255 / 45%), 0 2px 8px rgb(15 23 42 / 10%);
+}
+
+:root[data-theme="dark"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .nav-slider-indicator,
+:root[data-resolved-theme="dark"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .nav-slider-indicator {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1px 1px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-left {
+  -webkit-backdrop-filter: url(#liquid-glass-left);
+  backdrop-filter: url(#liquid-glass-left);
+}
+
+:root[data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider {
+  -webkit-backdrop-filter: url(#liquid-glass-slider);
+  backdrop-filter: url(#liquid-glass-slider);
+}
+
+:root[data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .nav-burger-bubble {
+  -webkit-backdrop-filter: url(#liquid-glass-burger);
+  backdrop-filter: url(#liquid-glass-burger);
+}
+
+/* ========================================================================
+   3. Unscrolled Optical Contrast on Naturally Dark Artist Pages
+   When unscrolled over dark artwork/heroes, the embedded header elements
+   adopt crisp light tones with dark drop-shadow halos. On light artist
+   pages and main pages, the default dark-slate tone applies.
+   When scrolled, dynamic islands everywhere use reference GPU optical contrast.
+   ======================================================================== */
+
+:root[data-archive-artist="kda"] .studio-nav-header:not(.is-scrolled) .studio-nav-brand-link svg,
+:root[data-archive-artist="lam"] .studio-nav-header:not(.is-scrolled) .studio-nav-brand-link svg,
+:root[data-archive-artist="yoneyamai"] .studio-nav-header:not(.is-scrolled) .studio-nav-brand-link svg,
+:root[data-archive-artist="sankobite"] .studio-nav-header:not(.is-scrolled) .studio-nav-brand-link svg,
+:root[data-archive-artist="rella"] .studio-nav-header:not(.is-scrolled) .studio-nav-brand-link svg {
+  color: #f3f4f6;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.85));
+}
+
+:root[data-archive-artist="kda"] .studio-nav-header:not(.is-scrolled) .hamburger-line,
+:root[data-archive-artist="lam"] .studio-nav-header:not(.is-scrolled) .hamburger-line,
+:root[data-archive-artist="yoneyamai"] .studio-nav-header:not(.is-scrolled) .hamburger-line,
+:root[data-archive-artist="sankobite"] .studio-nav-header:not(.is-scrolled) .hamburger-line,
+:root[data-archive-artist="rella"] .studio-nav-header:not(.is-scrolled) .hamburger-line {
+  background: #f9fafb;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.85));
+}
+
+:root[data-archive-artist="kda"] .studio-nav-header:not(.is-scrolled) .nav-pill,
+:root[data-archive-artist="lam"] .studio-nav-header:not(.is-scrolled) .nav-pill,
+:root[data-archive-artist="yoneyamai"] .studio-nav-header:not(.is-scrolled) .nav-pill,
+:root[data-archive-artist="sankobite"] .studio-nav-header:not(.is-scrolled) .nav-pill,
+:root[data-archive-artist="rella"] .studio-nav-header:not(.is-scrolled) .nav-pill {
+  color: #cbd5e1;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+:root[data-archive-artist="kda"] .studio-nav-header:not(.is-scrolled) .nav-pill.active,
+:root[data-archive-artist="lam"] .studio-nav-header:not(.is-scrolled) .nav-pill.active,
+:root[data-archive-artist="yoneyamai"] .studio-nav-header:not(.is-scrolled) .nav-pill.active,
+:root[data-archive-artist="sankobite"] .studio-nav-header:not(.is-scrolled) .nav-pill.active,
+:root[data-archive-artist="rella"] .studio-nav-header:not(.is-scrolled) .nav-pill.active {
+  color: #ffffff;
+}
+
 /* UI Scale */
+
+/* ========================================================================
+   Adaptive glyphs (Chromium): black on light, white on dark, per pixel.
+
+   Why this shape: an element with `backdrop-filter` is a Backdrop Root, so any
+   descendant only "sees" the island's own (empty) surface. Blend modes inside
+   the sticky header are isolated the same way. So the glass moves onto a
+   `::before` sibling layer, and every glyph becomes its own layer clipped to
+   its exact shape (text / stroke mask built in StudioNav) that samples the
+   real pixels behind it:
+
+     grayscale -> invert -> contrast(100)  =  hard black/white threshold
+
+   Only the part of a letter / stroke that sits over a light region goes dark,
+   and only the part over a dark region goes light. Nothing recolours the whole
+   navigation. Uses no mix-blend-mode, so the warp stays on the GPU fast path.
+   ======================================================================== */
+
+/* 1. Islands: glass lives on ::before, island itself is not a backdrop root */
+:root[data-adaptive-glyphs="true"] .studio-nav-header.is-scrolled .bubble-island,
+:root[data-adaptive-glyphs="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  animation: none !important;
+  will-change: transform !important;
+}
+
+:root[data-adaptive-glyphs="true"] .bubble-island::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: none;
+  filter: none;
+  opacity: 0;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  will-change: backdrop-filter, opacity;
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-adaptive-glyphs="true"] .studio-nav-header.is-scrolled .bubble-island::before,
+:root[data-adaptive-glyphs="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island::before {
+  opacity: 1;
+}
+
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-left::before,
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-left::before {
+  -webkit-backdrop-filter: url(#liquid-glass-left);
+  backdrop-filter: url(#liquid-glass-left);
+  animation: liveIslandBackdropLeft 2s linear infinite;
+}
+
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider::before,
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider::before {
+  -webkit-backdrop-filter: url(#liquid-glass-slider);
+  backdrop-filter: url(#liquid-glass-slider);
+  animation: liveIslandBackdropSlider 2s linear infinite;
+}
+
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .nav-burger-bubble::before,
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .nav-burger-bubble::before {
+  -webkit-backdrop-filter: url(#liquid-glass-burger);
+  backdrop-filter: url(#liquid-glass-burger);
+  animation: liveIslandBackdropBurger 2s linear infinite;
+}
+
+:root[data-adaptive-glyphs="true"][data-motion="reduced"] .bubble-island::before {
+  -webkit-backdrop-filter: blur(16px) !important;
+  backdrop-filter: blur(16px) !important;
+  animation: none !important;
+}
+
+/* 2. Glyph layers */
+:root[data-adaptive-glyphs="true"] .nav-pill-text[data-glyph-ready],
+:root[data-adaptive-glyphs="true"] .nav-pill-icon[data-glyph-ready],
+:root[data-adaptive-glyphs="true"] .studio-nav-brand-link[data-glyph-ready] {
+  position: relative;
+}
+
+:root[data-adaptive-glyphs="true"] .nav-pill-text[data-glyph-ready] {
+  color: transparent !important;
+  text-shadow: none !important;
+}
+
+:root[data-adaptive-glyphs="true"] .nav-pill-icon[data-glyph-ready] svg,
+:root[data-adaptive-glyphs="true"] .studio-nav-brand-link[data-glyph-ready] svg {
+  opacity: 0 !important;
+  filter: none !important;
+}
+
+:root[data-adaptive-glyphs="true"] .nav-pill-text[data-glyph-ready]::after,
+:root[data-adaptive-glyphs="true"] .nav-pill-icon[data-glyph-ready]::after,
+:root[data-adaptive-glyphs="true"] .studio-nav-brand-link[data-glyph-ready]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: grayscale(1) invert(1) contrast(100);
+  backdrop-filter: grayscale(1) invert(1) contrast(100);
+  -webkit-mask-image: var(--glyph-mask);
+  mask-image: var(--glyph-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Logo svg is 32x28 centred inside the (46px) island link */
+:root[data-adaptive-glyphs="true"] .studio-nav-brand-link[data-glyph-ready]::after {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+}
+
+/* Burger lines are plain rectangles: they are their own glyph layer */
+:root[data-adaptive-glyphs="true"] .hamburger-line {
+  background: transparent !important;
+  filter: none !important;
+  -webkit-backdrop-filter: grayscale(1) invert(1) contrast(100);
+  backdrop-filter: grayscale(1) invert(1) contrast(100);
+}
+
+/* 3. Burger popover: same treatment. Glass on ::before, glyph layers on the
+   row icons and labels. Opacity is not animated (an opacity < 1 ancestor is a
+   backdrop root and would blank the glyphs mid-fade); it slides/scales instead. */
+.popover-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+:root[data-adaptive-glyphs="true"] .nav-burger-popover {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  animation: none !important;
+  will-change: transform !important;
+  opacity: 1;
+  visibility: hidden;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 320ms;
+}
+
+:root[data-adaptive-glyphs="true"] .nav-burger-popover.is-open {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+:root[data-adaptive-glyphs="true"] .nav-burger-popover::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: none;
+  filter: none;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .nav-burger-popover::before {
+  -webkit-backdrop-filter: url(#liquid-glass-popover);
+  backdrop-filter: url(#liquid-glass-popover);
+}
+
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .nav-burger-popover.is-open::before {
+  animation: liveIslandBackdropPopover 2s linear infinite;
+}
+
+:root[data-adaptive-glyphs="true"][data-motion="reduced"] .nav-burger-popover::before {
+  -webkit-backdrop-filter: blur(18px) !important;
+  backdrop-filter: blur(18px) !important;
+  animation: none !important;
+}
+
+:root[data-adaptive-glyphs="true"] .popover-action-icon[data-glyph-ready],
+:root[data-adaptive-glyphs="true"] .popover-action-text[data-glyph-ready] {
+  position: relative;
+}
+
+:root[data-adaptive-glyphs="true"] .popover-action-text[data-glyph-ready] {
+  color: transparent !important;
+  text-shadow: none !important;
+}
+
+:root[data-adaptive-glyphs="true"] .popover-action-icon[data-glyph-ready] svg {
+  opacity: 0 !important;
+}
+
+:root[data-adaptive-glyphs="true"] .popover-action-icon[data-glyph-ready]::after,
+:root[data-adaptive-glyphs="true"] .popover-action-text[data-glyph-ready]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: grayscale(1) invert(1) contrast(100);
+  backdrop-filter: grayscale(1) invert(1) contrast(100);
+  -webkit-mask-image: var(--glyph-mask);
+  mask-image: var(--glyph-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}

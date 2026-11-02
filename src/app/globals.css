@@ -1130,3 +1130,24 @@
   padding: 14px 34px;
   font-size: 15px;
 }
+
+/* ========================================================================
+   Media Compositing & Layer Isolation
+   Prevents hardware overlay punch-through and forces video decodes and
+   animated GIF frames to composite directly into the DOM render target so
+   backdrop-filter and liquid glass displacement maps sample live frames.
+   ======================================================================== */
+
+video,
+.screen video,
+img[src*=".gif"],
+img[src*="blob.core.windows.net/gifs"],
+.media-image-wrap,
+.artist-work-tile img {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
+}
+

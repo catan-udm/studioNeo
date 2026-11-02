@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowDown, ArrowRight, ArrowUpRight, Pause, Play, X } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, Menu, Pause, Play, X } from "lucide-react";
 import {
   members,
   milestone,
@@ -858,6 +858,65 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
   );
 }
 
+function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 24);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const nav = [
+    { href: "#music", label: "THE EP" },
+    { href: "#film", label: "THE FILM" },
+    { href: "#discography", label: "DISCOGRAPHY" },
+    { href: "#lineup", label: "THE LINEUP" },
+    { href: "#stage", label: "NEXT SHOW" },
+  ];
+
+  return (
+    <header className={`site-header ${scrolled || menuOpen ? "site-header-solid" : ""}`}>
+      <div className="header-inner">
+        <a href="#top" className="header-brand" aria-label="K/DA FIRESTARTER, back to top" onClick={() => setMenuOpen(false)}>
+          <Wordmark />
+          <span className="header-brand-divider" />
+          <span className="header-era">FIRESTARTER<br />THE NEW EP</span>
+        </a>
+        <nav className="desktop-nav" aria-label="Main navigation">
+          {nav.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
+        </nav>
+        <a className="header-listen" href="https://kda.ffm.to/firestarter-ep" target="_blank" rel="noreferrer">
+          LISTEN NOW <ArrowUpRight size={14} />
+        </a>
+        <button
+          className="menu-toggle"
+          onClick={() => setMenuOpen((value) => !value)}
+          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
+        >
+          {menuOpen ? <X size={21} /> : <Menu size={21} />}
+        </button>
+      </div>
+      {menuOpen && (
+        <nav id="mobile-navigation" className="mobile-nav" aria-label="Mobile navigation">
+          {nav.map((item, index) => (
+            <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+              <span>0{index + 1}</span>{item.label}<ArrowRight size={16} />
+            </a>
+          ))}
+          <a href="https://kda.ffm.to/firestarter-ep" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>
+            <span>05</span>LISTEN NOW<ArrowUpRight size={16} />
+          </a>
+        </nav>
+      )}
+    </header>
+  );
+}
+
 function Page() {
   useReveals();
   const [video, setVideo] = useState<Video | null>(null);
@@ -870,6 +929,7 @@ function Page() {
 
   return (
     <>
+      <Header />
       <main id="main">
         <Hero onWatch={() => openVideo(videos[0])} />
         <StatsStrip />

@@ -94,6 +94,7 @@ const artworks: Artwork[] = [
 export function LamPage() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [heroReady, setHeroReady] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const lastArtworkButtonRef = useRef<HTMLButtonElement | null>(null);
   const heroImageRef = useRef<HTMLImageElement>(null);
@@ -301,7 +302,64 @@ export function LamPage() {
             />
           </div>
 
-          {/* Top navigation bar replaced by studioNeo StudioNav */}
+          <header className={`header${menuOpen ? " is-open" : ""}`}>
+            <a aria-label="LAM, back to top" className="header__brand" href="#top" onClick={() => setMenuOpen(false)}>
+              <span>LAM</span>
+              <Bolt />
+            </a>
+
+            <p className="header__caption">ILLUSTRATOR / CHARACTER DESIGNER</p>
+
+            <button
+              aria-controls="primary-navigation"
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+              className="header__menu"
+              onClick={() => setMenuOpen((open) => !open)}
+              type="button"
+            >
+              <span />
+              <span />
+            </button>
+
+            <nav aria-label="Main navigation" className="header__nav" id="primary-navigation">
+              <a href="#works" onClick={() => setMenuOpen(false)}>
+                WORKS
+              </a>
+              <a href="#practice" onClick={() => setMenuOpen(false)}>
+                PRACTICE
+              </a>
+              <a href="#profile" onClick={() => setMenuOpen(false)}>
+                PROFILE
+              </a>
+              <a href="#color" onClick={() => setMenuOpen(false)}>
+                COLOR
+              </a>
+              <a href="#artbook" onClick={() => setMenuOpen(false)}>
+                BOOK
+              </a>
+              <a href="#years" onClick={() => setMenuOpen(false)}>
+                YEARS
+              </a>
+              <a href="#exhibition" onClick={() => setMenuOpen(false)}>
+                SHOW
+              </a>
+              <a href="#contact" onClick={() => setMenuOpen(false)}>
+                CONTACT
+              </a>
+              <a className="header__nav-x" href="https://x.com/ramdayo1122" rel="noreferrer" target="_blank">
+                X <Arrow />
+              </a>
+              <button
+                aria-label="Show keyboard shortcuts"
+                className="header__keys"
+                onClick={() => document.dispatchEvent(new CustomEvent("lam:shortcuts"))}
+                type="button"
+              >
+                <kbd>?</kbd>
+              </button>
+            </nav>
+          </header>
 
           <div className="hero__content page-width">
             <div className="hero__copy">

@@ -2,16 +2,16 @@ import type { Metadata } from 'next';
 import LandingClient from './LandingClient';
 
 export const metadata: Metadata = {
-  title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
+  title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
   description:
-    'A fan-made tribute archive of resident illustrators — sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, powered by studioNeo.',
+    'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
   alternates: {
     canonical: 'https://bikko.studio',
   },
   openGraph: {
-    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
+    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
     description:
-      'Curated tribute archives of sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, integrated with studioNeo.',
+      'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
     url: 'https://bikko.studio',
     type: 'website',
     locale: 'en_US',
@@ -19,9 +19,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
+    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
     description:
-      'Curated tribute archives of sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, integrated with studioNeo.',
+      'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
   },
 };
 
@@ -30,9 +30,9 @@ const homeStructuredData = {
   '@type': 'WebPage',
   '@id': 'https://bikko.studio/#webpage',
   url: 'https://bikko.studio',
-  name: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
+  name: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive • bikko.studio',
   description:
-    'Tribute archive of resident illustrators — sankobite, Rella, tamimoon, Yoneyama Mai, Mika Pikazo, DINO, LAM, Dolman, and tatamipi, powered by studioNeo.',
+    'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
   inLanguage: 'en-US',
   isPartOf: {
     '@id': 'https://bikko.studio/#website',

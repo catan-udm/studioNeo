@@ -135,6 +135,7 @@ function Words() {
 export function TatamipiPage() {
   const [viewer, setViewer] = useState<{ work: Work; pool: Work[] } | null>(null);
   const [missing, setMissing] = useState<ReadonlySet<string>>(new Set());
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const progress = useScrollProgress();
   const active = useActiveSection(sections.map((section) => section.id).join("|"));
@@ -177,7 +178,39 @@ export function TatamipiPage() {
         style={{ transform: `scaleX(${progress})` }}
       />
 
-      {/* Top navigation bar replaced by studioNeo's StudioNav */}
+      <header className="site-header">
+        <a href="#top" className="header-logo" aria-label="tatamipi — back to top">
+          <Wordmark />
+        </a>
+
+        <nav
+          id="main-navigation"
+          className={`main-nav ${menuOpen ? "is-open" : ""}`}
+          aria-label="Main"
+        >
+          {sections.map((section) => (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className={active === section.id ? "is-active" : ""}
+              onClick={() => setMenuOpen(false)}
+            >
+              {section.label}
+            </a>
+          ))}
+        </nav>
+
+        <button
+          className="menu-toggle"
+          type="button"
+          aria-expanded={menuOpen}
+          aria-controls="main-navigation"
+          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
+      </header>
 
       <nav className="rail" aria-label="Sections">
         {sections.map((section) => (

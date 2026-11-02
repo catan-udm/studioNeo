@@ -209,6 +209,13 @@ export function DolmanPage() {
   const [viewerCollection, setViewerCollection] = useState<Work[]>(works);
   const [contactOpen, setContactOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const closeViewer = useCallback(() => setSelectedWork(null), []);
   const closeContact = useCallback(() => setContactOpen(false), []);
@@ -224,6 +231,37 @@ export function DolmanPage() {
 
   return (
     <div className="dolman-page" id="top">
+      <a className="skip-link" href="#work">Skip to the artwork</a>
+
+      <header className="site-header" id="top">
+        <div className="container header-inner">
+          <Brand />
+          <nav className="desktop-nav" aria-label="Main navigation">
+            <a href="#work" onClick={() => chooseFilter('Illustrations')}>Illustrations</a>
+            <a href="#animations">Animation</a>
+            <a href="#about">About</a>
+          </nav>
+          <button className="button button-dark header-contact" onClick={() => setContactOpen(true)}>Get in touch <Icon name="up-right" size={16} /></button>
+          <button
+            className="mobile-menu-toggle"
+            aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <Icon name={menuOpen ? 'close' : 'menu'} size={22} />
+          </button>
+        </div>
+        {menuOpen && (
+          <nav id="mobile-navigation" className="mobile-nav" aria-label="Mobile navigation">
+            <a href="#work" onClick={() => { chooseFilter('Illustrations'); setMenuOpen(false); }}>Illustrations</a>
+            <a href="#animations" onClick={() => setMenuOpen(false)}>Animation</a>
+            <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
+            <button onClick={() => { setMenuOpen(false); setContactOpen(true); }}>Get in touch</button>
+          </nav>
+        )}
+      </header>
+
       <main id="main-content">
         <section className="hero container" aria-labelledby="hero-title">
           <div className="hero-copy">

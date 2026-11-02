@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { art } from "@/components/archive/kaduise/lib/art";
 import { InkDefs, Marquee, Sparkle } from "@/components/archive/kaduise/components/ui";
-import { Hero } from "@/components/archive/kaduise/components/Hero";
+import { Hero, Nav } from "@/components/archive/kaduise/components/Hero";
 import { Works } from "@/components/archive/kaduise/components/Works";
 import { DailySection } from "@/components/archive/kaduise/components/Daily";
 import { Featured } from "@/components/archive/kaduise/components/Featured";
@@ -80,7 +80,7 @@ export function KaduisePage() {
         style={{ background: "radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(26,24,19,0.5))" }}
       />
 
-      {/* Top navigation bar replaced by studioNeo StudioNav */}
+      <Nav />
       <main>
         <Hero />
         <DailySection />

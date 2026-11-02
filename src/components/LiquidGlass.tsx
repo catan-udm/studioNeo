@@ -82,9 +82,14 @@ export function buildRefractionMapDataUri(
       let dx = 0;
       let dy = 0;
 
-      // Only refract inside the island boundary within its curved rim bezel
-      if (sdf <= 0.5) {
+      // Analytical subpixel boundary anti-aliasing:
+      // Over a 1.5px boundary zone around sdf = 0, fade displacement smoothly to 0
+      const edgeCoverage = Math.max(0, Math.min(1, (0.5 - sdf) / 1.5));
+      const aa = edgeCoverage * edgeCoverage * (3 - 2 * edgeCoverage);
+
+      if (aa > 0.001) {
         const distIn = Math.max(0, -sdf);
+
         if (distIn < bezel) {
           let nx = 0;
           let ny = 0;
@@ -97,10 +102,15 @@ export function buildRefractionMapDataUri(
             ny = signY;
           }
 
-          const u = 1 - distIn / bezel;
-          const refract = u * u * (3 - 2 * u);
+          // Toroidal lens meniscus:
+          // Displacement starts at 0 at the outer boundary (distIn = 0),
+          // reaches peak refraction in the center of the rim,
+          // and smoothly flattens back to 0 at the flat center plateau (distIn = bezel).
+          const t = distIn / bezel;
+          const lensProfile = Math.sin(t * Math.PI);
+          const refract = lensProfile * aa;
 
-          // Sample inward (-n) so background bends around the convex rim
+          // Sample inward (-n) so background bends around the convex lens rim
           dx = -nx * refract;
           dy = -ny * refract;
         }
@@ -134,7 +144,7 @@ function makeCapsuleSpec(id: string, width: number, height: number): GlassFilter
     radius,
     bezel,
     scale,
-    blur: 0.45,
+    blur: 0,
     href: buildRefractionMapDataUri(w, h, radius, bezel),
   };
 }
@@ -152,7 +162,7 @@ function makePopoverSpec(id: string, width: number, height: number): GlassFilter
     radius,
     bezel,
     scale,
-    blur: 0.65,
+    blur: 0,
     href: buildRefractionMapDataUri(w, h, radius, bezel),
   };
 }
@@ -211,25 +221,36 @@ export function useLiquidRefraction(refs: {
   }, []);
 
   useIsomorphicLayoutEffect(() => {
+    const isMozSupported =
+      typeof CSS !== "undefined" &&
+      CSS.supports("background-image", "-moz-element(#main-content)");
+
+    let offsetTicking = false;
     const syncOffsets = () => {
-      const mainEl = document.getElementById("main-content");
-      if (!mainEl) return;
-      const mainRect = mainEl.getBoundingClientRect();
-      const islands = [
-        refs.leftRef.current,
-        refs.sliderRef.current,
-        refs.burgerRef.current,
-        refs.popoverRef.current,
-      ];
-      for (const el of islands) {
-        if (!el) continue;
-        const r = el.getBoundingClientRect();
-        const cs = getComputedStyle(el);
-        const bLeft = parseFloat(cs.borderLeftWidth) || 0;
-        const bTop = parseFloat(cs.borderTopWidth) || 0;
-        el.style.setProperty("--moz-lens-x", `${(mainRect.left - (r.left + bLeft)).toFixed(2)}px`);
-        el.style.setProperty("--moz-lens-y", `${(mainRect.top - (r.top + bTop)).toFixed(2)}px`);
-      }
+      if (!isMozSupported) return;
+      if (offsetTicking) return;
+      offsetTicking = true;
+      requestAnimationFrame(() => {
+        offsetTicking = false;
+        const mainEl = document.getElementById("main-content");
+        if (!mainEl) return;
+        const mainRect = mainEl.getBoundingClientRect();
+        const islands = [
+          refs.leftRef.current,
+          refs.sliderRef.current,
+          refs.burgerRef.current,
+          refs.popoverRef.current,
+        ];
+        for (const el of islands) {
+          if (!el) continue;
+          const r = el.getBoundingClientRect();
+          const cs = getComputedStyle(el);
+          const bLeft = parseFloat(cs.borderLeftWidth) || 0;
+          const bTop = parseFloat(cs.borderTopWidth) || 0;
+          el.style.setProperty("--moz-lens-x", `${(mainRect.left - (r.left + bLeft)).toFixed(2)}px`);
+          el.style.setProperty("--moz-lens-y", `${(mainRect.top - (r.top + bTop)).toFixed(2)}px`);
+        }
+      });
     };
 
     const syncSpecs = () => {
@@ -252,8 +273,8 @@ export function useLiquidRefraction(refs: {
           prev.length === next.length &&
           prev.every(
             (p, idx) =>
-              p.width === next[idx].width &&
-              p.height === next[idx].height &&
+              Math.abs(p.width - next[idx].width) < 2 &&
+              Math.abs(p.height - next[idx].height) < 2 &&
               p.href === next[idx].href &&
               p.href !== "" &&
               p.href !== NEUTRAL_REFRACTION_MAP,
@@ -265,16 +286,18 @@ export function useLiquidRefraction(refs: {
 
     syncSpecs();
 
-    // Keep Firefox -moz-element offsets locked during the 480ms detach transition
+    // Keep Firefox -moz-element offsets locked during the 480ms detach transition (Firefox only)
     let animFrame = 0;
-    const startTime = performance.now();
-    const tickTransition = () => {
-      syncOffsets();
-      if (performance.now() - startTime < 540) {
-        animFrame = requestAnimationFrame(tickTransition);
-      }
-    };
-    animFrame = requestAnimationFrame(tickTransition);
+    if (isMozSupported) {
+      const startTime = performance.now();
+      const tickTransition = () => {
+        syncOffsets();
+        if (performance.now() - startTime < 540) {
+          animFrame = requestAnimationFrame(tickTransition);
+        }
+      };
+      animFrame = requestAnimationFrame(tickTransition);
+    }
 
     const ro =
       typeof ResizeObserver !== "undefined"
@@ -288,12 +311,16 @@ export function useLiquidRefraction(refs: {
       if (refs.popoverRef.current) ro.observe(refs.popoverRef.current);
     }
 
-    window.addEventListener("scroll", syncOffsets, { passive: true });
+    if (isMozSupported) {
+      window.addEventListener("scroll", syncOffsets, { passive: true });
+    }
     window.addEventListener("resize", syncSpecs);
     return () => {
-      cancelAnimationFrame(animFrame);
+      if (animFrame) cancelAnimationFrame(animFrame);
       ro?.disconnect();
-      window.removeEventListener("scroll", syncOffsets);
+      if (isMozSupported) {
+        window.removeEventListener("scroll", syncOffsets);
+      }
       window.removeEventListener("resize", syncSpecs);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -345,7 +372,6 @@ export function LiquidGlassDefs({ specs }: { specs: GlassFilterSpec[] }) {
               yChannelSelector="G"
               result="refracted"
             />
-            <feGaussianBlur in="refracted" stdDeviation={spec.blur} />
           </filter>
         ))}
       </defs>
