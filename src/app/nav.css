@@ -1009,8 +1009,8 @@ main#main-content {
     backdrop-filter: blur(16px);
   }
 
-  :root[data-liquid-refraction="true"] .studio-nav-center[data-dock="top"] .studio-nav-slider,
-  :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
+  :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-center[data-dock="top"] .studio-nav-slider,
+  :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
     -webkit-backdrop-filter: url(#liquid-glass-slider) !important;
     backdrop-filter: url(#liquid-glass-slider) !important;
     animation: liveIslandBackdropSlider 2s linear infinite !important;
@@ -1217,9 +1217,25 @@ main#main-content {
       inset 0 0 12px rgba(255, 255, 255, 0.06) !important;
   }
 
-  :root[data-liquid-refraction="true"] .studio-nav-slider,
-  :root[data-liquid-refraction="true"] .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
-  :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider {
+  :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-slider,
+  :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
+  :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header.is-scrolled .studio-nav-slider {
+    -webkit-backdrop-filter: url(#liquid-glass-slider);
+    backdrop-filter: url(#liquid-glass-slider);
+    animation: liveIslandBackdropSlider 2s linear infinite;
+  }
+
+  :root[data-adaptive-glyphs="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    animation: none !important;
+  }
+
+  :root[data-adaptive-glyphs="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
+    opacity: 1;
+  }
+
+  :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
     -webkit-backdrop-filter: url(#liquid-glass-slider);
     backdrop-filter: url(#liquid-glass-slider);
     animation: liveIslandBackdropSlider 2s linear infinite;
@@ -2486,8 +2502,7 @@ main#main-content {
 }
 
 :root[data-adaptive-glyphs="true"] .studio-nav-header.is-scrolled .bubble-island::before,
-:root[data-adaptive-glyphs="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island::before,
-:root[data-adaptive-glyphs="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
+:root[data-adaptive-glyphs="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island::before {
   opacity: 1;
 }
 
@@ -2499,8 +2514,7 @@ main#main-content {
 }
 
 :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider::before,
-:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider::before,
-:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider::before {
   -webkit-backdrop-filter: url(#liquid-glass-slider);
   backdrop-filter: url(#liquid-glass-slider);
   animation: liveIslandBackdropSlider 2s linear infinite;

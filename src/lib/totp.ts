@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { hashToken } from './auth';
+import { hashToken, verifyTOTP } from './auth';
+import { execute, queryRow, transaction } from './db';
 
 const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
@@ -89,6 +90,72 @@ export function generateBackupCodes(count = 8): { codes: string[]; hashedCodes: 
   }
 
   return { codes, hashedCodes };
+}
+
+/**
+ * Generates 8 single-use emergency backup codes, atomically replaces any existing
+ * backup codes for the subscriber in MySQL, optionally activates TOTP, and returns
+ * the plaintext backup codes.
+ */
+export async function regenerateAndStoreBackupCodes(
+  subscriberId: number | string,
+  activateTotp = false
+): Promise<string[]> {
+  const { codes, hashedCodes } = generateBackupCodes(8);
+
+  await transaction(async (conn) => {
+    if (activateTotp) {
+      await conn.execute(
+        'UPDATE totp_credentials SET is_active = 1, updated_at = NOW() WHERE subscriber_id = ?',
+        [subscriberId]
+      );
+    }
+
+    await conn.execute('DELETE FROM totp_backup_codes WHERE subscriber_id = ?', [subscriberId]);
+
+    for (const hash of hashedCodes) {
+      await conn.execute(
+        'INSERT INTO totp_backup_codes (subscriber_id, code_hash, is_used) VALUES (?, ?, 0)',
+        [subscriberId, hash]
+      );
+    }
+  });
+
+  return codes;
+}
+
+/**
+ * Verifies a 6-digit rolling TOTP code or an 8-character single-use backup code.
+ * When consumeBackup is true and a backup code matches, marks the backup code as used.
+ */
+export async function verifyTotpOrBackupCode(
+  subscriberId: number | string,
+  totpSecret: string,
+  code: string,
+  consumeBackup = false
+): Promise<boolean> {
+  if (verifyTOTP(totpSecret, code)) {
+    return true;
+  }
+
+  const backupHash = hashToken(normalizeBackupCode(code));
+  const matchedBackup = await queryRow<{ id: number }>(
+    'SELECT id FROM totp_backup_codes WHERE subscriber_id = ? AND code_hash = ? AND is_used = 0 LIMIT 1',
+    [subscriberId, backupHash]
+  );
+
+  if (!matchedBackup) {
+    return false;
+  }
+
+  if (consumeBackup) {
+    await execute(
+      'UPDATE totp_backup_codes SET is_used = 1, used_at = NOW() WHERE id = ?',
+      [matchedBackup.id]
+    );
+  }
+
+  return true;
 }
 
 // ========================================================================
@@ -478,6 +545,8 @@ const totpUtils = {
   formatSecretForDisplay,
   generateOtpauthUri,
   generateBackupCodes,
+  regenerateAndStoreBackupCodes,
+  verifyTotpOrBackupCode,
   generateQrCodeSvg,
   generateQrCodeDataUrl,
 };

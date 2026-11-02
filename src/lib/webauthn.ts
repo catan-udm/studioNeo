@@ -1,6 +1,5 @@
-import { cookies } from 'next/headers';
-import crypto from 'crypto';
 import { NextRequest } from 'next/server';
+import { setSignedCookie, getSignedCookie, clearCookie } from './auth';
 
 const CHALLENGE_COOKIE_NAME = 'passkey_challenge';
 const CHALLENGE_TTL_SECONDS = 300; // 5 minutes
@@ -91,26 +90,7 @@ export function getRPConfig(request: NextRequest) {
 export async function setPasskeyChallenge(
   payload: Omit<PasskeyChallengePayload, 'expiresAt'>
 ): Promise<void> {
-  const cookieStore = await cookies();
-  const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
-  const expiresAt = Math.floor(Date.now() / 1000) + CHALLENGE_TTL_SECONDS;
-
-  const data: PasskeyChallengePayload = {
-    ...payload,
-    expiresAt,
-  };
-
-  const serialized = JSON.stringify(data);
-  const signature = crypto.createHmac('sha256', secret).update(serialized).digest('hex');
-  const value = Buffer.from(JSON.stringify({ data, sig: signature })).toString('base64url');
-
-  cookieStore.set(CHALLENGE_COOKIE_NAME, value, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: CHALLENGE_TTL_SECONDS,
-  });
+  await setSignedCookie(CHALLENGE_COOKIE_NAME, payload, CHALLENGE_TTL_SECONDS);
 }
 
 /**
@@ -119,46 +99,16 @@ export async function setPasskeyChallenge(
 export async function getPasskeyChallenge(
   expectedType: 'registration' | 'authentication'
 ): Promise<PasskeyChallengePayload | null> {
-  try {
-    const cookieStore = await cookies();
-    const cookie = cookieStore.get(CHALLENGE_COOKIE_NAME);
-    if (!cookie?.value) return null;
-
-    const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
-    const raw = Buffer.from(cookie.value, 'base64url').toString('utf8');
-    const { data, sig } = JSON.parse(raw);
-
-    const expectedSig = crypto.createHmac('sha256', secret).update(JSON.stringify(data)).digest('hex');
-    if (sig !== expectedSig) return null;
-
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    if (data.expiresAt < nowSeconds) return null;
-    if (data.type !== expectedType) return null;
-
-    return data;
-  } catch {
-    return null;
-  }
+  const data = await getSignedCookie<PasskeyChallengePayload>(CHALLENGE_COOKIE_NAME);
+  if (!data || data.type !== expectedType) return null;
+  return data;
 }
 
 /**
  * Clears the WebAuthn challenge cookie after ceremony completion.
  */
 export async function clearPasskeyChallenge(): Promise<void> {
-  const cookieStore = await cookies();
-  const isProd = process.env.NODE_ENV === 'production';
-  cookieStore.delete({
-    name: CHALLENGE_COOKIE_NAME,
-    path: '/',
-  });
-  cookieStore.set(CHALLENGE_COOKIE_NAME, '', {
-    path: '/',
-    maxAge: 0,
-    expires: new Date(0),
-    httpOnly: true,
-    secure: isProd,
-    sameSite: 'lax',
-  });
+  await clearCookie(CHALLENGE_COOKIE_NAME);
 }
 
 const webauthn = {

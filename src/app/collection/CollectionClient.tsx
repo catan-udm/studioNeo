@@ -2,103 +2,17 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { ALL_GALLERY_WORKS, GalleryWork, generateStandaloneSvg } from '../gallery/galleryData';
+import {
+  ALL_GALLERY_WORKS,
+  GalleryWork,
+  isVaultSubscriberTier,
+  exportGalleryWork,
+} from '../gallery/galleryData';
+import ArtworkCanvas from '../components/ArtworkCanvas';
+import StudioFooter from '../components/StudioFooter';
 import { getAuthenticatedSession } from '@/lib/clientAuthCache';
 import CollectionLoading from './loading';
 import './collection.css';
-
-/**
- * Geometric Vector Artwork Cel Generator
- */
-function ArtworkCanvas({ work }: { work: GalleryWork }) {
-  const mediaSrc = work.svgSrc || work.gifSrc;
-  if (mediaSrc) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={mediaSrc}
-        alt={work.title}
-        className="collection-artwork-svg"
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        loading="lazy"
-      />
-    );
-  }
-
-  const isMono = work.category === 'Mono';
-  const strokeColor = isMono ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.45)';
-  const accentFill = isMono ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
-  const gridStroke = isMono ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)';
-
-  return (
-    <svg
-      className="collection-artwork-svg"
-      viewBox="0 0 400 400"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden="true"
-    >
-      <rect width="400" height="400" fill={work.color} />
-      <defs>
-        <pattern id={`cgrid-${work.id}`} width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M 32 0 L 0 0 0 32" fill="none" stroke={gridStroke} strokeWidth="0.8" />
-        </pattern>
-      </defs>
-      <rect width="400" height="400" fill={`url(#cgrid-${work.id})`} />
-
-      {work.category === 'Generative' && (
-        <g stroke={strokeColor} fill="none" strokeWidth="1.5">
-          <circle cx="200" cy="200" r="130" strokeDasharray="6 4" />
-          <circle cx="200" cy="200" r="95" />
-          <circle cx="200" cy="200" r="60" strokeDasharray="3 3" />
-          <polygon points="200,85 295,245 105,245" strokeWidth="1.2" fill={accentFill} />
-          <circle cx="200" cy="200" r="14" fill={strokeColor} />
-        </g>
-      )}
-
-      {work.category === 'Kinetic' && (
-        <g stroke={strokeColor} fill="none" strokeWidth="1.75">
-          <path d="M 50 260 Q 200 60 350 260" strokeWidth="2" />
-          <path d="M 50 220 Q 200 20 350 220" strokeWidth="1.2" strokeDasharray="5 3" />
-          <circle cx="200" cy="160" r="50" fill={accentFill} />
-          <rect x="175" y="135" width="50" height="50" transform="rotate(45 200 160)" strokeWidth="1.5" />
-        </g>
-      )}
-
-      {work.category === 'Vectors' && (
-        <g stroke={strokeColor} fill="none" strokeWidth="1.6">
-          <polygon points="200,90 295,145 295,255 200,310 105,255 105,145" strokeWidth="2" />
-          <line x1="200" y1="90" x2="200" y2="200" strokeWidth="1.5" />
-          <line x1="200" y1="200" x2="295" y2="255" strokeWidth="1.5" />
-          <line x1="200" y1="200" x2="105" y2="255" strokeWidth="1.5" />
-          <circle cx="200" cy="200" r="32" fill={accentFill} />
-        </g>
-      )}
-
-      {work.category === 'Mono' && (
-        <g stroke="#ffffff" fill="none" strokeWidth="1.5">
-          <circle cx="200" cy="200" r="140" opacity="0.25" strokeDasharray="2 3" />
-          <circle cx="200" cy="200" r="110" opacity="0.45" />
-          <circle cx="200" cy="200" r="80" strokeWidth="2" />
-          <circle cx="200" cy="200" r="18" fill="#ffffff" />
-        </g>
-      )}
-
-      <text
-        x="376"
-        y="384"
-        textAnchor="end"
-        fill={strokeColor}
-        fontSize="10"
-        fontFamily="monospace"
-        fontWeight="600"
-        opacity="0.8"
-      >
-        {work.code} • studioNeo
-      </text>
-    </svg>
-  );
-}
 
 export default function CollectionClient() {
   const [savedIds, setSavedIds] = useState<string[]>([]);
@@ -113,11 +27,8 @@ export default function CollectionClient() {
   useEffect(() => {
     getAuthenticatedSession()
       .then((session) => {
-        if (session.authenticated && session.subscriber) {
-          const tier = session.subscriber.tier;
-          if (tier === 'collector' || tier === 'studio') {
-            setIsFeaturedAuthorized(true);
-          }
+        if (session.authenticated && session.subscriber && isVaultSubscriberTier(session.subscriber.tier)) {
+          setIsFeaturedAuthorized(true);
         }
       })
       .catch(() => {});
@@ -230,84 +141,11 @@ export default function CollectionClient() {
   // Download master cel in requested format
   const handleDownloadCel = useCallback(
     (work: GalleryWork, format: 'svg' | 'png' | 'jpg' | 'gif' = 'svg') => {
-      // Gating for Curatorial Study works
-      if (work.isVault && !isFeaturedAuthorized) {
-        showToast(`Artist Rights Reserved: studioNeo does not distribute illustrator works unless specified as a 'Featured' artist.`);
-        return;
-      }
-
-      // Format 1: Scalable Vector Graphics (SVG)
-      if (format === 'svg') {
-        const svgContent = generateStandaloneSvg(work);
-        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `studioNeo-${work.code}-master.svg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast(`Downloaded master vector cel for #${work.code} (${work.title})`);
-        return;
-      }
-
-      // Format 2: Kinetic Animated GIF
-      if (format === 'gif') {
-        if (work.gifSrc) {
-          const a = document.createElement('a');
-          a.href = work.gifSrc;
-          a.download = `studioNeo-${work.code}-kinetic.gif`;
-          a.target = '_blank';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          showToast(`Downloaded animated GIF for #${work.code}`);
-        } else {
-          showToast(`Kinetic animated GIF is only available for kinetic motion works.`);
-        }
-        return;
-      }
-
-      // Format 3 & 4: Raster Render via Canvas (PNG / JPG)
-      const svgContent = generateStandaloneSvg(work);
-      const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const img = new Image();
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1200;
-        canvas.height = 1200;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        if (format === 'jpg') {
-          ctx.fillStyle = work.color;
-          ctx.fillRect(0, 0, 1200, 1200);
-        }
-        ctx.drawImage(img, 0, 0, 1200, 1200);
-        URL.revokeObjectURL(url);
-
-        const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-        const ext = format === 'jpg' ? 'jpg' : 'png';
-
-        canvas.toBlob((canvasBlob) => {
-          if (canvasBlob) {
-            const downloadUrl = URL.createObjectURL(canvasBlob);
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = `studioNeo-${work.code}-master.${ext}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(downloadUrl);
-            showToast(`Exported ${format.toUpperCase()} cel for #${work.code} (${work.title})`);
-          }
-        }, mimeType, 0.95);
-      };
-
-      img.src = url;
+      exportGalleryWork(work, format, {
+        isAuthorized: isFeaturedAuthorized,
+        onToast: showToast,
+        requireAuthForMaster: false,
+      });
     },
     [isFeaturedAuthorized, showToast]
   );
@@ -483,7 +321,13 @@ export default function CollectionClient() {
                     onClick={() => handleDownloadCel(work)}
                     title="Click to download vector stem"
                   >
-                    <ArtworkCanvas work={work} />
+                    <ArtworkCanvas
+                      work={work}
+                      className="collection-artwork-svg"
+                      includeGifFallback
+                      objectFit="cover"
+                      patternPrefix="cgrid"
+                    />
                   </div>
 
                   {/* Card Bottom Actions */}
@@ -659,22 +503,7 @@ export default function CollectionClient() {
       )}
 
       {/* 5. Footer */}
-      <footer className="collection-footer">
-        <div className="footer-links-row">
-          <Link href="/gallery" className="footer-link">Archive Index</Link>
-          <Link href="/collection" className="footer-link">Saved Collection</Link>
-          <Link href="/about" className="footer-link">Curatorial Statement</Link>
-          <Link href="/licensing" className="footer-link">Content Rights</Link>
-          <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
-          <Link href="/terms" className="footer-link">Terms of Service</Link>
-          <Link href="/privacy" className="footer-link">Privacy Policy</Link>
-          <Link href="/contact" className="footer-link">Contact Studio</Link>
-        </div>
-        <div className="footer-bottom-copy">
-          <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-          <span>studioNeo visual engineering</span>
-        </div>
-      </footer>
+      <StudioFooter className="collection-footer" />
     </main>
   );
 }

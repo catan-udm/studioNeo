@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import StudioFooter from '../components/StudioFooter';
 import './privacy.css';
 
 export const metadata: Metadata = {
@@ -214,22 +215,7 @@ export default function PrivacyPage() {
         </div>
 
         {/* 3. Footer */}
-        <footer className="privacy-footer">
-          <div className="footer-links-row">
-            <Link href="/gallery" className="footer-link">Archive Index</Link>
-            <Link href="/collection" className="footer-link">Saved Collection</Link>
-            <Link href="/about" className="footer-link">Curatorial Statement</Link>
-            <Link href="/licensing" className="footer-link">Content Rights</Link>
-            <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
-            <Link href="/terms" className="footer-link">Terms of Service</Link>
-            <Link href="/privacy" className="footer-link">Privacy Policy</Link>
-            <Link href="/contact" className="footer-link">Contact Studio</Link>
-          </div>
-          <div className="footer-bottom-copy">
-            <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-            <span>studioNeo visual engineering</span>
-          </div>
-        </footer>
+        <StudioFooter className="privacy-footer" />
       </main>
     </>
   );

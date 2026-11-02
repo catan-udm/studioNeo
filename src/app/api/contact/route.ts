@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { execute } from '@/lib/db';
 import { sendEmail, escapeHtml } from '@/lib/email';
 import { isRateLimited } from '@/lib/rateLimit';
+import { EMAIL_REGEX } from '@/lib/auth';
 
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
@@ -48,8 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!email || !emailRegex.test(email)) {
+    if (!email || !EMAIL_REGEX.test(email)) {
       return NextResponse.json(
         { error: 'Please provide a valid email address.' },
         { status: 422 }

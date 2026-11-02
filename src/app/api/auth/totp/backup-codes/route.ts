@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
-import { queryRow, transaction } from '@/lib/db';
-import { generateBackupCodes } from '@/lib/totp';
+import { queryRow } from '@/lib/db';
+import { regenerateAndStoreBackupCodes } from '@/lib/totp';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,21 +27,7 @@ export async function POST() {
       );
     }
 
-    const { codes, hashedCodes } = generateBackupCodes(8);
-
-    await transaction(async (conn) => {
-      await conn.execute(
-        'DELETE FROM totp_backup_codes WHERE subscriber_id = ?',
-        [session.subscriberId]
-      );
-
-      for (const hash of hashedCodes) {
-        await conn.execute(
-          'INSERT INTO totp_backup_codes (subscriber_id, code_hash, is_used) VALUES (?, ?, 0)',
-          [session.subscriberId, hash]
-        );
-      }
-    });
+    const codes = await regenerateAndStoreBackupCodes(session.subscriberId, false);
 
     return NextResponse.json(
       {

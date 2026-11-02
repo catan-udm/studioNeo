@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
+import { setSignedCookie, getSignedCookie, clearCookie } from './auth';
 
 export type OAuthProvider = 'google' | 'microsoft';
 
@@ -159,71 +159,21 @@ export function generateState(): string {
 export async function setOAuthSessionCookie(
   data: Omit<OAuthSessionData, 'expiresAt'>
 ): Promise<void> {
-  const cookieStore = await cookies();
-  const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
-  const expiresAt = Math.floor(Date.now() / 1000) + OAUTH_TTL_SECONDS;
-
-  const fullData: OAuthSessionData = {
-    ...data,
-    expiresAt,
-  };
-
-  const serialized = JSON.stringify(fullData);
-  const signature = crypto.createHmac('sha256', secret).update(serialized).digest('hex');
-  const value = Buffer.from(JSON.stringify({ data: fullData, sig: signature })).toString('base64url');
-
-  cookieStore.set(OAUTH_COOKIE_NAME, value, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: OAUTH_TTL_SECONDS,
-  });
+  await setSignedCookie(OAUTH_COOKIE_NAME, data, OAUTH_TTL_SECONDS);
 }
 
 /**
  * Retrieves and validates OAuth session data from cookie.
  */
 export async function getOAuthSessionCookie(): Promise<OAuthSessionData | null> {
-  try {
-    const cookieStore = await cookies();
-    const cookie = cookieStore.get(OAUTH_COOKIE_NAME);
-    if (!cookie?.value) return null;
-
-    const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
-    const raw = Buffer.from(cookie.value, 'base64url').toString('utf8');
-    const { data, sig } = JSON.parse(raw);
-
-    const expectedSig = crypto.createHmac('sha256', secret).update(JSON.stringify(data)).digest('hex');
-    if (sig !== expectedSig) return null;
-
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    if (data.expiresAt < nowSeconds) return null;
-
-    return data;
-  } catch {
-    return null;
-  }
+  return getSignedCookie<OAuthSessionData>(OAUTH_COOKIE_NAME);
 }
 
 /**
  * Clears the temporary OAuth session cookie.
  */
 export async function clearOAuthSessionCookie(): Promise<void> {
-  const cookieStore = await cookies();
-  const isProd = process.env.NODE_ENV === 'production';
-  cookieStore.delete({
-    name: OAUTH_COOKIE_NAME,
-    path: '/',
-  });
-  cookieStore.set(OAUTH_COOKIE_NAME, '', {
-    path: '/',
-    maxAge: 0,
-    expires: new Date(0),
-    httpOnly: true,
-    secure: isProd,
-    sameSite: 'lax',
-  });
+  await clearCookie(OAUTH_COOKIE_NAME);
 }
 
 /**

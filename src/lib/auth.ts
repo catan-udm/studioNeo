@@ -1,9 +1,11 @@
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
+import { execute } from './db';
 
 export const AUTH_COOKIE_NAME = process.env.AUTH_SESSION_COOKIE_NAME || 'sanko_auth_session';
 export const SESSION_TTL_SECONDS = Number(process.env.AUTH_SESSION_TTL_SECONDS) || 604800; // 7 days
 export const OTP_TTL_MINUTES = Number(process.env.AUTH_OTP_TTL_MINUTES) || 10;
+export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export interface SessionPayload {
   subscriberId: number | string;
@@ -177,18 +179,17 @@ export async function getSessionUser(): Promise<SessionPayload | null> {
 }
 
 /**
- * Clears the session cookie on logout with explicit root path and immediate expiration.
+ * Clears any named cookie with explicit root path and immediate expiration.
  */
-export async function clearSessionCookie(): Promise<void> {
+export async function clearCookie(cookieName: string): Promise<void> {
   const cookieStore = await cookies();
   const isProd = process.env.NODE_ENV === 'production';
 
-  // Explicitly delete with path: '/' to match how setSessionCookie created it
   cookieStore.delete({
-    name: AUTH_COOKIE_NAME,
+    name: cookieName,
     path: '/',
   });
-  cookieStore.set(AUTH_COOKIE_NAME, '', {
+  cookieStore.set(cookieName, '', {
     path: '/',
     maxAge: 0,
     expires: new Date(0),
@@ -196,21 +197,74 @@ export async function clearSessionCookie(): Promise<void> {
     secure: isProd,
     sameSite: 'lax',
   });
+}
+
+/**
+ * Signs and stores an ephemeral JSON payload in an httpOnly cookie.
+ */
+export async function setSignedCookie<T extends object>(
+  cookieName: string,
+  payload: T,
+  ttlSeconds: number
+): Promise<void> {
+  const cookieStore = await cookies();
+  const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
+  const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
+
+  const fullData = {
+    ...payload,
+    expiresAt,
+  };
+
+  const serialized = JSON.stringify(fullData);
+  const signature = crypto.createHmac('sha256', secret).update(serialized).digest('hex');
+  const value = Buffer.from(JSON.stringify({ data: fullData, sig: signature })).toString('base64url');
+
+  cookieStore.set(cookieName, value, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: ttlSeconds,
+  });
+}
+
+/**
+ * Retrieves and verifies an ephemeral signed JSON payload from an httpOnly cookie.
+ */
+export async function getSignedCookie<T extends { expiresAt: number }>(
+  cookieName: string
+): Promise<T | null> {
+  try {
+    const cookieStore = await cookies();
+    const cookie = cookieStore.get(cookieName);
+    if (!cookie?.value) return null;
+
+    const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
+    const raw = Buffer.from(cookie.value, 'base64url').toString('utf8');
+    const { data, sig } = JSON.parse(raw);
+
+    const expectedSig = crypto.createHmac('sha256', secret).update(JSON.stringify(data)).digest('hex');
+    if (!timingSafeCompare(String(sig), expectedSig)) return null;
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (data.expiresAt < nowSeconds) return null;
+
+    return data as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Clears the session cookie on logout with explicit root path and immediate expiration.
+ */
+export async function clearSessionCookie(): Promise<void> {
+  await clearCookie(AUTH_COOKIE_NAME);
 
   // Also clear fallback default name if configured differently
   if (AUTH_COOKIE_NAME !== 'sanko_auth_session') {
-    cookieStore.delete({
-      name: 'sanko_auth_session',
-      path: '/',
-    });
-    cookieStore.set('sanko_auth_session', '', {
-      path: '/',
-      maxAge: 0,
-      expires: new Date(0),
-      httpOnly: true,
-      secure: isProd,
-      sameSite: 'lax',
-    });
+    await clearCookie('sanko_auth_session');
   }
 }
 
@@ -375,10 +429,38 @@ export async function sendOTPEmail(email: string, otp: string): Promise<Dispatch
   return { dispatched: true, channel: 'console' };
 }
 
+/**
+ * Generates a fresh 6-digit OTP, invalidates prior unconsumed OTPs for the subscriber,
+ * persists the SHA-256 token hash in auth_magic_tokens, and dispatches the OTP email.
+ */
+export async function issueAndDispatchOTP(
+  subscriberId: number,
+  email: string
+): Promise<{ otp: string; expiresAt: Date; dispatch: DispatchResult }> {
+  const otp = generateOTP();
+  const tokenHash = hashToken(otp);
+  const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
+  const expiresAtSql = expiresAt.toISOString().slice(0, 19).replace('T', ' ');
+
+  await execute(
+    'UPDATE auth_magic_tokens SET consumed_at = NOW() WHERE subscriber_id = ? AND consumed_at IS NULL',
+    [subscriberId]
+  );
+
+  await execute(
+    'INSERT INTO auth_magic_tokens (subscriber_id, token_hash, expires_at) VALUES (?, ?, ?)',
+    [subscriberId, tokenHash, expiresAtSql]
+  );
+
+  const dispatch = await sendOTPEmail(email, otp);
+  return { otp, expiresAt, dispatch };
+}
+
 const auth = {
   AUTH_COOKIE_NAME,
   SESSION_TTL_SECONDS,
   OTP_TTL_MINUTES,
+  EMAIL_REGEX,
   generateOTP,
   hashToken,
   timingSafeCompare,
@@ -387,8 +469,12 @@ const auth = {
   setSessionCookie,
   getSessionUser,
   clearSessionCookie,
+  clearCookie,
+  setSignedCookie,
+  getSignedCookie,
   verifyTOTP,
   sendOTPEmail,
+  issueAndDispatchOTP,
 };
 
 export default auth;

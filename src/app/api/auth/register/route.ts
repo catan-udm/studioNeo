@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryRow, execute } from '@/lib/db';
-import { generateOTP, hashToken, sendOTPEmail, OTP_TTL_MINUTES } from '@/lib/auth';
+import { issueAndDispatchOTP, OTP_TTL_MINUTES, EMAIL_REGEX } from '@/lib/auth';
 
 interface RegisterRequestBody {
   email?: string;
@@ -21,8 +21,7 @@ export async function POST(request: NextRequest) {
     const email = rawEmail.trim().toLowerCase();
 
     // Standard RFC-compliant email regex
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
+    if (!EMAIL_REGEX.test(email)) {
       return NextResponse.json(
         { error: 'Please provide a valid email format.' },
         { status: 422 }
@@ -62,30 +61,8 @@ export async function POST(request: NextRequest) {
       subscriberId = existingSubscriber.id;
     }
 
-    // 2. Generate a cryptographically secure 6-digit numeric OTP
-    const otp = generateOTP();
-    const tokenHash = hashToken(otp);
-
-    // 3. Compute 10-minute expiration in UTC
-    const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000)
-      .toISOString()
-      .slice(0, 19)
-      .replace('T', ' ');
-
-    // 4. Invalidate any prior unused tokens for this subscriber to avoid token sprawl
-    await execute(
-      'UPDATE auth_magic_tokens SET consumed_at = NOW() WHERE subscriber_id = ? AND consumed_at IS NULL',
-      [subscriberId]
-    );
-
-    // 5. Insert token hash into auth_magic_tokens
-    await execute(
-      'INSERT INTO auth_magic_tokens (subscriber_id, token_hash, expires_at) VALUES (?, ?, ?)',
-      [subscriberId, tokenHash, expiresAt]
-    );
-
-    // 6. Transactional notification dispatch
-    const dispatchResult = await sendOTPEmail(email, otp);
+    // 2. Issue and dispatch 6-digit OTP
+    const { otp, dispatch: dispatchResult } = await issueAndDispatchOTP(subscriberId, email);
 
     return NextResponse.json(
       {

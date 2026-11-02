@@ -7,100 +7,16 @@ import {
   RESIDENT_ARTISTS,
   GalleryWork,
   ResidentArtist,
-  generateStandaloneSvg,
+  isVaultSubscriberTier,
+  mapDbCelToGalleryWork,
+  exportGalleryWork,
 } from '../../gallery/galleryData';
+import ArtworkCanvas from '../../components/ArtworkCanvas';
 import { getAuthenticatedSession } from '@/lib/clientAuthCache';
 import './artistProfile.css';
 
 interface ArtistProfileClientProps {
   handle: string;
-}
-
-function ArtworkCanvas({ work }: { work: GalleryWork }) {
-  if (work.svgSrc) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={work.svgSrc}
-        alt={work.title}
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-        loading="lazy"
-      />
-    );
-  }
-
-  const isMono = work.category === 'Mono';
-  const strokeColor = isMono ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.45)';
-  const accentFill = isMono ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
-  const gridStroke = isMono ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)';
-
-  return (
-    <svg
-      viewBox="0 0 400 400"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden="true"
-    >
-      <rect width="400" height="400" fill={work.color} />
-      <defs>
-        <pattern id={`artist-grid-${work.id}`} width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M 32 0 L 0 0 0 32" fill="none" stroke={gridStroke} strokeWidth="0.8" />
-        </pattern>
-      </defs>
-      <rect width="400" height="400" fill={`url(#artist-grid-${work.id})`} />
-
-      {work.category === 'Generative' && (
-        <g stroke={strokeColor} fill="none" strokeWidth="1.5">
-          <circle cx="200" cy="200" r="130" strokeDasharray="6 4" />
-          <circle cx="200" cy="200" r="95" />
-          <circle cx="200" cy="200" r="60" strokeDasharray="3 3" />
-          <polygon points="200,85 295,245 105,245" strokeWidth="1.2" fill={accentFill} />
-          <circle cx="200" cy="200" r="14" fill={strokeColor} />
-        </g>
-      )}
-
-      {work.category === 'Kinetic' && (
-        <g stroke={strokeColor} fill="none" strokeWidth="1.75">
-          <path d="M 50 260 Q 200 60 350 260" strokeWidth="2" />
-          <path d="M 50 220 Q 200 20 350 220" strokeWidth="1.2" strokeDasharray="5 3" />
-          <circle cx="200" cy="160" r="50" fill={accentFill} />
-          <circle cx="200" cy="160" r="6" fill={strokeColor} />
-        </g>
-      )}
-
-      {work.category === 'Vectors' && (
-        <g stroke={strokeColor} fill="none" strokeWidth="1.6">
-          <polygon points="200,90 295,145 295,255 200,310 105,255 105,145" strokeWidth="2" />
-          <line x1="200" y1="90" x2="200" y2="200" strokeWidth="1.5" />
-          <line x1="200" y1="200" x2="295" y2="255" strokeWidth="1.5" />
-          <line x1="200" y1="200" x2="105" y2="255" strokeWidth="1.5" />
-          <circle cx="200" cy="200" r="32" fill={accentFill} />
-        </g>
-      )}
-
-      {work.category === 'Mono' && (
-        <g stroke="#ffffff" fill="none" strokeWidth="1.5">
-          <circle cx="200" cy="200" r="140" opacity="0.25" strokeDasharray="2 3" />
-          <circle cx="200" cy="200" r="110" opacity="0.45" />
-          <circle cx="200" cy="200" r="80" strokeWidth="2" />
-          <circle cx="200" cy="200" r="18" fill="#ffffff" />
-        </g>
-      )}
-
-      <text
-        x="376"
-        y="384"
-        textAnchor="end"
-        fill={strokeColor}
-        fontSize="10"
-        fontFamily="monospace"
-        fontWeight="600"
-        opacity="0.8"
-      >
-        {work.code} • {work.artist}
-      </text>
-    </svg>
-  );
 }
 
 export default function ArtistProfileClient({ handle }: ArtistProfileClientProps) {
@@ -149,19 +65,8 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
   useEffect(() => {
     const timer = setTimeout(() => {
       getAuthenticatedSession().then((session) => {
-        if (session.authenticated && session.subscriber) {
-          const t = (session.subscriber.tier || '').toLowerCase();
-          if (
-            t === 'collector' ||
-            t === 'studio' ||
-            t === 'studio-alpha' ||
-            t === 'studio-atelier' ||
-            t === 'enterprise' ||
-            t.startsWith('artist') ||
-            t.startsWith('illustrator')
-          ) {
-            setIsFeaturedAuthorized(true);
-          }
+        if (session.authenticated && session.subscriber && isVaultSubscriberTier(session.subscriber.tier)) {
+          setIsFeaturedAuthorized(true);
         }
       }).catch(() => {});
 
@@ -170,44 +75,7 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
         .then((res) => res.json())
         .then((data) => {
           if (data.success && Array.isArray(data.cels)) {
-            const mapped: GalleryWork[] = data.cels.map((c: {
-              id: number;
-              code: string;
-              title: string;
-              artist: string;
-              artist_handle: string;
-              artist_avatar?: string;
-              color: string;
-              gif_url?: string | null;
-              svg_url?: string | null;
-              svg_storage_path?: string | null;
-              likes?: number;
-              edition: string;
-              price: string;
-              category: 'Generative' | 'Kinetic' | 'Vectors' | 'Mono';
-              is_vault?: number;
-              format?: string;
-              description?: string;
-            }) => ({
-              id: `db-cel-${c.id}`,
-              code: c.code,
-              title: c.title,
-              artist: c.artist,
-              artistHandle: c.artist_handle,
-              artistAvatar: c.artist_avatar || 'AT',
-              color: c.color,
-              gifSrc: c.gif_url || undefined,
-              svgSrc: c.svg_url || (c.svg_storage_path ? `/api/assets/download/${c.code}?format=svg&preview=true` : undefined),
-              likes: c.likes || 0,
-              edition: c.edition,
-              price: c.price,
-              category: c.category,
-              isVault: Boolean(c.is_vault),
-              unlocked: true,
-              format: (c.format as '4K' | 'SVG' | 'RAW' | 'VECTORS') || 'SVG',
-              description: c.description || 'Verified studio cel.',
-            }));
-            setDynamicCels(mapped);
+            setDynamicCels(data.cels.map(mapDbCelToGalleryWork));
           }
         })
         .catch(() => {});
@@ -247,105 +115,11 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
   const handleExport = useCallback(
     (work: GalleryWork, format: 'svg' | 'png' | 'jpg' | 'gif', e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
-
-      // Rule 5: Viewing & standard web exports (PNG/JPG) are automatically free for all community visitors
-      if (format === 'png' || format === 'jpg') {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-
-        const renderToCanvas = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = 1200;
-          canvas.height = 1200;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-
-          if (format === 'jpg') {
-            ctx.fillStyle = work.color;
-            ctx.fillRect(0, 0, 1200, 1200);
-          }
-          ctx.drawImage(img, 0, 0, 1200, 1200);
-
-          const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-          const ext = format === 'jpg' ? 'jpg' : 'png';
-
-          canvas.toBlob((canvasBlob) => {
-            if (canvasBlob) {
-              const downloadUrl = URL.createObjectURL(canvasBlob);
-              const a = document.createElement('a');
-              a.href = downloadUrl;
-              a.download = `studioNeo-${work.code}-preview.${ext}`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(downloadUrl);
-              showToast(`Exported free ${format.toUpperCase()} preview for #${work.code}`);
-            }
-          }, mimeType, 0.95);
-        };
-
-        if (work.svgSrc) {
-          img.onload = renderToCanvas;
-          img.src = work.svgSrc;
-        } else {
-          const svgContent = generateStandaloneSvg(work);
-          const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-          const url = URL.createObjectURL(blob);
-          img.onload = () => {
-            renderToCanvas();
-            URL.revokeObjectURL(url);
-          };
-          img.src = url;
-        }
-        return;
-      }
-
-      // Rule 5: High-quality / original master assets (raw vector SVG, kinetic GIF) are restricted to Featured artist authorization
-      if ((work.isVault || format === 'svg' || format === 'gif') && !isFeaturedAuthorized) {
-        showToast("Artist Rights Reserved: studioNeo does not distribute illustrator works unless specified as a 'Featured' artist. Official profile links are provided below.");
-        return;
-      }
-
-      if (format === 'gif') {
-        if (work.gifSrc) {
-          const a = document.createElement('a');
-          a.href = work.gifSrc;
-          a.download = `studioNeo-${work.code}-kinetic.gif`;
-          a.target = '_blank';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          showToast(`Downloaded kinetic animated GIF for #${work.code}`);
-        } else {
-          showToast('Animated kinetic GIF is only available for kinetic motion works.');
-        }
-        return;
-      }
-
-      // SVG Master download
-      if (work.svgSrc) {
-        const a = document.createElement('a');
-        a.href = `/api/assets/download/${work.code}?format=svg`;
-        a.download = `studioNeo-${work.code}-master.svg`;
-        a.target = '_blank';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
-        return;
-      }
-
-      const svgContent = generateStandaloneSvg(work);
-      const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `studioNeo-${work.code}-master.svg`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
+      exportGalleryWork(work, format, {
+        isAuthorized: isFeaturedAuthorized,
+        onToast: showToast,
+        requireAuthForMaster: true,
+      });
     },
     [isFeaturedAuthorized, showToast]
   );
@@ -498,7 +272,12 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={work.gifSrc} alt={work.title} loading="lazy" />
                   ) : (
-                    <ArtworkCanvas work={work} />
+                    <ArtworkCanvas
+                      work={work}
+                      className=""
+                      watermarkLabel={work.artist}
+                      patternPrefix="artist-grid"
+                    />
                   )}
 
                   {work.isVault && (
@@ -561,7 +340,12 @@ export default function ArtistProfileClient({ handle }: ArtistProfileClientProps
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={activeWork.svgSrc} alt={activeWork.title} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               ) : (
-                <ArtworkCanvas work={activeWork} />
+                <ArtworkCanvas
+                  work={activeWork}
+                  className=""
+                  watermarkLabel={activeWork.artist}
+                  patternPrefix="artist-grid"
+                />
               )}
             </div>
 

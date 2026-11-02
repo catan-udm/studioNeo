@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { getAuthenticatedSession, invalidateAuthCache } from '@/lib/clientAuthCache';
+import { isArtistTier, sanitizeSvgContent } from '@/app/gallery/galleryData';
 import './studioUpload.css';
 
 const PALETTE_PRESETS = [
@@ -17,17 +18,6 @@ const PALETTE_PRESETS = [
   { name: 'Slate Gray', hex: '#737373' },
   { name: 'Deep Navy', hex: '#344553' },
 ];
-
-function isArtistTier(tier?: string): boolean {
-  if (!tier) return false;
-  const t = tier.toLowerCase();
-  return (
-    t.startsWith('artist') ||
-    t.startsWith('illustrator') ||
-    t === 'admin' ||
-    t === 'curator'
-  );
-}
 
 export default function StudioUploadClient() {
   const [authLoading, setAuthLoading] = useState(true);
@@ -125,12 +115,7 @@ export default function StudioUploadClient() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result as string;
-      const safeContent = content
-        .replace(/<script[\s\S]*?<\/script>/gi, '')
-        .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
-        .replace(/\s+on\w+\s*=\s*(['"]).*?\1/gi, '')
-        .replace(/\s+on\w+\s*=\s*[^>\s]+/gi, '');
-      setSvgPreviewContent(safeContent);
+      setSvgPreviewContent(sanitizeSvgContent(content));
     };
     reader.readAsText(file);
   };

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
 import { queryRow, CelRecord } from '@/lib/db';
 import { generatePerkSasUrl, generateCelSasUrl, getBlobData } from '@/lib/azure-storage';
-import { ALL_GALLERY_WORKS, generateStandaloneSvg } from '@/app/gallery/galleryData';
+import {
+  ALL_GALLERY_WORKS,
+  generateStandaloneSvg,
+  isVaultSubscriberTier,
+} from '@/app/gallery/galleryData';
 
 interface PerkDownloadRecord {
   id: number;
@@ -14,22 +18,6 @@ interface PerkDownloadRecord {
 interface SubscriberTierRecord {
   id: number;
   tier: string;
-}
-
-function isVaultSubscriberTier(tier?: string): boolean {
-  if (!tier) return false;
-  const t = tier.toLowerCase();
-  return (
-    t === 'studio-alpha' ||
-    t === 'studio-atelier' ||
-    t === 'enterprise' ||
-    t === 'collector' ||
-    t === 'studio' ||
-    t.startsWith('artist') ||
-    t.startsWith('illustrator') ||
-    t === 'admin' ||
-    t === 'curator'
-  );
 }
 
 export async function GET(

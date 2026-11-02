@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import AuthSlider from '@/app/components/AuthSlider';
-import './register.css';
 
 export const metadata: Metadata = {
   title: 'Register • studioNeo • Passkey & Cryptographic Identity',

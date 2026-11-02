@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionUser, verifyTOTP, hashToken } from '@/lib/auth';
-import { normalizeBackupCode } from '@/lib/totp';
+import { getSessionUser } from '@/lib/auth';
+import { verifyTotpOrBackupCode } from '@/lib/totp';
 import { queryRow, transaction } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
@@ -36,15 +36,12 @@ export async function POST(request: NextRequest) {
 
     // If verification code is supplied, check it (either rolling TOTP or single-use backup code)
     if (code) {
-      let isCodeValid = verifyTOTP(totpRecord.totp_secret, code);
-      if (!isCodeValid) {
-        const hash = hashToken(normalizeBackupCode(code));
-        const backupRow = await queryRow<{ id: number }>(
-          'SELECT id FROM totp_backup_codes WHERE subscriber_id = ? AND code_hash = ? AND is_used = 0 LIMIT 1',
-          [session.subscriberId, hash]
-        );
-        if (backupRow) isCodeValid = true;
-      }
+      const isCodeValid = await verifyTotpOrBackupCode(
+        session.subscriberId,
+        totpRecord.totp_secret,
+        code,
+        false
+      );
 
       if (!isCodeValid) {
         return NextResponse.json(

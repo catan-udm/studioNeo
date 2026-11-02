@@ -14,9 +14,21 @@ export type GlassFilterSpec = {
   scale: number;
   blur: number;
   href: string;
+  /**
+   * Filter-space resolution factor. Chromium resolves `backdrop-filter: url()`
+   * userSpaceOnUse lengths in device pixels, so the filter region, feImage and
+   * displacement scale are multiplied by devicePixelRatio there. 1 elsewhere.
+   */
+  res?: number;
 };
 
 const mapCache = new Map<string, string>();
+
+/** Interior magnification strength (fraction of max displacement) for elongated pills. */
+const FILL_MAGNIFY = 0.35;
+
+/** Pills at least this wide-to-tall get the full-surface lens (desktop studioNav). */
+const FILL_ASPECT = 4;
 
 export const NEUTRAL_REFRACTION_MAP =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='16' height='16' fill='rgb(128,128,128)'/%3E%3C/svg%3E";
@@ -36,6 +48,7 @@ export function buildRefractionMapDataUri(
   rawHeight: number,
   rawRadius: number,
   rawBezel: number,
+  fill = false,
 ): string {
   const width = Math.max(16, Math.round(rawWidth));
   const height = Math.max(16, Math.round(rawHeight));
@@ -43,7 +56,7 @@ export function buildRefractionMapDataUri(
   const radius = Math.max(2, Math.min(rawRadius, maxR));
   const bezel = Math.max(4, Math.min(rawBezel, maxR * 0.85));
 
-  const cacheKey = `${width}x${height}r${radius.toFixed(1)}b${bezel.toFixed(1)}`;
+  const cacheKey = `${width}x${height}r${radius.toFixed(1)}b${bezel.toFixed(1)}${fill ? "f" : ""}`;
   const cached = mapCache.get(cacheKey);
   if (cached) return cached;
 
@@ -114,6 +127,14 @@ export function buildRefractionMapDataUri(
           dx = -nx * refract;
           dy = -ny * refract;
         }
+
+        // Elongated islands (desktop studioNav): the rim alone leaves the long
+        // flat run looking untouched. Add a gentle convex-lens magnification
+        // across the whole surface so the lens fills the element end to end.
+        if (fill) {
+          dx += (-px / halfW) * FILL_MAGNIFY * aa;
+          dy += (-py / halfH) * FILL_MAGNIFY * aa;
+        }
       }
 
       const idx = (y * width + x) * 4;
@@ -131,11 +152,15 @@ export function buildRefractionMapDataUri(
 }
 
 function makeCapsuleSpec(id: string, width: number, height: number): GlassFilterSpec {
-  const w = Math.max(24, Math.round(width));
-  const h = Math.max(24, Math.round(height));
+  const w = Math.max(24, Math.ceil(width));
+  const h = Math.max(24, Math.ceil(height));
   const radius = Math.min(w, h) / 2;
-  // Bezel stays in the outer rim (~12-13px) so the central text/icon plateau is flat
-  const bezel = Math.min(14, Math.max(9, Math.round(Math.min(w, h) * 0.28)));
+  const fill = w / h >= FILL_ASPECT;
+  // Compact islands keep the bezel in the outer rim (~12-13px). Elongated pills
+  // widen it to span the full half-thickness so the lens fills the element.
+  const bezel = fill
+    ? Math.round(radius * 0.85)
+    : Math.min(14, Math.max(9, Math.round(Math.min(w, h) * 0.28)));
   const scale = 24;
   return {
     id,
@@ -145,7 +170,7 @@ function makeCapsuleSpec(id: string, width: number, height: number): GlassFilter
     bezel,
     scale,
     blur: 0,
-    href: buildRefractionMapDataUri(w, h, radius, bezel),
+    href: buildRefractionMapDataUri(w, h, radius, bezel, fill),
   };
 }
 
@@ -181,7 +206,7 @@ function makeInitialSpecs(): GlassFilterSpec[] {
   });
   return [
     neutral(makeCapsuleSpec("liquid-glass-left", 46, 46)),
-    neutral(makeCapsuleSpec("liquid-glass-slider", 343, 46)),
+    neutral(makeCapsuleSpec("liquid-glass-slider", 258, 46)),
     neutral(makeCapsuleSpec("liquid-glass-burger", 42, 42)),
     neutral(makePopoverSpec("liquid-glass-popover", 238, 326)),
   ];
@@ -261,20 +286,25 @@ export function useLiquidRefraction(refs: {
       const popW = popEl ? popEl.offsetWidth || 238 : 238;
       const popH = popEl ? popEl.offsetHeight || 326 : 326;
 
+      // Firefox applies the filter via `filter:` on ::before (CSS px space).
+      // Chromium's backdrop-filter path resolves the filter in device pixels on
+      // real hardware (desktop and phones alike), so scale by devicePixelRatio.
+      const res = isMozSupported ? 1 : window.devicePixelRatio || 1;
       const next: GlassFilterSpec[] = [
         makeCapsuleSpec("liquid-glass-left", leftRect?.width || 46, leftRect?.height || 46),
-        makeCapsuleSpec("liquid-glass-slider", sliderRect?.width || 343, sliderRect?.height || 46),
+        makeCapsuleSpec("liquid-glass-slider", sliderRect?.width || 258, sliderRect?.height || 46),
         makeCapsuleSpec("liquid-glass-burger", burgerRect?.width || 42, burgerRect?.height || 42),
         makePopoverSpec("liquid-glass-popover", popW, popH),
-      ];
+      ].map((spec) => ({ ...spec, res }));
 
       setSpecs((prev) => {
         const unchanged =
           prev.length === next.length &&
           prev.every(
             (p, idx) =>
-              Math.abs(p.width - next[idx].width) < 2 &&
-              Math.abs(p.height - next[idx].height) < 2 &&
+              (p.res ?? 1) === (next[idx].res ?? 1) &&
+              Math.abs(p.width - next[idx].width) < 1 &&
+              Math.abs(p.height - next[idx].height) < 1 &&
               p.href === next[idx].href &&
               p.href !== "" &&
               p.href !== NEUTRAL_REFRACTION_MAP,
@@ -285,6 +315,11 @@ export function useLiquidRefraction(refs: {
     };
 
     syncSpecs();
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts.ready.then(() => {
+        syncSpecs();
+      });
+    }
     const rafSync = requestAnimationFrame(syncSpecs);
     const tSync1 = setTimeout(syncSpecs, 60);
     const tSync2 = setTimeout(syncSpecs, 180);
@@ -319,6 +354,18 @@ export function useLiquidRefraction(refs: {
       window.addEventListener("scroll", syncOffsets, { passive: true });
     }
     window.addEventListener("resize", syncSpecs);
+    // Re-sync whenever devicePixelRatio changes (zoom, moving between screens).
+    let dprMql: MediaQueryList | null = null;
+    const watchDpr = () => {
+      dprMql?.removeEventListener("change", onDprChange);
+      dprMql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      dprMql.addEventListener("change", onDprChange);
+    };
+    function onDprChange() {
+      syncSpecs();
+      watchDpr();
+    }
+    watchDpr();
     return () => {
       cancelAnimationFrame(rafSync);
       clearTimeout(tSync1);
@@ -330,6 +377,7 @@ export function useLiquidRefraction(refs: {
         window.removeEventListener("scroll", syncOffsets);
       }
       window.removeEventListener("resize", syncSpecs);
+      dprMql?.removeEventListener("change", onDprChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, refs.deps ?? []);
@@ -338,6 +386,26 @@ export function useLiquidRefraction(refs: {
 }
 
 export function LiquidGlassDefs({ specs }: { specs: GlassFilterSpec[] }) {
+  useIsomorphicLayoutEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    if (!root.hasAttribute("data-liquid-refraction")) return;
+
+    // Invalidate Chromium's cached PaintFilter keyframe animation bindings
+    // whenever specs change (e.g. after hydration, viewport resize, or font load).
+    root.removeAttribute("data-liquid-refraction");
+    const queried = document.querySelectorAll<HTMLElement>(
+      ".studio-nav-left, .studio-nav-slider, .nav-burger-bubble, .nav-burger-popover"
+    );
+    queried.forEach((el) => {
+      void window.getComputedStyle(el, "::before").backdropFilter;
+    });
+    root.setAttribute("data-liquid-refraction", "true");
+    queried.forEach((el) => {
+      void window.getComputedStyle(el, "::before").backdropFilter;
+    });
+  }, [specs]);
+
   return (
     <svg
       className="liquid-glass-svg-defs"
@@ -347,41 +415,46 @@ export function LiquidGlassDefs({ specs }: { specs: GlassFilterSpec[] }) {
       focusable="false"
     >
       <defs>
-        {specs.map((spec) => (
-          <filter
-            key={spec.id}
-            id={spec.id}
-            x="0"
-            y="0"
-            width={spec.width}
-            height={spec.height}
-            filterUnits="userSpaceOnUse"
-            primitiveUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feImage
-              suppressHydrationWarning
-              href={spec.href}
-              xlinkHref={spec.href}
+        {specs.map((spec) => {
+          const res = spec.res ?? 1;
+          const w = Math.ceil(spec.width * res);
+          const h = Math.ceil(spec.height * res);
+          return (
+            <filter
+              key={`${spec.id}-${w}x${h}`}
+              id={spec.id}
               x="0"
               y="0"
-              width={spec.width}
-              height={spec.height}
-              preserveAspectRatio="none"
-              result="refractMap"
-            />
-            {/* Single-pass displacement: all channels move together, so saturated
-                backdrop colors stay intact at the rim with no RGB separation. */}
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="refractMap"
-              scale={spec.scale}
-              xChannelSelector="R"
-              yChannelSelector="G"
-              result="refracted"
-            />
-          </filter>
-        ))}
+              width={w}
+              height={h}
+              filterUnits="userSpaceOnUse"
+              primitiveUnits="userSpaceOnUse"
+              colorInterpolationFilters="sRGB"
+            >
+              <feImage
+                suppressHydrationWarning
+                href={spec.href}
+                xlinkHref={spec.href}
+                x="0"
+                y="0"
+                width={w}
+                height={h}
+                preserveAspectRatio="none"
+                result="refractMap"
+              />
+              {/* Single-pass displacement: all channels move together, so saturated
+                  backdrop colors stay intact at the rim with no RGB separation. */}
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="refractMap"
+                scale={spec.scale * res}
+                xChannelSelector="R"
+                yChannelSelector="G"
+                result="refracted"
+              />
+            </filter>
+          );
+        })}
       </defs>
     </svg>
   );

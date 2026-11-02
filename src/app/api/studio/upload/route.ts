@@ -2,23 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
 import { queryRow, execute } from '@/lib/db';
 import { uploadBlob, generateCelSasUrl } from '@/lib/azure-storage';
+import { isArtistTier, sanitizeHandle, sanitizeSvgContent } from '@/app/gallery/galleryData';
 
 export const dynamic = 'force-dynamic';
-
-function isArtistTier(tier?: string): boolean {
-  if (!tier) return false;
-  const t = tier.toLowerCase();
-  return (
-    t.startsWith('artist') ||
-    t.startsWith('illustrator') ||
-    t === 'admin' ||
-    t === 'curator'
-  );
-}
-
-function sanitizeHandle(handle: string): string {
-  return handle.toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 32);
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -112,11 +98,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize SVG content against script injection / XSS
-    const sanitizedSvg = svgContentString
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
-      .replace(/\s+on\w+\s*=\s*(['"]).*?\1/gi, '')
-      .replace(/\s+on\w+\s*=\s*[^>\s]+/gi, '');
+    const sanitizedSvg = sanitizeSvgContent(svgContentString);
     const cleanSvgBuffer = Buffer.from(sanitizedSvg, 'utf8');
 
     // 5. Optional GIF Kinetic Master File

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getAuthenticatedSession, invalidateAuthCache } from '@/lib/clientAuthCache';
+import StudioFooter from '../components/StudioFooter';
 import './contact.css';
 
 function ContactFormContent() {
@@ -592,22 +593,7 @@ function ContactFormContent() {
       </div>
 
       {/* 3. Footer */}
-      <footer className="contact-footer">
-        <div className="footer-links-row">
-          <Link href="/gallery" className="footer-link">Archive Index</Link>
-          <Link href="/collection" className="footer-link">Saved Collection</Link>
-          <Link href="/about" className="footer-link">Curatorial Statement</Link>
-          <Link href="/licensing" className="footer-link">Content Rights</Link>
-          <Link href="/projects" className="footer-link">Projects &amp; Cuts</Link>
-          <Link href="/terms" className="footer-link">Terms of Service</Link>
-          <Link href="/privacy" className="footer-link">Privacy Policy</Link>
-          <Link href="/contact" className="footer-link">Contact Us</Link>
-        </div>
-        <div className="footer-bottom-copy">
-          <span>&copy; <time dateTime="2026">2026</time> studioNeo Archive. All curation rights preserved.</span>
-          <span>studioNeo visual engineering</span>
-        </div>
-      </footer>
+      <StudioFooter className="contact-footer" contactLabel="Contact Us" />
     </main>
   );
 }

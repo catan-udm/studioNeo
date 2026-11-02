@@ -412,3 +412,227 @@ export function generateStandaloneSvg(work: GalleryWork): string {
 </svg>`;
 }
 
+export function isVaultSubscriberTier(tier?: string): boolean {
+  if (!tier) return false;
+  const t = tier.toLowerCase();
+  return (
+    t === 'studio-alpha' ||
+    t === 'studio-atelier' ||
+    t === 'enterprise' ||
+    t === 'collector' ||
+    t === 'studio' ||
+    t.startsWith('artist') ||
+    t.startsWith('illustrator') ||
+    t === 'admin' ||
+    t === 'curator'
+  );
+}
+
+export function isArtistTier(tier?: string): boolean {
+  if (!tier) return false;
+  const t = tier.toLowerCase();
+  return (
+    t.startsWith('artist') ||
+    t.startsWith('illustrator') ||
+    t === 'admin' ||
+    t === 'curator'
+  );
+}
+
+export function sanitizeHandle(handle: string): string {
+  return (
+    handle
+      .trim()
+      .toLowerCase()
+      .replace(/^@+/, '')
+      .replace(/[^a-z0-9_.-]/g, '_')
+      .slice(0, 32) || 'resident_artist'
+  );
+}
+
+export function sanitizeSvgContent(svg: string): string {
+  return svg
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/<foreignObject[\s\S]*?>[\s\S]*?<\/foreignObject>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/javascript\s*:/gi, '');
+}
+
+export interface DbCelRow {
+  id: number;
+  code: string;
+  title: string;
+  description?: string | null;
+  artist: string;
+  artist_handle: string;
+  artist_avatar?: string | null;
+  category: GalleryWork['category'];
+  edition: string;
+  color: string;
+  price: string;
+  likes?: number;
+  format?: string;
+  svg_url?: string | null;
+  svg_storage_path?: string | null;
+  gif_url?: string | null;
+  is_vault?: number;
+}
+
+export function mapDbCelToGalleryWork(c: DbCelRow): GalleryWork {
+  const isVault = Number(c.is_vault) === 1;
+  return {
+    id: `db-cel-${c.id}`,
+    code: c.code,
+    title: c.title,
+    artist: c.artist,
+    artistHandle: c.artist_handle,
+    artistAvatar: c.artist_avatar || c.artist.substring(0, 2).toUpperCase(),
+    color: c.color,
+    gifSrc: c.gif_url || undefined,
+    svgSrc:
+      c.svg_url ||
+      (c.svg_storage_path
+        ? `/api/assets/download/${c.code}?format=svg&preview=true`
+        : undefined),
+    likes: Number(c.likes) || 0,
+    edition: c.edition,
+    price: c.price,
+    category: c.category,
+    isVault,
+    unlocked: !isVault,
+    format: (c.format as GalleryWork['format']) || 'SVG',
+    description: c.description || 'Original creator-uploaded vector cel.',
+  };
+}
+
+export function mergeDbCelsIntoWorks(dbCels: DbCelRow[], baseWorks: GalleryWork[]): GalleryWork[] {
+  const mapped = dbCels.map(mapDbCelToGalleryWork);
+  const seen = new Set<string>();
+  const merged: GalleryWork[] = [];
+  for (const w of [...mapped, ...baseWorks]) {
+    const key = w.code.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(w);
+    }
+  }
+  return merged;
+}
+
+function triggerAnchorDownload(href: string, filename: string, newTab = false): void {
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = filename;
+  if (newTab) a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+export function exportGalleryWork(
+  work: GalleryWork,
+  format: 'svg' | 'png' | 'jpg' | 'gif',
+  options: {
+    isAuthorized: boolean;
+    onToast: (msg: string) => void;
+    requireAuthForMaster?: boolean;
+  }
+): void {
+  const { isAuthorized, onToast, requireAuthForMaster = true } = options;
+
+  const isRestrictedFormat = requireAuthForMaster && (format === 'svg' || format === 'gif');
+  if ((work.isVault || isRestrictedFormat) && !isAuthorized && format !== 'png' && format !== 'jpg') {
+    onToast(
+      `Artist Rights Reserved: studioNeo does not distribute illustrator works unless specified as a 'Featured' artist.`
+    );
+    return;
+  }
+  if (work.isVault && !isAuthorized && !requireAuthForMaster) {
+    onToast(
+      `Artist Rights Reserved: studioNeo does not distribute illustrator works unless specified as a 'Featured' artist.`
+    );
+    return;
+  }
+
+  // Format 1: Scalable Vector Graphics (SVG)
+  if (format === 'svg') {
+    if (work.svgSrc && requireAuthForMaster) {
+      triggerAnchorDownload(
+        `/api/assets/download/${work.code}?format=svg`,
+        `studioNeo-${work.code}-master.svg`,
+        true
+      );
+      onToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
+      return;
+    }
+
+    const svgContent = generateStandaloneSvg(work);
+    const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    triggerAnchorDownload(url, `studioNeo-${work.code}-master.svg`);
+    URL.revokeObjectURL(url);
+    onToast(`Downloaded vector master stem for #${work.code} (${work.title})`);
+    return;
+  }
+
+  // Format 2: Animated Kinetic GIF
+  if (format === 'gif') {
+    if (work.gifSrc) {
+      triggerAnchorDownload(work.gifSrc, `studioNeo-${work.code}-kinetic.gif`, true);
+      onToast(`Downloaded kinetic animated GIF for #${work.code}`);
+    } else {
+      onToast(`Animated kinetic GIF is only available for kinetic motion works.`);
+    }
+    return;
+  }
+
+  // Format 3 & 4: Raster Render via Canvas (PNG / JPG)
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+
+  const renderToCanvas = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 1200;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (format === 'jpg') {
+      ctx.fillStyle = work.color;
+      ctx.fillRect(0, 0, 1200, 1200);
+    }
+    ctx.drawImage(img, 0, 0, 1200, 1200);
+
+    const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+    const ext = format === 'jpg' ? 'jpg' : 'png';
+
+    canvas.toBlob(
+      (canvasBlob) => {
+        if (canvasBlob) {
+          const downloadUrl = URL.createObjectURL(canvasBlob);
+          triggerAnchorDownload(downloadUrl, `studioNeo-${work.code}-preview.${ext}`);
+          URL.revokeObjectURL(downloadUrl);
+          onToast(`Exported free ${format.toUpperCase()} preview for #${work.code}`);
+        }
+      },
+      mimeType,
+      0.95
+    );
+  };
+
+  if (work.svgSrc) {
+    img.onload = renderToCanvas;
+    img.src = work.svgSrc;
+  } else {
+    const svgContent = generateStandaloneSvg(work);
+    const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      renderToCanvas();
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+}
+
+

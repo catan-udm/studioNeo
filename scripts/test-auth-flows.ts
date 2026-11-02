@@ -22,7 +22,13 @@ import {
   rsComputeECC,
 } from '../src/lib/totp';
 import { execute, queryRow, queryRows, CelRecord } from '../src/lib/db';
-import { ALL_GALLERY_WORKS, RESIDENT_ARTISTS, generateStandaloneSvg } from '../src/app/gallery/galleryData';
+import {
+  ALL_GALLERY_WORKS,
+  RESIDENT_ARTISTS,
+  generateStandaloneSvg,
+  isArtistTier,
+  isVaultSubscriberTier,
+} from '../src/app/gallery/galleryData';
 import { NextRequest } from 'next/server';
 import { GET as getCelsRoute } from '../src/app/api/cels/route';
 import { GET as downloadRoute } from '../src/app/api/assets/download/[slug]/route';
@@ -443,13 +449,6 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
   // ------------------------------------------------------------------------
   console.log('[Test 14] Curatorial Access Control, Role Toggle Ceremony & Resident Portfolios');
 
-  // Helper checking tier permission rule
-  function isArtistTier(tier?: string): boolean {
-    if (!tier) return false;
-    const t = tier.toLowerCase();
-    return t.startsWith('artist') || t.startsWith('illustrator') || t === 'admin' || t === 'curator';
-  }
-
   // 14.1 Gating permission checks
   assert.strictEqual(isArtistTier('free'), false, 'Free visitor is denied creator upload access');
   assert.strictEqual(isArtistTier('collector'), false, 'Collector member is denied creator upload access');
@@ -488,20 +487,6 @@ console.log('[Test 5] Azure Blob Storage Time-Limited SAS URL Generation');
   }
 
   // 14.4 Vault monetization semantics check
-  function isVaultSubscriberTier(tier?: string): boolean {
-    if (!tier) return false;
-    const t = tier.toLowerCase();
-    return (
-      t === 'studio-alpha' ||
-      t === 'studio-atelier' ||
-      t === 'enterprise' ||
-      t === 'collector' ||
-      t === 'studio' ||
-      t.startsWith('artist') ||
-      t.startsWith('illustrator')
-    );
-  }
-
   assert.strictEqual(isVaultSubscriberTier('free'), false);
   assert.strictEqual(isVaultSubscriberTier('studio-alpha'), true);
   assert.strictEqual(isVaultSubscriberTier('studio-atelier'), true);

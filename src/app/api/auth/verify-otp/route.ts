@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryRow, execute, transaction } from '@/lib/db';
+import { queryRow, transaction } from '@/lib/db';
 import {
   hashToken,
   timingSafeCompare,
-  verifyTOTP,
   createSessionToken,
   setSessionCookie,
 } from '@/lib/auth';
-import { normalizeBackupCode } from '@/lib/totp';
+import { verifyTotpOrBackupCode } from '@/lib/totp';
 
 interface VerifyOTPRequestBody {
   email?: string;
@@ -105,26 +104,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      let is2faValid = false;
-
-      if (totpCode) {
-        is2faValid = verifyTOTP(totpRecord.totp_secret, totpCode);
-      } else if (backupCode) {
-        const backupHash = hashToken(normalizeBackupCode(backupCode));
-        const matchedBackup = await queryRow<{ id: number }>(
-          'SELECT id FROM totp_backup_codes WHERE subscriber_id = ? AND code_hash = ? AND is_used = 0 LIMIT 1',
-          [subscriber.id, backupHash]
-        );
-
-        if (matchedBackup) {
-          is2faValid = true;
-          // Consume the single-use backup code
-          await execute(
-            'UPDATE totp_backup_codes SET is_used = 1, used_at = NOW() WHERE id = ?',
-            [matchedBackup.id]
-          );
-        }
-      }
+      const supplied2faCode = (totpCode || backupCode || '').trim();
+      const is2faValid = await verifyTotpOrBackupCode(
+        subscriber.id,
+        totpRecord.totp_secret,
+        supplied2faCode,
+        true
+      );
 
       if (!is2faValid) {
         return NextResponse.json(

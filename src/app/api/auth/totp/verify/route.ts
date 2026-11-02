@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser, verifyTOTP } from '@/lib/auth';
-import { queryRow, transaction } from '@/lib/db';
-import { generateBackupCodes } from '@/lib/totp';
+import { queryRow } from '@/lib/db';
+import { regenerateAndStoreBackupCodes } from '@/lib/totp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,31 +45,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Generate 8 single-use emergency backup recovery codes
-    const { codes, hashedCodes } = generateBackupCodes(8);
-
-    // 4. Atomic transaction: activate TOTP and store hashed backup codes
-    await transaction(async (conn) => {
-      // Activate credential
-      await conn.execute(
-        'UPDATE totp_credentials SET is_active = 1, updated_at = NOW() WHERE subscriber_id = ?',
-        [session.subscriberId]
-      );
-
-      // Invalidate any older backup codes
-      await conn.execute(
-        'DELETE FROM totp_backup_codes WHERE subscriber_id = ?',
-        [session.subscriberId]
-      );
-
-      // Insert fresh hashed backup codes
-      for (const hash of hashedCodes) {
-        await conn.execute(
-          'INSERT INTO totp_backup_codes (subscriber_id, code_hash, is_used) VALUES (?, ?, 0)',
-          [session.subscriberId, hash]
-        );
-      }
-    });
+    // 3. Activate TOTP and generate 8 single-use emergency backup recovery codes
+    const codes = await regenerateAndStoreBackupCodes(session.subscriberId, true);
 
     return NextResponse.json(
       {
