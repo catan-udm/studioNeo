@@ -688,6 +688,10 @@ export default function StudioNav() {
   const handlePointerDown = (e: React.PointerEvent<HTMLElement>) => {
     if (!isMobileOrLandscape() || e.button !== 0) return;
 
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+
     const startX = e.clientX;
     const startY = e.clientY;
     dragRef.current = {
@@ -705,9 +709,6 @@ export default function StudioNav() {
       dragRef.current.isDragging = true;
       setIsDragging(true);
       setDragPos({ x: startX, y: startY });
-      try {
-        dragRef.current.target?.setPointerCapture(e.pointerId);
-      } catch {}
     }, 180);
   };
 
@@ -722,9 +723,6 @@ export default function StudioNav() {
       if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
       dragRef.current.isDragging = true;
       setIsDragging(true);
-      try {
-        dragRef.current.target?.setPointerCapture(e.pointerId);
-      } catch {}
     }
 
     if (dragRef.current.isDragging) {
@@ -774,13 +772,14 @@ export default function StudioNav() {
       setTimeout(() => {
         justDraggedRef.current = false;
       }, 220);
-
-      try {
-        dragRef.current.target?.releasePointerCapture(e.pointerId);
-      } catch {}
     }
 
+    try {
+      dragRef.current.target?.releasePointerCapture(e.pointerId);
+    } catch {}
+
     setIsDragging(false);
+    setDragPos(null);
     setHoverDock(null);
     dragRef.current = null;
   };
@@ -793,9 +792,84 @@ export default function StudioNav() {
       } catch {}
     }
     setIsDragging(false);
+    setDragPos(null);
     setHoverDock(null);
     dragRef.current = null;
   };
+
+  // Window drag fallback: ensures releasing anywhere (e.g. top edge) safely docks the capsule
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onWindowPointerMove = (e: PointerEvent) => {
+      if (!dragRef.current || dragRef.current.pointerId !== e.pointerId) return;
+      dragRef.current.hasMoved = true;
+      const x = e.clientX;
+      const y = e.clientY;
+      setDragPos({ x, y });
+
+      const W = window.innerWidth;
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      const topThreshold = isLandscape ? 120 : 160;
+      if (y < topThreshold) {
+        setHoverDock('top');
+      } else if (x < W / 2) {
+        setHoverDock('left');
+      } else {
+        setHoverDock('right');
+      }
+    };
+
+    const onWindowPointerUp = (e: PointerEvent) => {
+      if (!dragRef.current || dragRef.current.pointerId !== e.pointerId) return;
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+
+      if (dragRef.current.isDragging) {
+        const W = window.innerWidth;
+        const x = e.clientX;
+        const y = e.clientY;
+        const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+        const topThreshold = isLandscape ? 120 : 160;
+        let targetDock: DockPosition = 'right';
+        if (y < topThreshold) {
+          targetDock = 'top';
+        } else if (x < W / 2) {
+          targetDock = 'left';
+        } else {
+          targetDock = 'right';
+        }
+
+        setDockPosition(targetDock);
+        try {
+          localStorage.setItem('bikko_mobile_dock', targetDock);
+        } catch {}
+
+        justDraggedRef.current = true;
+        setTimeout(() => {
+          justDraggedRef.current = false;
+        }, 220);
+      }
+
+      try {
+        dragRef.current.target?.releasePointerCapture(e.pointerId);
+      } catch {}
+
+      setIsDragging(false);
+      setDragPos(null);
+      setHoverDock(null);
+      dragRef.current = null;
+    };
+
+    window.addEventListener('pointermove', onWindowPointerMove, { passive: true });
+    window.addEventListener('pointerup', onWindowPointerUp);
+    window.addEventListener('pointercancel', onWindowPointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', onWindowPointerMove);
+      window.removeEventListener('pointerup', onWindowPointerUp);
+      window.removeEventListener('pointercancel', onWindowPointerUp);
+    };
+  }, [isDragging]);
 
   // Per-pixel adaptive glyphs (black on light, white on dark, down to part of a
   // letter / part of a stroke). Each glyph (label text, logo stroke, icon) gets
@@ -1117,6 +1191,7 @@ export default function StudioNav() {
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerCancel}
+              onDragStart={(e) => e.preventDefault()}
             >
               <span
                 className="nav-slider-indicator"
@@ -1139,6 +1214,8 @@ export default function StudioNav() {
                   href={item.path}
                   aria-label={item.label}
                   aria-current={route === item.id ? 'page' : undefined}
+                  draggable={false}
+                  onDragStart={(e) => e.preventDefault()}
                   onClick={(e) => {
                     if (justDraggedRef.current || isDragging) {
                       e.preventDefault();

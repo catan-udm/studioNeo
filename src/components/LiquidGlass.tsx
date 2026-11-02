@@ -133,7 +133,7 @@ export function buildRefractionMapDataUri(
 function makeCapsuleSpec(id: string, width: number, height: number): GlassFilterSpec {
   const w = Math.max(24, Math.round(width));
   const h = Math.max(24, Math.round(height));
-  const radius = h / 2;
+  const radius = Math.min(w, h) / 2;
   // Bezel stays in the outer rim (~12-13px) so the central text/icon plateau is flat
   const bezel = Math.min(14, Math.max(9, Math.round(Math.min(w, h) * 0.28)));
   const scale = 24;
@@ -285,6 +285,10 @@ export function useLiquidRefraction(refs: {
     };
 
     syncSpecs();
+    const rafSync = requestAnimationFrame(syncSpecs);
+    const tSync1 = setTimeout(syncSpecs, 60);
+    const tSync2 = setTimeout(syncSpecs, 180);
+    const tSync3 = setTimeout(syncSpecs, 440);
 
     // Keep Firefox -moz-element offsets locked during the 480ms detach transition (Firefox only)
     let animFrame = 0;
@@ -316,6 +320,10 @@ export function useLiquidRefraction(refs: {
     }
     window.addEventListener("resize", syncSpecs);
     return () => {
+      cancelAnimationFrame(rafSync);
+      clearTimeout(tSync1);
+      clearTimeout(tSync2);
+      clearTimeout(tSync3);
       if (animFrame) cancelAnimationFrame(animFrame);
       ro?.disconnect();
       if (isMozSupported) {
