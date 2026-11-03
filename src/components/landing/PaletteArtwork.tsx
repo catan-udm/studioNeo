@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { illustrators, type Illustrator, getArtistHref } from '@/data/illustrators';
 
@@ -86,15 +86,40 @@ const palette: { id: number; color: string; artist: Illustrator }[] = illustrato
 }));
 
 /**
- * Hero 8x8 kinetic color grid — all featured illustrators, one tile each.
- * All artist profile photos are statically visible in the grid with smooth hover zoom.
+ * Hero 8x8 kinetic color grid — all 64 illustrators, one tile each.
+ * Hovering any tile reveals that illustrator's real X profile photo underneath,
+ * and tiles also periodically cycle open like the reference kinetic grid.
  */
 export default function PaletteArtwork() {
+  const [revealedIds, setRevealedIds] = useState<number[]>([3, 12, 22, 29, 38, 47, 53, 60]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    const interval = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      setRevealedIds((prev) => {
+        const allIds = palette.map((p) => p.id);
+        const candidates = allIds.filter((id) => !prev.includes(id));
+        const picks: number[] = [];
+        for (let i = 0; i < 2 && candidates.length > 0; i++) {
+          const pick = candidates.splice(Math.floor(Math.random() * candidates.length), 1)[0];
+          picks.push(pick);
+        }
+        const trimmed = prev.length >= 10 ? prev.slice(picks.length) : prev;
+        return [...trimmed, ...picks];
+      });
+    }, 1400);
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
-    <div className="code-art" role="region" aria-label="Grid of all featured illustrators">
+    <div className="code-art" role="region" aria-label="Kinetic grid of all 64 featured illustrators">
       <div className="code-art-grid">
-        {palette.map((tile, index) => {
+        {palette.map((tile) => {
           const artist = tile.artist;
+          const isRevealed = revealedIds.includes(tile.id);
           const { href, isInternal } = getArtistHref(artist);
 
           const tileContent = (
@@ -105,15 +130,15 @@ export default function PaletteArtwork() {
                 alt={`${artist.name} (@${artist.handle}) profile picture`}
                 width={240}
                 height={240}
-                loading={index > 15 ? 'lazy' : 'eager'}
-                decoding="async"
+                loading="eager"
+                decoding="sync"
                 className="gallery-image"
               />
               <div className="code-art-overlay" style={{ backgroundColor: tile.color }} />
             </>
           );
 
-          const className = 'code-art-tile code-art-hover is-revealed';
+          const className = `code-art-tile code-art-hover${isRevealed ? ' is-revealed' : ''}`;
           const ariaLabel = isInternal
             ? `Open ${artist.name} (@${artist.handle}) archive`
             : `Visit ${artist.name} (@${artist.handle}) on X`;

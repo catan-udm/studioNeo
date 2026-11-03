@@ -554,10 +554,10 @@ main#main-content {
   background: rgb(255 255 255 / 8%);
   -webkit-backdrop-filter: url(#liquid-glass-popover);
   backdrop-filter: url(#liquid-glass-popover);
-  will-change: transform;
+  will-change: transform, backdrop-filter;
 }
 
-:root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"] .nav-burger-popover.is-open {
+:root[data-liquid-refraction="true"] .nav-burger-popover.is-open {
   animation: liveIslandBackdropPopover 2s linear infinite;
 }
 
@@ -622,37 +622,25 @@ main#main-content {
     inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  will-change: transform;
-}
-
-:root[data-dynamic-media-onscreen="true"] .studio-nav-header.is-scrolled .bubble-island {
+  will-change: transform, backdrop-filter;
   animation: liveIslandBackdropFallback 2s linear infinite;
 }
 
 :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-left {
   -webkit-backdrop-filter: url(#liquid-glass-left);
   backdrop-filter: url(#liquid-glass-left);
-}
-
-:root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-left {
   animation: liveIslandBackdropLeft 2s linear infinite;
 }
 
 :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider {
   -webkit-backdrop-filter: url(#liquid-glass-slider);
   backdrop-filter: url(#liquid-glass-slider);
-}
-
-:root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider {
   animation: liveIslandBackdropSlider 2s linear infinite;
 }
 
 :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .nav-burger-bubble {
   -webkit-backdrop-filter: url(#liquid-glass-burger);
   backdrop-filter: url(#liquid-glass-burger);
-}
-
-:root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .nav-burger-bubble {
   animation: liveIslandBackdropBurger 2s linear infinite;
 }
 
@@ -731,17 +719,6 @@ main#main-content {
     backdrop-filter: blur(16px) !important;
     animation: none !important;
   }
-}
-
-/* Stationary & static content: zero compositor churn when no dynamic media is onscreen */
-:root:not([data-dynamic-media-onscreen="true"]) .studio-nav-header.is-scrolled .bubble-island,
-:root:not([data-dynamic-media-onscreen="true"]) .studio-nav-header.is-scrolled .studio-nav-left,
-:root:not([data-dynamic-media-onscreen="true"]) .studio-nav-header.is-scrolled .studio-nav-slider,
-:root:not([data-dynamic-media-onscreen="true"]) .studio-nav-header.is-scrolled .nav-burger-bubble,
-:root:not([data-dynamic-media-onscreen="true"]) .nav-burger-popover,
-:root:not([data-dynamic-media-onscreen="true"]) .bubble-island::before,
-:root:not([data-dynamic-media-onscreen="true"]) .nav-burger-popover::before {
-  animation: none;
 }
 
 /* Firefox per-island shape-aware edge refraction via live -moz-element(#main-content) */
@@ -1041,10 +1018,6 @@ main#main-content {
   :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
     -webkit-backdrop-filter: url(#liquid-glass-slider) !important;
     backdrop-filter: url(#liquid-glass-slider) !important;
-  }
-
-  :root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-center[data-dock="top"] .studio-nav-slider,
-  :root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
     animation: liveIslandBackdropSlider 2s linear infinite !important;
   }
 
@@ -1254,11 +1227,6 @@ main#main-content {
   :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header.is-scrolled .studio-nav-slider {
     -webkit-backdrop-filter: url(#liquid-glass-slider);
     backdrop-filter: url(#liquid-glass-slider);
-  }
-
-  :root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-slider,
-  :root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header:not(.is-scrolled) .studio-nav-slider,
-  :root[data-dynamic-media-onscreen="true"][data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header.is-scrolled .studio-nav-slider {
     animation: liveIslandBackdropSlider 2s linear infinite;
   }
 
@@ -1275,9 +1243,6 @@ main#main-content {
   :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
     -webkit-backdrop-filter: url(#liquid-glass-slider);
     backdrop-filter: url(#liquid-glass-slider);
-  }
-
-  :root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
     animation: liveIslandBackdropSlider 2s linear infinite;
   }
 
@@ -2541,7 +2506,7 @@ main#main-content {
   opacity: 0;
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  will-change: opacity;
+  will-change: backdrop-filter, opacity;
   transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -2554,10 +2519,6 @@ main#main-content {
 :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-left::before {
   -webkit-backdrop-filter: url(#liquid-glass-left);
   backdrop-filter: url(#liquid-glass-left);
-}
-
-:root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-left::before,
-:root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-left::before {
   animation: liveIslandBackdropLeft 2s linear infinite;
 }
 
@@ -2565,10 +2526,6 @@ main#main-content {
 :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider::before {
   -webkit-backdrop-filter: url(#liquid-glass-slider);
   backdrop-filter: url(#liquid-glass-slider);
-}
-
-:root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider::before,
-:root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider::before {
   animation: liveIslandBackdropSlider 2s linear infinite;
 }
 
@@ -2576,10 +2533,6 @@ main#main-content {
 :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .nav-burger-bubble::before {
   -webkit-backdrop-filter: url(#liquid-glass-burger);
   backdrop-filter: url(#liquid-glass-burger);
-}
-
-:root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .nav-burger-bubble::before,
-:root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .nav-burger-bubble::before {
   animation: liveIslandBackdropBurger 2s linear infinite;
 }
 
@@ -2687,7 +2640,7 @@ main#main-content {
   backdrop-filter: url(#liquid-glass-popover);
 }
 
-:root[data-dynamic-media-onscreen="true"][data-adaptive-glyphs="true"][data-liquid-refraction="true"] .nav-burger-popover.is-open::before {
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .nav-burger-popover.is-open::before {
   animation: liveIslandBackdropPopover 2s linear infinite;
 }
 

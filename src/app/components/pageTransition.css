@@ -48,11 +48,13 @@
 .page-transition-view.is-exiting {
   opacity: 0.52;
   transform: scale(0.996) translateY(-3px);
+  filter: blur(0.5px);
   pointer-events: none;
-  will-change: opacity, transform;
+  will-change: opacity, transform, filter;
   transition:
     opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.24s ease;
 }
 
 /* Entering state: silky smooth upward reveal upon route arrival */

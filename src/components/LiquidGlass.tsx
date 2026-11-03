@@ -385,97 +385,26 @@ export function useLiquidRefraction(refs: {
   return specs;
 }
 
-export function useDynamicMediaObserver() {
-  useEffect(() => {
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
-
-    const DYNAMIC_MEDIA_SELECTOR = 'img[src*=".gif" i], video, iframe, [data-dynamic-media]';
-    const root = document.documentElement;
-    const intersectingElements = new Set<Element>();
-    const observedElements = new Set<Element>();
-
-    const updateAttribute = () => {
-      if (intersectingElements.size > 0) {
-        root.setAttribute("data-dynamic-media-onscreen", "true");
-      } else {
-        root.removeAttribute("data-dynamic-media-onscreen");
-      }
-    };
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            intersectingElements.add(entry.target);
-          } else {
-            intersectingElements.delete(entry.target);
-          }
-        }
-        updateAttribute();
-      },
-      {
-        root: null,
-        threshold: 0,
-      }
-    );
-
-    const syncObservedMedia = () => {
-      const elements = new Set(document.querySelectorAll(DYNAMIC_MEDIA_SELECTOR));
-      for (const el of elements) {
-        if (!observedElements.has(el)) {
-          observedElements.add(el);
-          io.observe(el);
-        }
-      }
-      for (const el of Array.from(observedElements)) {
-        if (!document.contains(el) || !elements.has(el)) {
-          observedElements.delete(el);
-          io.unobserve(el);
-          intersectingElements.delete(el);
-        }
-      }
-      updateAttribute();
-    };
-
-    syncObservedMedia();
-
-    let rafId: number | null = null;
-    const scheduleSync = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        syncObservedMedia();
-      });
-    };
-
-    const mo =
-      typeof MutationObserver !== "undefined"
-        ? new MutationObserver(scheduleSync)
-        : null;
-
-    const targetNode = document.body || document.documentElement;
-    if (mo && targetNode) {
-      mo.observe(targetNode, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["src", "data-dynamic-media"],
-      });
-    }
-
-    return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      mo?.disconnect();
-      io.disconnect();
-      observedElements.clear();
-      intersectingElements.clear();
-      root.removeAttribute("data-dynamic-media-onscreen");
-    };
-  }, []);
-}
-
 export function LiquidGlassDefs({ specs }: { specs: GlassFilterSpec[] }) {
-  useDynamicMediaObserver();
+  useIsomorphicLayoutEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    if (!root.hasAttribute("data-liquid-refraction")) return;
+
+    // Invalidate Chromium's cached PaintFilter keyframe animation bindings
+    // whenever specs change (e.g. after hydration, viewport resize, or font load).
+    root.removeAttribute("data-liquid-refraction");
+    const queried = document.querySelectorAll<HTMLElement>(
+      ".studio-nav-left, .studio-nav-slider, .nav-burger-bubble, .nav-burger-popover"
+    );
+    queried.forEach((el) => {
+      void window.getComputedStyle(el, "::before").backdropFilter;
+    });
+    root.setAttribute("data-liquid-refraction", "true");
+    queried.forEach((el) => {
+      void window.getComputedStyle(el, "::before").backdropFilter;
+    });
+  }, [specs]);
 
   return (
     <svg
