@@ -60,16 +60,8 @@ export default function StudioLanding() {
 
           {/* Header Block (Center-Aligned) */}
           <header className="about-header">
-            <span className="about-overline">
-              studioNeo &bull; Est. <time dateTime="2026">2026</time>
-            </span>
-            <h1 className="about-title">
-              Creative Code, Kinetic Motion &amp; Next-Gen Identity.
-            </h1>
-            <p className="about-lead">
-              An experimental atelier engineering algorithmically driven visual cels,
-              frictionless WebAuthn passkeys, and high-contrast digital artifacts.
-            </p>
+            <h1 className="about-title">studioNeo</h1>
+            <p className="about-lead">Commitments</p>
           </header>
 
           {/* 3 Core Tenets (Minimalist Editorial Layout) */}
@@ -77,7 +69,9 @@ export default function StudioLanding() {
             <div className="tenet-row">
               <span className="tenet-index">01</span>
               <div className="tenet-content">
-                <h2>Kinetic Motion</h2>
+                <h2>
+                  <span className="tenet-for">For</span> Partners
+                </h2>
                 <p>
                   From fluid liquid droplet navigation to spring-physics transitions, every motion cue reflects real-world fluidity and algorithmic precision.
                 </p>
@@ -87,7 +81,9 @@ export default function StudioLanding() {
             <div className="tenet-row">
               <span className="tenet-index">02</span>
               <div className="tenet-content">
-                <h2>Zero Passwords</h2>
+                <h2>
+                  <span className="tenet-for">for</span> features
+                </h2>
                 <p>
                   Eliminating legacy authentication in favor of hardware-backed FIDO2 keys, Touch ID, Windows Hello, and biometric passkeys directly embedded in the browser core.
                 </p>
@@ -97,7 +93,9 @@ export default function StudioLanding() {
             <div className="tenet-row">
               <span className="tenet-index">03</span>
               <div className="tenet-content">
-                <h2>Vector Topology</h2>
+                <h2>
+                  <span className="tenet-for">for</span> artists
+                </h2>
                 <p>
                   Zero raster latency. Every visual frame and Insignia glyph renders inline via mathematical SVG curves, razor-sharp on any display from mobile to 4K.
                 </p>
