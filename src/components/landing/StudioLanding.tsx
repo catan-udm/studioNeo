@@ -73,7 +73,7 @@ export default function StudioLanding() {
                   <span className="tenet-for">For</span> Partners
                 </h2>
                 <p>
-                  From fluid liquid droplet navigation to spring-physics transitions, every motion cue reflects real-world fluidity and algorithmic precision.
+                  Delivering original-quality artwork and lossless creative assets directly to fans and patrons, honoring the creator&apos;s vision without compromise or compression.
                 </p>
               </div>
             </div>
@@ -85,7 +85,7 @@ export default function StudioLanding() {
                   <span className="tenet-for">for</span> features
                 </h2>
                 <p>
-                  Eliminating legacy authentication in favor of hardware-backed FIDO2 keys, Touch ID, Windows Hello, and biometric passkeys directly embedded in the browser core.
+                  Engineering distraction-free visual showcases, responsive interactive tools, and high-fidelity displays that place illustrative craft front and center.
                 </p>
               </div>
             </div>
@@ -97,7 +97,7 @@ export default function StudioLanding() {
                   <span className="tenet-for">for</span> artists
                 </h2>
                 <p>
-                  Zero raster latency. Every visual frame and Insignia glyph renders inline via mathematical SVG curves, razor-sharp on any display from mobile to 4K.
+                  Upholding absolute artist attribution, direct official profile channels, and a dedicated tribute archive built to celebrate and protect each creator&apos;s legacy.
                 </p>
               </div>
             </div>
