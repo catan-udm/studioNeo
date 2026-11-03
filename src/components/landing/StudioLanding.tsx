@@ -70,7 +70,7 @@ export default function StudioLanding() {
               <span className="tenet-index">01</span>
               <div className="tenet-content">
                 <h2>
-                  <span className="tenet-for">For</span> Partners
+                  <span className="tenet-for">for</span> partners
                 </h2>
                 <p>
                   Delivering original-quality artwork and lossless creative assets directly to fans and patrons, honoring the creator&apos;s vision without compromise or compression.
