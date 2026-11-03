@@ -6,6 +6,7 @@ import StudioNav from './components/StudioNav';
 import { PageTransitionProvider, PageTransitionContent } from './components/PageTransition';
 import { SettingsProvider } from './components/SettingsProvider';
 import ServiceWorkerRegister from './components/ServiceWorkerRegister';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800'],
@@ -208,6 +209,7 @@ export default function RootLayout({
             </PageTransitionContent>
           </PageTransitionProvider>
         </SettingsProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
