@@ -644,6 +644,38 @@ main#main-content {
   animation: liveIslandBackdropBurger 2s linear infinite;
 }
 
+/* WebKit / iOS WebGL Hardware Refraction */
+:root[data-webkit-liquid="true"] .studio-nav-header.is-scrolled .bubble-island,
+:root[data-webkit-liquid="true"] .nav-burger-popover,
+:root[data-webkit-liquid="true"] .studio-nav-header[data-artist-route="true"] .bubble-island {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  animation: none !important;
+  overflow: hidden;
+}
+
+:root[data-webkit-liquid="true"] .studio-nav-header.is-scrolled .bubble-island::after,
+:root[data-webkit-liquid="true"] .nav-burger-popover::after {
+  display: none !important;
+}
+
+.liquid-glass-optical-lens {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  z-index: 0 !important;
+  border-radius: inherit !important;
+  overflow: hidden !important;
+}
+
+.liquid-glass-optical-lens canvas {
+  pointer-events: none !important;
+  border-radius: inherit !important;
+}
+
 /* WebKit Meniscus Lens Rim: Localized perimeter refraction matching SDF bezel */
 :not([data-liquid-refraction="true"]) .studio-nav-header.is-scrolled .bubble-island::after,
 :not([data-liquid-refraction="true"]) .nav-burger-popover::after {

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useLayoutEffect, useState } from "react";
+import { LiquidGlass } from "simple-liquid-glass";
 
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -212,6 +213,19 @@ function makeInitialSpecs(): GlassFilterSpec[] {
   ];
 }
 
+export function isWebKitEngine(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isMacSafari =
+    /Safari\//.test(ua) &&
+    !/Chrome\/|Chromium\/|Edg\//.test(ua) &&
+    !/Firefox\//.test(ua);
+  return isIOS || isMacSafari;
+}
+
 /**
  * Per-island liquid glass refraction hook.
  * - Measures each floating island (`.studio-nav-left`, `.studio-nav-slider`,
@@ -242,6 +256,12 @@ export function useLiquidRefraction(refs: {
       document.documentElement.setAttribute("data-liquid-refraction", "true");
     } else {
       document.documentElement.removeAttribute("data-liquid-refraction");
+    }
+
+    if (isWebKitEngine()) {
+      document.documentElement.setAttribute("data-webkit-liquid", "true");
+    } else {
+      document.documentElement.removeAttribute("data-webkit-liquid");
     }
   }, []);
 
@@ -459,3 +479,60 @@ export function LiquidGlassDefs({ specs }: { specs: GlassFilterSpec[] }) {
     </svg>
   );
 }
+
+/**
+ * Optical WebGL refraction underlay lens for WebKit/iOS devices.
+ * Sits at z-index: 0 beneath the island content with pointer-events: none.
+ * On Chromium and Firefox, it returns null to preserve native high-fps filter pipelines.
+ * On iOS/iPadOS/macOS WebKit, it mounts a hardware-accelerated WebGL refraction canvas
+ * that dynamically samples #main-content and renders true optical distortion.
+ */
+export function LiquidGlassLens({
+  radius = 23,
+  scale = 24,
+  className = '',
+}: {
+  radius?: number;
+  scale?: number;
+  className?: string;
+}) {
+  const [mounted, setMounted] = useState(false);
+  const [isWebKit, setIsWebKit] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setIsWebKit(isWebKitEngine());
+  }, []);
+
+  if (!mounted || !isWebKit) return null;
+
+  return (
+    <LiquidGlass
+      className={`liquid-glass-optical-lens ${className}`}
+      radius={radius}
+      material="clear"
+      blur={0.5}
+      iosMinBlur={0.5}
+      iosBlurMode="off"
+      displacementScale={scale}
+      frost={0}
+      saturation={115}
+      aberrationIntensity={0.08}
+      glassColor="rgba(255, 255, 255, 0.05)"
+      borderColor="rgba(255, 255, 255, 0.4)"
+      backdropSelector="#main-content"
+      renderer="webgl"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+        borderRadius: 'inherit',
+        overflow: 'hidden',
+      }}
+    />
+  );
+}
+

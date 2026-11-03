@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LiquidGlassDefs, useLiquidRefraction } from '@/components/LiquidGlass';
+import { LiquidGlassDefs, useLiquidRefraction, LiquidGlassLens } from '@/components/LiquidGlass';
 import { illustrators } from '@/data/illustrators';
 
 const useIsomorphicLayoutEffect =
@@ -1154,6 +1154,7 @@ export default function StudioNav() {
         <div className="studio-nav-inner">
           {/* Island 1: Left Insignia Mark Bubble */}
           <div className="studio-nav-left bubble-island" ref={leftRef}>
+            <LiquidGlassLens radius={23} scale={24} />
             <Link
               className="studio-nav-brand-link"
               href="/"
@@ -1193,6 +1194,7 @@ export default function StudioNav() {
               onPointerCancel={handlePointerCancel}
               onDragStart={(e) => e.preventDefault()}
             >
+              <LiquidGlassLens radius={23} scale={24} />
               <span
                 className="nav-slider-indicator"
                 aria-hidden="true"
@@ -1400,6 +1402,7 @@ export default function StudioNav() {
             {/* Burger Bubble Island */}
             <div className="menu-anchor">
               <div className="nav-burger-bubble bubble-island" ref={burgerRef}>
+                <LiquidGlassLens radius={21} scale={24} />
                 <button
                   type="button"
                   className={`hamburger-btn${menuOpen ? ' is-open open' : ''}`}
@@ -1421,6 +1424,7 @@ export default function StudioNav() {
                 aria-hidden={!menuOpen || (!scrolled && !isArtistRoute)}
                 ref={popoverRef}
               >
+                <LiquidGlassLens radius={18} scale={26} />
                 <div className="popover-quick-actions">
                   <button
                     type="button"
