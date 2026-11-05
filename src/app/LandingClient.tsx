@@ -50,13 +50,17 @@ function isArtistPage(val: string): val is ArtistPage {
   return (VALID_ARTIST_PAGES as readonly string[]).includes(val);
 }
 
-function LandingContent() {
+interface LandingClientProps {
+  initialUser?: AuthSubscriber | null;
+}
+
+function LandingContent({ initialUser }: LandingClientProps) {
   const searchParams = useSearchParams();
   const rawArtist = searchParams.get('artist')?.toLowerCase() || '';
   const viewMode = searchParams.get('view')?.toLowerCase() || '';
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<AuthSubscriber | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => Boolean(initialUser));
+  const [currentUser, setCurrentUser] = useState<AuthSubscriber | null>(() => initialUser || null);
   const [forceAtelier, setForceAtelier] = useState<boolean>(false);
 
   useEffect(() => {
@@ -64,15 +68,20 @@ function LandingContent() {
     getAuthenticatedSession()
       .then((data) => {
         if (!active) return;
-        setIsAuthenticated(Boolean(data?.authenticated));
-        setCurrentUser(data?.subscriber || null);
+        if (data?.authenticated) {
+          setIsAuthenticated(true);
+          setCurrentUser(data.subscriber || null);
+        } else if (!initialUser) {
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        }
       })
       .catch(() => {});
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialUser]);
 
   if (rawArtist && isArtistPage(rawArtist)) {
     return <ArchiveApp initialArtist={rawArtist} />;
@@ -124,12 +133,12 @@ function LandingContent() {
   );
 }
 
-export default function LandingClient() {
+export default function LandingClient({ initialUser }: LandingClientProps = {}) {
   return (
     <>
       <Suspense fallback={null}>
         <OAuthRedirectWatcher />
-        <LandingContent />
+        <LandingContent initialUser={initialUser} />
       </Suspense>
     </>
   );

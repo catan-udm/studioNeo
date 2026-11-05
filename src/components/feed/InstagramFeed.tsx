@@ -289,10 +289,159 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
     currentUser?.email?.split('@')[0] ||
     'Collector';
 
+  const userInitials = useMemo(() => {
+    if (!currentUser) return 'SN';
+    const name = currentUser.displayName || currentUser.handle || currentUser.email || '';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return (name.slice(0, 2) || 'SN').toUpperCase();
+  }, [currentUser]);
+
+  const userRoleBadge = useMemo(() => {
+    if (!currentUser) return 'Collector';
+    if (currentUser.artistDistinction && currentUser.artistDistinction !== 'none') {
+      return currentUser.artistDistinction === 'partner' ? 'Partner Artist' : 'Featured Artist';
+    }
+    if (currentUser.systemRole === 'admin') return 'System Administrator';
+    if (currentUser.systemRole === 'curator') return 'Curator';
+    return 'Archival Collector';
+  }, [currentUser]);
+
+  const userDistinctionClass = useMemo(() => {
+    if (!currentUser) return 'collector';
+    if (currentUser.artistDistinction && currentUser.artistDistinction !== 'none') {
+      return currentUser.artistDistinction;
+    }
+    if (currentUser.systemRole === 'admin') return 'admin';
+    if (currentUser.systemRole === 'curator') return 'curator';
+    return 'collector';
+  }, [currentUser]);
+
+  const isArtistOrCurator =
+    currentUser?.systemRole === 'curator' ||
+    currentUser?.systemRole === 'admin' ||
+    (currentUser?.artistDistinction && currentUser.artistDistinction !== 'none');
+
   return (
-    <main className="sn-feed-root" aria-label="Curated Partner and Featured Artist Feed">
-      <div className="sn-feed-container">
-        {/* Top Greeting & Distinction Filter Bar */}
+    <main
+      id="main-content"
+      className="sn-feed-root"
+      aria-label="Curated Partner and Featured Artist Feed"
+    >
+      <div className="sn-feed-layout">
+        {/* Desktop Left Profile Card Sidebar */}
+        <aside className="sn-feed-sidebar-left" aria-label="Collector Profile & Actions">
+          <div className="sn-profile-card">
+            <div className="sn-profile-header">
+              <div className={`sn-profile-avatar-wrap is-${userDistinctionClass}`}>
+                {currentUser?.avatarUrl ? (
+                  <img
+                    src={currentUser.avatarUrl}
+                    alt={userDisplay}
+                    className="sn-profile-avatar"
+                  />
+                ) : (
+                  <div className="sn-profile-avatar-fallback">
+                    {userInitials}
+                  </div>
+                )}
+                {currentUser?.is_verified && (
+                  <span
+                    className="sn-profile-verified-dot"
+                    title="Verified Sovereign Identity"
+                    aria-label="Verified"
+                  >
+                    ✓
+                  </span>
+                )}
+              </div>
+
+              <div className="sn-profile-identity">
+                <div className="sn-profile-name-row">
+                  <h2 className="sn-profile-name">{userDisplay}</h2>
+                  {currentUser?.is_verified && (
+                    <svg
+                      className="sn-profile-verified-icon"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-label="Verified Sovereign"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <span className="sn-profile-handle">
+                  @{currentUser?.handle || (currentUser?.email ? currentUser.email.split('@')[0] : 'collector')}
+                </span>
+                <span className={`sn-profile-badge is-${userDistinctionClass}`}>
+                  {userRoleBadge}
+                </span>
+              </div>
+            </div>
+
+            <p className="sn-profile-bio">
+              {currentUser?.bio || 'Sovereign Archive Collector & Creative Code Enthusiast'}
+            </p>
+
+            <div className="sn-profile-meta-grid">
+              <div className="sn-profile-meta-chip">
+                <span className="sn-profile-meta-label">Passkeys</span>
+                <span className="sn-profile-meta-val">
+                  {currentUser?.passkeyCount ?? 0} bound
+                </span>
+              </div>
+              <div className="sn-profile-meta-chip">
+                <span className="sn-profile-meta-label">2FA Security</span>
+                <span className="sn-profile-meta-val">
+                  {currentUser?.twoFactorActive ? 'Active' : 'Standard'}
+                </span>
+              </div>
+              <div className="sn-profile-meta-chip">
+                <span className="sn-profile-meta-label">ID</span>
+                <span className="sn-profile-meta-val">
+                  #{currentUser?.id ?? '—'}
+                </span>
+              </div>
+            </div>
+
+            <nav className="sn-profile-actions" aria-label="Quick Navigation">
+              <Link href="/dashboard" className="sn-profile-btn is-primary">
+                Collector Dashboard
+                <span className="sn-profile-btn-arrow">→</span>
+              </Link>
+              <Link href="/settings" className="sn-profile-btn">
+                Settings &amp; Keys
+                <span className="sn-profile-btn-arrow">⚙</span>
+              </Link>
+              {isArtistOrCurator && (
+                <Link href="/studio/upload" className="sn-profile-btn is-upload">
+                  Mint / Upload Art
+                  <span className="sn-profile-btn-arrow">✦</span>
+                </Link>
+              )}
+              {onSwitchToAtelier && (
+                <button
+                  type="button"
+                  className="sn-profile-btn is-secondary"
+                  onClick={onSwitchToAtelier}
+                >
+                  Atelier Overview
+                  <span className="sn-profile-btn-arrow">↗</span>
+                </button>
+              )}
+            </nav>
+          </div>
+        </aside>
+
+        {/* Main Feed Column */}
+        <div className="sn-feed-main-col">
+          {/* Top Greeting & Distinction Filter Bar */}
         <header className="sn-feed-top-bar">
           <div className="sn-feed-greeting">
             <span className="sn-feed-eyebrow">Curated Stream • Welcome, {userDisplay}</span>
@@ -628,6 +777,7 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
             Loading more Partner &amp; Featured works...
           </span>
         </div>
+      </div>
       </div>
 
       {/* Immersive Instagram-Style Artist Story Viewer Modal */}
