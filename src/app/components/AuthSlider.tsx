@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import '../landing.css';
 import '../auth.css';
 import { startAuthentication } from '@simplewebauthn/browser';
@@ -14,9 +14,25 @@ interface AuthSliderProps {
 export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // Active Mode: 'login' | 'register'
-  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'register'>(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname.includes('/register')) return 'register';
+      if (window.location.pathname.includes('/login')) return 'login';
+    }
+    return initialMode;
+  });
+
+  // Keep mode in sync when pathname changes (e.g. Next.js router transitions or shallow routing)
+  useEffect(() => {
+    if (pathname?.includes('/register')) {
+      setMode('register');
+    } else if (pathname?.includes('/login')) {
+      setMode('login');
+    }
+  }, [pathname]);
 
   // Form Step: 'email' | 'otp' | '2fa'
   const [step, setStep] = useState<'email' | 'otp' | '2fa'>('email');
