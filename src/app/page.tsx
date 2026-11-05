@@ -78,7 +78,7 @@ export default async function HomePage() {
           let twoFactorActive = false;
           try {
             const totp = await queryRow<{ is_active: number }>(
-              'SELECT is_active FROM totp_secrets WHERE account_id = ? LIMIT 1',
+              'SELECT is_active FROM totp_credentials WHERE account_id = ? LIMIT 1',
               [account.id]
             );
             twoFactorActive = totp?.is_active === 1;

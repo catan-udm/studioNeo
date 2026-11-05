@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import type { NextRequest, NextResponse } from 'next/server';
 import { execute } from './db';
 
 export const AUTH_COOKIE_NAME = process.env.AUTH_SESSION_COOKIE_NAME || 'sanko_auth_session';
@@ -67,7 +68,10 @@ export function timingSafeCompare(a: string, b: string): boolean {
  * Retrieves the cryptographic secret used for HMAC-SHA256 session signatures.
  */
 function getSessionSecret(): Buffer {
-  const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
+  const secret =
+    process.env.AUTH_SECRET ||
+    process.env.AUTH_SESSION_SECRET ||
+    'dev_secret_key_sankobite_auth_32_chars_minimum!';
   return crypto.createHash('sha256').update(secret).digest();
 }
 
@@ -170,33 +174,102 @@ export function verifySessionToken(token: string): SessionPayload | null {
 }
 
 /**
- * Sets an httpOnly, SameSite=Lax session cookie on the outgoing response.
+ * Generates standardized cookie options for long-lived session persistence.
  */
-export async function setSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies();
+export function getSessionCookieOptions() {
   const isProd = process.env.NODE_ENV === 'production';
-
-  cookieStore.set(AUTH_COOKIE_NAME, token, {
+  return {
     httpOnly: true,
     secure: isProd,
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     path: '/',
     maxAge: SESSION_TTL_SECONDS,
-  });
+    expires: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
+  };
 }
 
 /**
- * Reads and verifies the current session from request cookies.
+ * Sets an httpOnly, SameSite=Lax session cookie retained until expiration or logout.
+ * Optionally attaches the cookie directly to a NextResponse instance.
  */
-export async function getSessionUser(): Promise<SessionPayload | null> {
+export async function setSessionCookie(token: string, response?: NextResponse): Promise<void> {
+  const options = getSessionCookieOptions();
+
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
-    if (!sessionCookie || !sessionCookie.value) {
-      return null;
+    cookieStore.set(AUTH_COOKIE_NAME, token, options);
+    if (AUTH_COOKIE_NAME !== 'sanko_auth_session') {
+      cookieStore.set('sanko_auth_session', token, options);
+    }
+  } catch {}
+
+  if (response) {
+    response.cookies.set(AUTH_COOKIE_NAME, token, options);
+    if (AUTH_COOKIE_NAME !== 'sanko_auth_session') {
+      response.cookies.set('sanko_auth_session', token, options);
+    }
+  }
+}
+
+/**
+ * Reads and verifies the current session from request cookies, Bearer authorization header,
+ * or Next.js headers store. Retains authentication across client page transitions.
+ */
+export async function getSessionUser(
+  request?: NextRequest | Request
+): Promise<SessionPayload | null> {
+  try {
+    // 1. Try Authorization: Bearer <token> from explicit request
+    if (request) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+        const bearerToken = authHeader.slice(7).trim();
+        if (bearerToken) {
+          const verified = verifySessionToken(bearerToken);
+          if (verified) return verified;
+        }
+      }
     }
 
-    return verifySessionToken(sessionCookie.value);
+    // 2. Try Next.js cookie store
+    try {
+      const cookieStore = await cookies();
+      const sessionCookie =
+        cookieStore.get(AUTH_COOKIE_NAME) ||
+        cookieStore.get('sanko_auth_session');
+
+      if (sessionCookie && sessionCookie.value) {
+        const verified = verifySessionToken(sessionCookie.value);
+        if (verified) return verified;
+      }
+    } catch {}
+
+    // 3. Try raw Cookie header from request if provided
+    if (request) {
+      const cookieHeader = request.headers.get('cookie') || '';
+      const match =
+        cookieHeader.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE_NAME}=([^;]+)`)) ||
+        cookieHeader.match(/(?:^|;\s*)sanko_auth_session=([^;]+)/);
+      if (match && match[1]) {
+        const verified = verifySessionToken(decodeURIComponent(match[1]));
+        if (verified) return verified;
+      }
+    }
+
+    // 4. Try global headers() store for Authorization Bearer header
+    try {
+      const reqHeaders = await headers();
+      const authHeader = reqHeaders.get('authorization');
+      if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+        const bearerToken = authHeader.slice(7).trim();
+        if (bearerToken) {
+          const verified = verifySessionToken(bearerToken);
+          if (verified) return verified;
+        }
+      }
+    } catch {}
+
+    return null;
   } catch {
     return null;
   }
@@ -205,22 +278,33 @@ export async function getSessionUser(): Promise<SessionPayload | null> {
 /**
  * Clears any named cookie with explicit root path and immediate expiration.
  */
-export async function clearCookie(cookieName: string): Promise<void> {
-  const cookieStore = await cookies();
+export async function clearCookie(cookieName: string, response?: NextResponse): Promise<void> {
   const isProd = process.env.NODE_ENV === 'production';
-
-  cookieStore.delete({
-    name: cookieName,
-    path: '/',
-  });
-  cookieStore.set(cookieName, '', {
+  const clearOptions = {
     path: '/',
     maxAge: 0,
     expires: new Date(0),
     httpOnly: true,
     secure: isProd,
-    sameSite: 'lax',
-  });
+    sameSite: 'lax' as const,
+  };
+
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete({
+      name: cookieName,
+      path: '/',
+    });
+    cookieStore.set(cookieName, '', clearOptions);
+  } catch {}
+
+  if (response) {
+    response.cookies.delete({
+      name: cookieName,
+      path: '/',
+    });
+    response.cookies.set(cookieName, '', clearOptions);
+  }
 }
 
 /**
@@ -232,7 +316,10 @@ export async function setSignedCookie<T extends object>(
   ttlSeconds: number
 ): Promise<void> {
   const cookieStore = await cookies();
-  const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
+  const secret =
+    process.env.AUTH_SECRET ||
+    process.env.AUTH_SESSION_SECRET ||
+    'dev_secret_key_sankobite_auth_32_chars_minimum!';
   const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
 
   const fullData = {
@@ -250,6 +337,7 @@ export async function setSignedCookie<T extends object>(
     sameSite: 'lax',
     path: '/',
     maxAge: ttlSeconds,
+    expires: new Date(Date.now() + ttlSeconds * 1000),
   });
 }
 
@@ -264,7 +352,10 @@ export async function getSignedCookie<T extends { expiresAt: number }>(
     const cookie = cookieStore.get(cookieName);
     if (!cookie?.value) return null;
 
-    const secret = process.env.AUTH_SESSION_SECRET || 'dev_secret_key_sankobite_auth_32_chars_minimum!';
+    const secret =
+      process.env.AUTH_SECRET ||
+      process.env.AUTH_SESSION_SECRET ||
+      'dev_secret_key_sankobite_auth_32_chars_minimum!';
     const raw = Buffer.from(cookie.value, 'base64url').toString('utf8');
     const { data, sig } = JSON.parse(raw);
 
@@ -283,12 +374,12 @@ export async function getSignedCookie<T extends { expiresAt: number }>(
 /**
  * Clears the session cookie on logout with explicit root path and immediate expiration.
  */
-export async function clearSessionCookie(): Promise<void> {
-  await clearCookie(AUTH_COOKIE_NAME);
+export async function clearSessionCookie(response?: NextResponse): Promise<void> {
+  await clearCookie(AUTH_COOKIE_NAME, response);
 
   // Also clear fallback default name if configured differently
   if (AUTH_COOKIE_NAME !== 'sanko_auth_session') {
-    await clearCookie('sanko_auth_session');
+    await clearCookie('sanko_auth_session', response);
   }
 }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionUser, clearSessionCookie } from '@/lib/auth';
+import { getSessionUser, createSessionToken, setSessionCookie, clearSessionCookie } from '@/lib/auth';
 import { queryRow, queryRows, transaction, AccountRecord } from '@/lib/db';
 import { clearPasskeyChallenge } from '@/lib/webauthn';
 import { clearOAuthSessionCookie } from '@/lib/oauth';
@@ -15,9 +15,9 @@ function jsonWithNoCache(data: unknown, status = 200) {
   return res;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getSessionUser();
+    const session = await getSessionUser(request);
     const accountId = session?.accountId ?? session?.subscriberId;
     if (!session || !accountId) {
       return jsonWithNoCache({ authenticated: false, subscriber: null, account: null, perks: [] });
@@ -33,10 +33,14 @@ export async function GET() {
     }
 
     // Check if 2FA is active
-    const totp = await queryRow<{ is_active: number }>(
-      'SELECT is_active FROM totp_credentials WHERE account_id = ? LIMIT 1',
-      [account.id]
-    );
+    let twoFactorActive = false;
+    try {
+      const totp = await queryRow<{ is_active: number }>(
+        'SELECT is_active FROM totp_credentials WHERE account_id = ? LIMIT 1',
+        [account.id]
+      );
+      twoFactorActive = totp?.is_active === 1;
+    } catch {}
 
     // Fetch linked OAuth providers
     let linkedOAuth: string[] = [];
@@ -85,19 +89,34 @@ export async function GET() {
       artistDistinction: account.artist_distinction,
       role: derivedRole,
       tier: derivedRole,
-      twoFactorActive: totp?.is_active === 1,
+      twoFactorActive,
       passkeyCount,
       linkedOAuth,
       linkedAccounts,
       created_at: account.created_at,
     };
 
-    return jsonWithNoCache({
+    // Issue refreshed token to sustain session activity
+    const token = createSessionToken({
+      subscriberId: account.id,
+      accountId: account.id,
+      email: account.email,
+      role: account.system_role,
+      tier: account.system_role,
+      isVerified: account.is_verified === 1,
+    });
+
+    const res = jsonWithNoCache({
       authenticated: true,
       account: userPayload,
       subscriber: userPayload,
       perks: [],
+      token,
     });
+
+    await setSessionCookie(token, res);
+
+    return res;
   } catch (error) {
     console.error('[API /api/auth/me] Error:', error);
     return jsonWithNoCache(

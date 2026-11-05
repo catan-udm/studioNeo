@@ -140,12 +140,11 @@ export async function POST(request: NextRequest) {
       isVerified: true,
     });
 
-    await setSessionCookie(sessionToken);
-
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         message: 'Authentication successful.',
+        token: sessionToken,
         subscriber: {
           id: account.id,
           email: account.email,
@@ -159,6 +158,10 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+
+    await setSessionCookie(sessionToken, response);
+
+    return response;
   } catch (error: unknown) {
     console.error('[API /api/auth/verify-otp] Error:', error);
     return NextResponse.json(

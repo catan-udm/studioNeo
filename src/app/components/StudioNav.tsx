@@ -11,6 +11,12 @@ import React, {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LiquidGlassDefs, useLiquidRefraction } from '@/components/LiquidGlass';
+import {
+  getAuthenticatedSession,
+  getStoredAuthSession,
+  clearStoredAuth,
+  type AuthSubscriber,
+} from '@/lib/clientAuthCache';
 import { illustrators } from '@/data/illustrators';
 
 const useIsomorphicLayoutEffect =
@@ -629,6 +635,48 @@ export default function StudioNav() {
   const [theme, setThemeState] = useState<Theme>('system');
   const [uiScale, setUiScaleState] = useState<UiScale>('default');
   const [motion, setMotionState] = useState<MotionPref>('full');
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = getStoredAuthSession();
+      if (stored?.authenticated) return true;
+    }
+    return false;
+  });
+  const [currentUser, setCurrentUser] = useState<AuthSubscriber | null>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = getStoredAuthSession();
+      if (stored?.subscriber) return stored.subscriber;
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    let active = true;
+    getAuthenticatedSession()
+      .then((data) => {
+        if (!active) return;
+        setIsAuthenticated(Boolean(data?.authenticated));
+        setCurrentUser(data?.subscriber || null);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
+
+  const handleLogout = useCallback(async () => {
+    setMenuOpen(false);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
+    clearStoredAuth();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    router.push('/login');
+    router.refresh();
+  }, [router]);
 
   // Mobile Drag Dock state (clips to 'right', 'left', or 'top')
   const [dockPosition, setDockPosition] = useState<DockPosition>('right');
@@ -1349,61 +1397,118 @@ export default function StudioNav() {
                 role="group"
                 aria-label="Account Access"
               >
-                <button
-                  type="button"
-                  className="burger-icon-btn"
-                  aria-label="Sign In"
-                  title="Sign In"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    router.push('/login');
-                  }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.9"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                    <polyline points="10 17 15 12 10 7" />
-                    <line x1="15" y1="12" x2="3" y2="12" />
-                  </svg>
-                  <span className="burger-icon-tooltip">Sign In</span>
-                </button>
-                <button
-                  type="button"
-                  className="burger-icon-btn burger-signup-btn"
-                  aria-label="Sign Up"
-                  title="Sign Up"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    router.push('/register');
-                  }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.9"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="8.5" cy="7" r="4" />
-                    <line x1="20" y1="8" x2="20" y2="14" />
-                    <line x1="23" y1="11" x2="17" y2="11" />
-                  </svg>
-                  <span className="burger-icon-tooltip">Sign Up</span>
-                </button>
+                {isAuthenticated ? (
+                  <>
+                    <button
+                      type="button"
+                      className="burger-icon-btn"
+                      aria-label="Profile"
+                      title="Profile"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        router.push('/dashboard');
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      <span className="burger-icon-tooltip">Profile</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="burger-icon-btn burger-logout-btn"
+                      aria-label="Logout"
+                      title="Logout"
+                      onClick={handleLogout}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      <span className="burger-icon-tooltip">Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="burger-icon-btn"
+                      aria-label="Sign In"
+                      title="Sign In"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        router.push('/login');
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                      </svg>
+                      <span className="burger-icon-tooltip">Sign In</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="burger-icon-btn burger-signup-btn"
+                      aria-label="Sign Up"
+                      title="Sign Up"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        router.push('/register');
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                      </svg>
+                      <span className="burger-icon-tooltip">Sign Up</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -1462,32 +1567,6 @@ export default function StudioNav() {
                     type="button"
                     className="popover-action-row"
                     onClick={() => {
-                      setMenuOpen(false);
-                      router.push('/dashboard');
-                    }}
-                  >
-                    <span className="popover-action-icon">
-                      <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    </span>
-                    <span className="popover-action-text">Profile</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="popover-action-row"
-                    onClick={() => {
                       setModal('terms');
                       setMenuOpen(false);
                     }}
@@ -1511,63 +1590,121 @@ export default function StudioNav() {
                       <line x1="10" y1="9" x2="8" y2="9" />
                     </svg>
                     </span>
-                    <span className="popover-action-text">Terms & Policies</span>
+                    <span className="popover-action-text">Terms &amp; Policies</span>
                   </button>
-                  <button
-                    type="button"
-                    className="popover-action-row popover-action-highlight"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      router.push('/login');
-                    }}
-                  >
-                    <span className="popover-action-icon">
-                      <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                      <polyline points="10 17 15 12 10 7" />
-                      <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                    </span>
-                    <span className="popover-action-text">Sign In</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="popover-action-row"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      router.push('/register');
-                    }}
-                  >
-                    <span className="popover-action-icon">
-                      <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="8.5" cy="7" r="4" />
-                      <line x1="20" y1="8" x2="20" y2="14" />
-                      <line x1="23" y1="11" x2="17" y2="11" />
-                    </svg>
-                    </span>
-                    <span className="popover-action-text">Register</span>
-                  </button>
+
+                  {isAuthenticated ? (
+                    <>
+                      <button
+                        type="button"
+                        className="popover-action-row popover-action-highlight"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          router.push('/dashboard');
+                        }}
+                      >
+                        <span className="popover-action-icon">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.9"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                        </span>
+                        <span className="popover-action-text">Profile</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="popover-action-row popover-action-logout"
+                        onClick={handleLogout}
+                      >
+                        <span className="popover-action-icon">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.9"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                          </svg>
+                        </span>
+                        <span className="popover-action-text">Logout</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="popover-action-row popover-action-highlight"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          router.push('/login');
+                        }}
+                      >
+                        <span className="popover-action-icon">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.9"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                            <polyline points="10 17 15 12 10 7" />
+                            <line x1="15" y1="12" x2="3" y2="12" />
+                          </svg>
+                        </span>
+                        <span className="popover-action-text">Sign In</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="popover-action-row"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          router.push('/register');
+                        }}
+                      >
+                        <span className="popover-action-icon">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.9"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="8.5" cy="7" r="4" />
+                            <line x1="20" y1="8" x2="20" y2="14" />
+                            <line x1="23" y1="11" x2="17" y2="11" />
+                          </svg>
+                        </span>
+                        <span className="popover-action-text">Register</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

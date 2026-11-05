@@ -117,13 +117,11 @@ export async function POST(request: NextRequest) {
       isVerified: true,
     });
 
-    await setSessionCookie(token);
-    await clearPasskeyChallenge();
-
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         message: 'Passkey authentication successful.',
+        token,
         subscriber: {
           id: ownerId,
           email: credRecord.email,
@@ -135,6 +133,11 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+
+    await setSessionCookie(token, response);
+    await clearPasskeyChallenge();
+
+    return response;
   } catch (error: unknown) {
     console.error('[API /api/auth/passkey/login-verify] Error:', error);
     const detail = error instanceof Error ? error.message : String(error);

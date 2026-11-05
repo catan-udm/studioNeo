@@ -363,6 +363,28 @@ main#main-content {
   box-shadow: 0 4px 12px rgb(0 0 0 / 18%);
 }
 
+.burger-logout-btn {
+  color: #ef4444;
+}
+
+.burger-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #dc2626 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+:root[data-theme="dark"] .burger-logout-btn,
+:root[data-resolved-theme="dark"] .burger-logout-btn {
+  color: #f87171;
+}
+
+:root[data-theme="dark"] .burger-logout-btn:hover,
+:root[data-resolved-theme="dark"] .burger-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(248, 113, 113, 0.4) !important;
+}
+
 .burger-menu-divider {
   background: #e2e8f0;
   flex-shrink: 0;
@@ -450,6 +472,27 @@ main#main-content {
 .popover-action-highlight {
   color: #0f172a;
   font-weight: 600;
+}
+
+.popover-action-logout {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.popover-action-logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+:root[data-theme="dark"] .popover-action-logout,
+:root[data-resolved-theme="dark"] .popover-action-logout {
+  color: #f87171;
+}
+
+:root[data-theme="dark"] .popover-action-logout:hover,
+:root[data-resolved-theme="dark"] .popover-action-logout:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
 }
 
 .nav-burger-bubble {

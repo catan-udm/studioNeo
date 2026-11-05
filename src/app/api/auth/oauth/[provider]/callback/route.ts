@@ -260,6 +260,8 @@ export async function GET(
 
     await clearOAuthSessionCookie();
 
+    const response = NextResponse.redirect(new URL(result.redirectUrl, baseUrl));
+
     if (result.issueSession && result.subscriberId && result.sessionEmail) {
       const token = createSessionToken({
         subscriberId: result.subscriberId,
@@ -268,10 +270,10 @@ export async function GET(
         isVerified: true,
       });
 
-      await setSessionCookie(token);
+      await setSessionCookie(token, response);
     }
 
-    return NextResponse.redirect(new URL(result.redirectUrl, baseUrl));
+    return response;
   } catch (error: unknown) {
     console.error('[API /api/auth/oauth/[provider]/callback] Error:', error);
     const detail = error instanceof Error ? error.message : 'Unknown OAuth Error';
