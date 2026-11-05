@@ -15,6 +15,20 @@ export default function ServiceWorkerRegister() {
       return;
     }
 
+    // Proactively purge legacy v2 caches that stored stale 4-item navbar HTML shells
+    if ('caches' in window) {
+      caches
+        .keys()
+        .then((cacheNames) =>
+          Promise.all(
+            cacheNames
+              .filter((name) => name.includes('bikko-v2'))
+              .map((name) => caches.delete(name))
+          )
+        )
+        .catch(() => {});
+    }
+
     // In development mode, unregister any active worker to avoid stale HMR and dev chunk conflicts
     if (process.env.NODE_ENV === 'development') {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -31,6 +45,8 @@ export default function ServiceWorkerRegister() {
           scope: '/',
           updateViaCache: 'none',
         });
+
+        registration.update().catch(() => {});
 
         // Listen for updates and new service worker installs
         registration.addEventListener('updatefound', () => {

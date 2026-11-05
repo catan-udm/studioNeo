@@ -3,13 +3,13 @@
  * High-performance local device caching for first-time and returning visitors.
  *
  * Strategies:
- * 1. Pre-caching: Instantly caches core brand identity, icons, and shell elements on first visit.
+ * 1. Pre-caching: Instantly caches core brand identity and icons on first visit.
  * 2. Cache-First: Static JS/CSS chunks, SVG vector stems, WebP/GIF animations, and web fonts.
- * 3. Stale-While-Revalidate: Navigations and HTML page shells for instant rendering with background updates.
+ * 3. Network-First: Navigations and HTML page shells for always-fresh rendering with offline cache fallback.
  * 4. Network-Only (Strict Bypass): All dynamic API endpoints (/api/*), WebAuthn passkeys, and auth sessions.
  */
 
-const CACHE_VERSION = 'bikko-v2';
+const CACHE_VERSION = 'bikko-v3';
 const PRECACHE_NAME = `bikko-core-${CACHE_VERSION}`;
 const STATIC_CACHE_NAME = `bikko-static-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = `bikko-media-${CACHE_VERSION}`;
@@ -24,7 +24,6 @@ const CURRENT_CACHES = [
 
 // Core brand assets pre-cached locally on the user's device upon initial arrival
 const CORE_ASSETS = [
-  '/',
   '/icon.svg',
   '/favicon.ico',
   '/apple-icon.png',
@@ -204,29 +203,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // STRATEGY C: Stale-While-Revalidate for HTML page navigations
+  // STRATEGY C: Network-First for HTML page navigations (prevents serving stale SSR HTML shells on initial load)
   if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        const fetchPromise = fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseClone = networkResponse.clone();
-              caches.open(PAGES_CACHE_NAME).then((cache) => {
-                cache.put(request, responseClone).catch(() => {});
-              });
-            }
-            return networkResponse;
-          })
-          .catch(async () => {
-            // If network fails (e.g. offline) and no cached page, fall back to cached root
-            if (cachedResponse) return cachedResponse;
-            return caches.match('/');
-          });
-
-        // Serve cached version immediately if available, while network updates in background
-        return cachedResponse || fetchPromise;
-      })
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(PAGES_CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone).catch(() => {});
+            });
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cachedResponse = await caches.match(request);
+          if (cachedResponse) return cachedResponse;
+          return caches.match('/');
+        })
     );
     return;
   }

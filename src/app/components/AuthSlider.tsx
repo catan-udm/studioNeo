@@ -621,39 +621,6 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                       )}
                     </div>
                   </div>
-
-                  {/* Registration Privacy Notice Card */}
-                  {mode === 'register' && (
-                    <div className="register-privacy-card">
-                      <div className="register-privacy-card-header">
-                        <span className="privacy-badge-pill">🔒 Privacy Notice</span>
-                        <span className="privacy-card-subtitle">Zero-Knowledge &amp; Artist Sovereignty</span>
-                      </div>
-                      <p className="register-privacy-lead">
-                        studioNeo operates as a 100% free digital atelier with strict cryptographic privacy and zero subscriptions:
-                      </p>
-                      <ul className="register-privacy-list">
-                        <li>
-                          <strong>Zero-Knowledge Biometrics:</strong> FIDO2 / WebAuthn passkeys execute inside your device&apos;s Secure Enclave. Biometric data never touches our servers.
-                        </li>
-                        <li>
-                          <strong>Minimal Data Collected:</strong> We collect only your email address for 10-minute numeric verification codes and passkey public credentials.
-                        </li>
-                        <li>
-                          <strong>Strict AI/ML Protection:</strong> All artworks are protected against generative AI / diffusion model training and unauthorized harvesting.
-                        </li>
-                      </ul>
-                      <div className="register-privacy-actions">
-                        <button
-                          type="button"
-                          onClick={() => setShowTermsModal(true)}
-                          className="btn-privacy-inspect"
-                        >
-                          Review Complete Terms &amp; Privacy Notice Prompt &rarr;
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
 

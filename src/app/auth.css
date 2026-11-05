@@ -775,30 +775,6 @@
   line-height: 1.4;
 }
 
-/* Inline Registration Privacy Notice Card */
-.register-privacy-card {
-  margin-top: 1.25rem;
-  padding: 1rem 1.15rem;
-  background: var(--bg-subtle, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: 12px;
-  text-align: left;
-  transition: border-color 0.2s ease, background 0.2s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.register-privacy-card:hover {
-  border-color: var(--brand-primary, #6366f1);
-}
-
-.register-privacy-card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
 .privacy-badge-pill {
   font-size: 0.72rem;
   font-weight: 700;
@@ -812,76 +788,6 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-}
-
-.privacy-card-subtitle {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.register-privacy-lead {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.45;
-  margin: 0 0 0.5rem 0;
-}
-
-.register-privacy-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 0.75rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.register-privacy-list li {
-  font-size: 0.775rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  position: relative;
-  padding-left: 1.1rem;
-}
-
-.register-privacy-list li::before {
-  content: "•";
-  position: absolute;
-  left: 0.25rem;
-  color: var(--brand-primary, #818cf8);
-  font-weight: bold;
-}
-
-.register-privacy-list li strong {
-  color: var(--text-primary);
-}
-
-.register-privacy-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed var(--border-subtle, rgba(255, 255, 255, 0.1));
-}
-
-.btn-privacy-inspect {
-  background: none;
-  border: none;
-  color: var(--brand-primary, #818cf8);
-  font-size: 0.775rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  transition: opacity 0.15s ease;
-}
-
-.btn-privacy-inspect:hover {
-  text-decoration: underline;
-  opacity: 0.9;
 }
 
 .terms-badge-row {
