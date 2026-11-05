@@ -7,12 +7,30 @@ export const SESSION_TTL_SECONDS = Number(process.env.AUTH_SESSION_TTL_SECONDS) 
 export const OTP_TTL_MINUTES = Number(process.env.AUTH_OTP_TTL_MINUTES) || 10;
 export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+export type AccountRole = 'user' | 'artist' | 'featured' | 'partner' | 'curator' | 'admin';
+
+export function normalizeRole(role?: string | null): AccountRole {
+  const r = String(role || 'user').trim().toLowerCase();
+  if (r === 'artist' || r === 'featured' || r === 'partner' || r === 'curator' || r === 'admin') {
+    return r;
+  }
+  return 'user';
+}
+
 export interface SessionPayload {
   subscriberId: number | string;
+  accountId?: number | string;
   email: string;
   isVerified: boolean;
+  role?: AccountRole;
+  tier?: string;
   expiresAt: number;
 }
+
+export type SessionTokenInput = Omit<SessionPayload, 'expiresAt' | 'subscriberId' | 'role'> & {
+  subscriberId?: number | string;
+  role?: AccountRole | string;
+};
 
 /**
  * Generates a cryptographically secure 6-digit numeric OTP using crypto.randomInt.
@@ -79,13 +97,19 @@ function base64UrlDecode(str: string): string {
 /**
  * Creates a signed JWT session token (HMAC-SHA256).
  */
-export function createSessionToken(payload: Omit<SessionPayload, 'expiresAt'>): string {
+export function createSessionToken(payload: SessionTokenInput): string {
   const secret = getSessionSecret();
   const header = { alg: 'HS256', typ: 'JWT' };
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const normalizedRole = normalizeRole(payload.role || payload.tier);
+  const subId = payload.subscriberId ?? payload.accountId ?? 0;
 
   const fullPayload: SessionPayload = {
     ...payload,
+    subscriberId: subId,
+    accountId: payload.accountId ?? subId,
+    role: normalizedRole,
+    tier: normalizedRole,
     expiresAt,
   };
 
@@ -434,7 +458,7 @@ export async function sendOTPEmail(email: string, otp: string): Promise<Dispatch
  * persists the SHA-256 token hash in auth_magic_tokens, and dispatches the OTP email.
  */
 export async function issueAndDispatchOTP(
-  subscriberId: number,
+  accountId: number,
   email: string
 ): Promise<{ otp: string; expiresAt: Date; dispatch: DispatchResult }> {
   const otp = generateOTP();
@@ -443,13 +467,13 @@ export async function issueAndDispatchOTP(
   const expiresAtSql = expiresAt.toISOString().slice(0, 19).replace('T', ' ');
 
   await execute(
-    'UPDATE auth_magic_tokens SET consumed_at = NOW() WHERE subscriber_id = ? AND consumed_at IS NULL',
-    [subscriberId]
+    'UPDATE auth_magic_tokens SET consumed_at = NOW() WHERE account_id = ? AND consumed_at IS NULL',
+    [accountId]
   );
 
   await execute(
-    'INSERT INTO auth_magic_tokens (subscriber_id, token_hash, expires_at) VALUES (?, ?, ?)',
-    [subscriberId, tokenHash, expiresAtSql]
+    'INSERT INTO auth_magic_tokens (account_id, token_hash, expires_at) VALUES (?, ?, ?)',
+    [accountId, tokenHash, expiresAtSql]
   );
 
   const dispatch = await sendOTPEmail(email, otp);

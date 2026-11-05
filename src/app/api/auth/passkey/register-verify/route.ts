@@ -46,22 +46,23 @@ export async function POST(request: NextRequest) {
     const counter = credential.counter;
     const transports = JSON.stringify(body.response.transports || credential.transports || []);
 
-    // Strict Check: Ensure this passkey is not already registered to a different subscriber
-    const existingCred = await queryRow<{ id: number; subscriber_id: number }>(
-      'SELECT id, subscriber_id FROM webauthn_credentials WHERE credential_id = ? LIMIT 1',
+    // Strict Check: Ensure this passkey is not already registered to a different account
+    const existingCred = await queryRow<{ id: number; account_id: number; subscriber_id?: number }>(
+      'SELECT id, account_id FROM webauthn_credentials WHERE credential_id = ? LIMIT 1',
       [credentialId]
     );
 
-    if (existingCred && Number(existingCred.subscriber_id) !== Number(session.subscriberId)) {
+    const existingOwnerId = existingCred?.account_id ?? existingCred?.subscriber_id;
+    if (existingCred && Number(existingOwnerId) !== Number(session.subscriberId)) {
       return NextResponse.json(
         { error: 'This passkey hardware token is already registered to another account.' },
         { status: 409 }
       );
     }
 
-    // Insert or update credential for current subscriber
+    // Insert or update credential for current account
     await execute(
-      `INSERT INTO webauthn_credentials (subscriber_id, credential_id, public_key, counter, transports)
+      `INSERT INTO webauthn_credentials (account_id, credential_id, public_key, counter, transports)
        VALUES (?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE public_key = VALUES(public_key), counter = VALUES(counter), transports = VALUES(transports)`,
       [session.subscriberId, credentialId, publicKeyBase64, counter, transports]

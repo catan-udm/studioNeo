@@ -98,7 +98,7 @@ export function generateBackupCodes(count = 8): { codes: string[]; hashedCodes: 
  * the plaintext backup codes.
  */
 export async function regenerateAndStoreBackupCodes(
-  subscriberId: number | string,
+  accountId: number | string,
   activateTotp = false
 ): Promise<string[]> {
   const { codes, hashedCodes } = generateBackupCodes(8);
@@ -106,17 +106,17 @@ export async function regenerateAndStoreBackupCodes(
   await transaction(async (conn) => {
     if (activateTotp) {
       await conn.execute(
-        'UPDATE totp_credentials SET is_active = 1, updated_at = NOW() WHERE subscriber_id = ?',
-        [subscriberId]
+        'UPDATE totp_credentials SET is_active = 1, updated_at = NOW() WHERE account_id = ?',
+        [accountId]
       );
     }
 
-    await conn.execute('DELETE FROM totp_backup_codes WHERE subscriber_id = ?', [subscriberId]);
+    await conn.execute('DELETE FROM totp_backup_codes WHERE account_id = ?', [accountId]);
 
     for (const hash of hashedCodes) {
       await conn.execute(
-        'INSERT INTO totp_backup_codes (subscriber_id, code_hash, is_used) VALUES (?, ?, 0)',
-        [subscriberId, hash]
+        'INSERT INTO totp_backup_codes (account_id, code_hash, is_used) VALUES (?, ?, 0)',
+        [accountId, hash]
       );
     }
   });
@@ -129,7 +129,7 @@ export async function regenerateAndStoreBackupCodes(
  * When consumeBackup is true and a backup code matches, marks the backup code as used.
  */
 export async function verifyTotpOrBackupCode(
-  subscriberId: number | string,
+  accountId: number | string,
   totpSecret: string,
   code: string,
   consumeBackup = false
@@ -140,8 +140,8 @@ export async function verifyTotpOrBackupCode(
 
   const backupHash = hashToken(normalizeBackupCode(code));
   const matchedBackup = await queryRow<{ id: number }>(
-    'SELECT id FROM totp_backup_codes WHERE subscriber_id = ? AND code_hash = ? AND is_used = 0 LIMIT 1',
-    [subscriberId, backupHash]
+    'SELECT id FROM totp_backup_codes WHERE account_id = ? AND code_hash = ? AND is_used = 0 LIMIT 1',
+    [accountId, backupHash]
   );
 
   if (!matchedBackup) {

@@ -29,13 +29,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Strict Existing Account Validation
-    const existingSubscriber = await queryRow<{ id: number; email: string; is_verified: number }>(
-      'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
+    const existingAccount = await queryRow<{ id: number; email: string; is_verified: number }>(
+      'SELECT id, email, is_verified FROM accounts WHERE email = ? LIMIT 1',
       [email]
     );
 
     // If account already exists and is fully verified, reject registration
-    if (existingSubscriber && existingSubscriber.is_verified === 1) {
+    if (existingAccount && existingAccount.is_verified === 1) {
       return NextResponse.json(
         {
           error: 'An account with this email address already exists. Please sign in instead.',
@@ -46,23 +46,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let subscriberId: number;
-    const isResendForPending = Boolean(existingSubscriber && existingSubscriber.is_verified === 0);
+    let accountId: number;
+    const isResendForPending = Boolean(existingAccount && existingAccount.is_verified === 0);
 
-    if (!existingSubscriber) {
-      // Create new subscriber record with is_verified = 0 (pending email OTP verification)
+    if (!existingAccount) {
+      // Derive unique handle & display name for BCNF accounts table
+      const baseHandle = (email.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      const uniqueHandle = `${baseHandle}_${Math.floor(1000 + Math.random() * 9000)}`;
+      const displayName = (email.split('@')[0] || 'Studio User').replace(/^\w/, (c) => c.toUpperCase());
+
+      // Create new account record with is_verified = 0 (pending email OTP verification)
       const insertResult = await execute(
-        'INSERT INTO subscribers (email, is_verified) VALUES (?, 0)',
-        [email]
+        'INSERT INTO accounts (email, handle, display_name, is_verified, system_role, artist_distinction) VALUES (?, ?, ?, ?, ?, ?)',
+        [email, uniqueHandle, displayName, 0, 'user', 'none']
       );
-      subscriberId = insertResult.insertId;
+      accountId = insertResult.insertId;
     } else {
       // Resend code to complete pending verification
-      subscriberId = existingSubscriber.id;
+      accountId = existingAccount.id;
     }
 
     // 2. Issue and dispatch 6-digit OTP
-    const { otp, dispatch: dispatchResult } = await issueAndDispatchOTP(subscriberId, email);
+    const { otp, dispatch: dispatchResult } = await issueAndDispatchOTP(accountId, email);
 
     return NextResponse.json(
       {
@@ -74,7 +79,10 @@ export async function POST(request: NextRequest) {
         isPendingVerification: isResendForPending,
         expiresInMinutes: OTP_TTL_MINUTES,
         dispatchChannel: dispatchResult.channel,
-        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+        devOtp:
+          process.env.NODE_ENV !== 'production' || dispatchResult.channel === 'console'
+            ? otp
+            : undefined,
       },
       { status: 200 }
     );

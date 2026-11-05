@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
-import { queryRow, execute } from '@/lib/db';
+import { queryRow, execute, AccountRecord } from '@/lib/db';
 import { uploadBlob, generateCelSasUrl } from '@/lib/azure-storage';
 import { isArtistTier, sanitizeHandle, sanitizeSvgContent } from '@/app/gallery/galleryData';
 
@@ -10,20 +10,29 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Session authentication
     const session = await getSessionUser();
-    if (!session || !session.subscriberId) {
+    const accountId = session?.accountId ?? session?.subscriberId;
+    if (!session || !accountId) {
       return NextResponse.json(
         { error: 'Authentication required. Please sign in or register to access the Creator Studio.' },
         { status: 401 }
       );
     }
 
-    // 2. Verification of artist tier
-    const subscriber = await queryRow<{ id: number; email: string; tier: string }>(
-      'SELECT id, email, tier FROM subscribers WHERE id = ? LIMIT 1',
-      [session.subscriberId]
+    // 2. Verification of artist distinction or curatorial role on BCNF accounts table
+    const account = await queryRow<AccountRecord>(
+      'SELECT id, email, handle, display_name, system_role, artist_distinction FROM accounts WHERE id = ? LIMIT 1',
+      [accountId]
     );
 
-    if (!subscriber || !isArtistTier(subscriber.tier)) {
+    const hasArtistAccess = Boolean(
+      account &&
+        (account.artist_distinction !== 'none' ||
+          account.system_role === 'curator' ||
+          account.system_role === 'admin' ||
+          (account.tier && isArtistTier(account.tier)))
+    );
+
+    if (!account || !hasArtistAccess) {
       return NextResponse.json(
         {
           error:
@@ -36,28 +45,28 @@ export async function POST(request: NextRequest) {
 
     // 3. Parse FormData
     const formData = await request.formData();
-    const title = (formData.get('title') as string || '').trim();
-    const description = (formData.get('description') as string || '').trim();
-    const category = (formData.get('category') as string || 'Generative').trim() as
+    const title = ((formData.get('title') as string) || '').trim();
+    const description = ((formData.get('description') as string) || '').trim();
+    const category = ((formData.get('category') as string) || 'Generative').trim() as
       | 'Generative'
       | 'Kinetic'
       | 'Vectors'
       | 'Mono';
-    const edition = (formData.get('edition') as string || 'Ed. 1/12').trim();
-    const color = (formData.get('color') as string || '#c496ff').trim();
-    const price = (formData.get('price') as string || '$180').trim();
+    const edition = ((formData.get('edition') as string) || 'Ed. 1/12').trim();
+    const color = ((formData.get('color') as string) || '#c496ff').trim();
+    const price = ((formData.get('price') as string) || '$180').trim();
     const isVault = formData.get('isVault') === 'true' || formData.get('isVault') === '1';
 
-    let artistName = (formData.get('artist') as string || '').trim();
-    let artistHandle = (formData.get('artistHandle') as string || '').trim();
+    let artistName = ((formData.get('artist') as string) || account.display_name || '').trim();
+    let artistHandle = ((formData.get('artistHandle') as string) || account.handle || '').trim();
 
     if (!artistName) {
-      artistName = subscriber.email.split('@')[0];
+      artistName = account.email.split('@')[0];
       artistName = artistName.charAt(0).toUpperCase() + artistName.slice(1);
     }
 
     if (!artistHandle) {
-      artistHandle = sanitizeHandle(subscriber.email.split('@')[0]);
+      artistHandle = sanitizeHandle(account.email.split('@')[0]);
     } else {
       artistHandle = sanitizeHandle(artistHandle);
     }
@@ -115,12 +124,12 @@ export async function POST(request: NextRequest) {
       gifBuffer = Buffer.from(await gifFile.arrayBuffer());
     }
 
-    // 6. Generate Unique Cel Code
+    // 6. Generate Unique Artwork Code
     const randomHex = Math.random().toString(36).substring(2, 8).toUpperCase();
     const celCode = `CEL-${randomHex}`;
 
     // 7. Azure Blob Storage Persistence
-    const svgStoragePath = `cels/${subscriber.id}/${celCode.toLowerCase()}-master.svg`;
+    const svgStoragePath = `cels/${account.id}/${celCode.toLowerCase()}-master.svg`;
     const svgUploadResult = await uploadBlob(
       svgStoragePath,
       cleanSvgBuffer,
@@ -130,7 +139,7 @@ export async function POST(request: NextRequest) {
     let gifStoragePath: string | null = null;
     let gifUploadResult: { url: string; storageFilePath: string } | null = null;
     if (gifBuffer) {
-      gifStoragePath = `cels/${subscriber.id}/${celCode.toLowerCase()}-kinetic.gif`;
+      gifStoragePath = `cels/${account.id}/${celCode.toLowerCase()}-kinetic.gif`;
       gifUploadResult = await uploadBlob(gifStoragePath, gifBuffer, 'image/gif');
     }
 
@@ -140,41 +149,70 @@ export async function POST(request: NextRequest) {
       ? await generateCelSasUrl(gifStoragePath, { expiresInMinutes: 60 })
       : null;
 
-    // 9. Persist Cel Metadata in MySQL
-    const insertResult = await execute(
-      `INSERT INTO cels (
-        subscriber_id, code, title, description, artist, artist_handle, artist_avatar,
-        category, edition, color, price, likes, format, svg_storage_path, svg_url,
-        gif_storage_path, gif_url, is_vault
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    // 9. Update Artist Profile on BCNF `accounts` table if customized
+    if (artistName !== account.display_name || artistHandle !== account.handle) {
+      await execute(
+        'UPDATE accounts SET display_name = ?, handle = ? WHERE id = ?',
+        [artistName, artistHandle, account.id]
+      );
+    }
+
+    // 10. Persist Normalized Artwork in `artworks` (Zero redundant artist fields)
+    const insertArtworkResult = await execute(
+      `INSERT INTO artworks (
+        account_id, code, title, description, category, edition, color, price, is_vault
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        subscriber.id,
+        account.id,
         celCode,
         title,
         description || null,
-        artistName,
-        artistHandle,
-        artistAvatar,
         category,
         edition,
         color,
         price,
-        0,
-        category === 'Kinetic' && gifBuffer ? '4K' : 'SVG',
-        svgStoragePath,
-        svgUploadResult.url,
-        gifStoragePath,
-        gifUploadResult ? gifUploadResult.url : null,
         isVault ? 1 : 0,
       ]
     );
+    const artworkId = insertArtworkResult.insertId;
+
+    // 11. Persist Normalized 1:N Media Assets in `artwork_assets`
+    await execute(
+      `INSERT INTO artwork_assets (
+        artwork_id, asset_type, storage_path, url, mime_type, file_size_bytes
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        artworkId,
+        'master_svg',
+        svgStoragePath,
+        svgUploadResult.url,
+        'image/svg+xml',
+        cleanSvgBuffer.byteLength,
+      ]
+    );
+
+    if (gifStoragePath && gifUploadResult && gifBuffer) {
+      await execute(
+        `INSERT INTO artwork_assets (
+          artwork_id, asset_type, storage_path, url, mime_type, file_size_bytes
+        ) VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          artworkId,
+          'preview_gif',
+          gifStoragePath,
+          gifUploadResult.url,
+          'image/gif',
+          gifBuffer.byteLength,
+        ]
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
         message: `Cel #${celCode} (${title}) successfully minted to studioNeo Digital Archive.`,
         cel: {
-          id: insertResult.insertId,
+          id: artworkId,
           code: celCode,
           title,
           description,

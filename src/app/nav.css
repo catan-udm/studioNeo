@@ -162,6 +162,7 @@
   background: rgb(241 245 249 / 85%);
   border: 1px solid rgb(226 232 240 / 95%);
   border-radius: 9999px;
+  overflow: hidden;
   transition: background 350ms ease, border-color 350ms ease, box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -295,12 +296,11 @@ main#main-content {
   margin-right: 8px;
 }
 
-.studio-nav-header.is-scrolled .nav-static-actions,
-.studio-nav-header[data-artist-route="true"] .nav-static-actions {
+.studio-nav-header.is-scrolled .nav-static-actions {
   display: none !important;
 }
 
-.studio-nav-header:not(.is-scrolled):not([data-artist-route="true"]) .nav-burger-popover {
+.studio-nav-header:not(.is-scrolled) .nav-burger-popover {
   display: none !important;
 }
 
@@ -430,11 +430,10 @@ main#main-content {
   align-items: center;
   gap: 10px;
   padding: 9px 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: none;
   background: transparent;
-  color: #0f172a;
-  text-shadow: 0 0 10px rgb(255 255 255 / 94%), 0 1px 2px rgb(255 255 255 / 90%);
+  color: #334155;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -444,7 +443,7 @@ main#main-content {
 }
 
 .popover-action-row:hover {
-  background: rgb(0 0 0 / 5%);
+  background: rgb(15 23 42 / 7%);
   color: #0f172a;
 }
 
@@ -531,18 +530,16 @@ main#main-content {
   width: 216px;
   padding: 8px;
   overflow: hidden;
-  background: rgb(255 255 255 / 6%);
-  border: 1px solid rgb(255 255 255 / 80%);
-  border-color: rgb(255 255 255 / 95%) rgb(255 255 255 / 75%) rgb(255 255 255 / 60%);
+  background: rgb(255 255 255 / 26%);
+  border: 1px solid rgb(255 255 255 / 72%);
   border-radius: 18px;
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 4%),
-    0 8px 24px -2px rgb(15 23 42 / 10%),
-    0 20px 48px -6px rgb(15 23 42 / 8%),
-    inset 0 1.5px 1px 0 rgb(255 255 255 / 95%),
-    inset 0 -1.5px 1.5px 0 rgb(255 255 255 / 40%);
-  -webkit-backdrop-filter: blur(0.5px) saturate(120%);
-  backdrop-filter: blur(0.5px) saturate(120%);
+    0 4px 16px -2px rgb(0 0 0 / 10%),
+    0 16px 40px -4px rgb(0 0 0 / 16%),
+    inset 0 1px 1px rgb(255 255 255 / 92%),
+    inset 0 -1px 1.5px rgb(255 255 255 / 42%);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
   opacity: 0;
   pointer-events: none;
   transform: translateY(-8px) scale(0.94);
@@ -551,7 +548,7 @@ main#main-content {
 }
 
 :root[data-liquid-refraction="true"] .nav-burger-popover {
-  background: rgb(255 255 255 / 8%);
+  background: rgb(255 255 255 / 16%);
   -webkit-backdrop-filter: url(#liquid-glass-popover);
   backdrop-filter: url(#liquid-glass-popover);
   will-change: transform, backdrop-filter;
@@ -611,17 +608,17 @@ main#main-content {
 /* Scrolled detached floating islands — refraction scoped strictly to each island */
 .studio-nav-header.is-scrolled .bubble-island {
   overflow: hidden;
-  background: rgb(255 255 255 / 6%);
-  border: 1px solid rgb(255 255 255 / 80%);
-  border-color: rgb(255 255 255 / 95%) rgb(255 255 255 / 75%) rgb(255 255 255 / 60%);
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-color: rgb(255 255 255 / 92%) rgb(255 255 255 / 72%) rgb(255 255 255 / 54%);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 4%),
-    0 8px 24px -2px rgb(15 23 42 / 10%),
-    0 20px 48px -6px rgb(15 23 42 / 8%),
-    inset 0 1.5px 1px 0 rgb(255 255 255 / 95%),
-    inset 0 -1.5px 1.5px 0 rgb(255 255 255 / 40%);
-  -webkit-backdrop-filter: blur(0.5px) saturate(120%);
-  backdrop-filter: blur(0.5px) saturate(120%);
+    0 8px 24px -2px rgb(15 23 42 / 12%),
+    0 20px 48px -6px rgb(15 23 42 / 10%),
+    inset 0 1px 1px 0 rgb(255 255 255 / 92%),
+    inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   will-change: transform, backdrop-filter;
   animation: liveIslandBackdropFallback 2s linear infinite;
 }
@@ -644,79 +641,19 @@ main#main-content {
   animation: liveIslandBackdropBurger 2s linear infinite;
 }
 
-/* WebKit / iOS WebGL Hardware Refraction */
-:root[data-webkit-liquid="true"] .studio-nav-header.is-scrolled .bubble-island,
-:root[data-webkit-liquid="true"] .nav-burger-popover,
-:root[data-webkit-liquid="true"] .studio-nav-header[data-artist-route="true"] .bubble-island {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  animation: none !important;
-  overflow: hidden;
-}
-
-:root[data-webkit-liquid="true"] .studio-nav-header.is-scrolled .bubble-island::after,
-:root[data-webkit-liquid="true"] .nav-burger-popover::after {
-  display: none !important;
-}
-
-.liquid-glass-optical-lens {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: none !important;
-  user-select: none !important;
-  z-index: 0 !important;
-  border-radius: inherit !important;
-  overflow: hidden !important;
-}
-
-.liquid-glass-optical-lens canvas {
-  pointer-events: none !important;
-  border-radius: inherit !important;
-}
-
-/* WebKit Meniscus Lens Rim: Localized perimeter refraction matching SDF bezel */
-:not([data-liquid-refraction="true"]) .studio-nav-header.is-scrolled .bubble-island::after,
-:not([data-liquid-refraction="true"]) .nav-burger-popover::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  -webkit-mask-image: radial-gradient(
-    ellipse at center,
-    transparent 0%,
-    transparent calc(100% - 16px),
-    black calc(100% - 14px),
-    black 100%
-  );
-  mask-image: radial-gradient(
-    ellipse at center,
-    transparent 0%,
-    transparent calc(100% - 16px),
-    black calc(100% - 14px),
-    black 100%
-  );
-  -webkit-backdrop-filter: contrast(135%) brightness(112%) saturate(175%) blur(1.5px);
-  backdrop-filter: contrast(135%) brightness(112%) saturate(175%) blur(1.5px);
-  box-shadow:
-    inset 0 0 8px 2px rgb(255 255 255 / 35%),
-    inset 0 0 2px 1px rgb(15 23 42 / 8%);
-}
-
 /* Zero-cost GPU compositor invalidation keyframes:
-   Continuously marks the backdrop filter surface dirty so WebKit and Chromium sample
-   live video and animated frames on every compositor frame without stalling or freezing. */
+   Continuously marks the backdrop filter surface dirty so Chromium samples
+   live video and animated GIF frames on every compositor frame without
+   stalling or freezing on stationary islands, using an invisible 0.005% step
+   around 100% identity saturation for 100% true-color accuracy. */
 @keyframes liveIslandBackdropFallback {
   0%, 100% {
-    -webkit-backdrop-filter: blur(0.5px) saturate(100%);
-    backdrop-filter: blur(0.5px) saturate(100%);
+    -webkit-backdrop-filter: blur(16px) saturate(100%);
+    backdrop-filter: blur(16px) saturate(100%);
   }
   50% {
-    -webkit-backdrop-filter: blur(0.5px) saturate(100.005%);
-    backdrop-filter: blur(0.5px) saturate(100.005%);
+    -webkit-backdrop-filter: blur(16px) saturate(100.005%);
+    backdrop-filter: blur(16px) saturate(100.005%);
   }
 }
 
@@ -766,8 +703,8 @@ main#main-content {
 
 :root[data-motion="reduced"] .studio-nav-header.is-scrolled .bubble-island,
 :root[data-motion="reduced"] .nav-burger-popover {
-  -webkit-backdrop-filter: blur(0.5px) !important;
-  backdrop-filter: blur(0.5px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  backdrop-filter: blur(16px) !important;
   animation: none !important;
 }
 
@@ -775,8 +712,8 @@ main#main-content {
   :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .bubble-island,
   .studio-nav-header.is-scrolled .bubble-island,
   .nav-burger-popover {
-    -webkit-backdrop-filter: blur(0.5px) !important;
-    backdrop-filter: blur(0.5px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) !important;
     animation: none !important;
   }
 }
@@ -854,9 +791,8 @@ main#main-content {
   :root[data-theme="dark"] .nav-burger-popover::after,
   :root[data-resolved-theme="dark"] .nav-burger-popover::after {
     box-shadow:
-      inset 0 1px 0.5px rgb(255 255 255 / 40%),
-      inset 0 -1px 1px rgb(0 0 0 / 40%),
-      inset 0 0 12px rgb(255 255 255 / 8%);
+      inset 0 1.25px 1px rgb(255 255 255 / 38%),
+      inset 0 -1.25px 1.25px rgb(255 255 255 / 14%);
   }
 }
 
@@ -1013,23 +949,24 @@ main#main-content {
     padding: 4px;
     gap: 6px;
     border-radius: 9999px;
+    overflow: hidden;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
     user-drag: none;
     cursor: grab;
-    background: rgb(255 255 255 / 6%) !important;
-    border: 1px solid rgb(255 255 255 / 80%) !important;
-    border-color: rgb(255 255 255 / 95%) rgb(255 255 255 / 75%) rgb(255 255 255 / 60%) !important;
+    background: rgb(255 255 255 / 8%) !important;
+    border: 1px solid rgb(255 255 255 / 72%) !important;
+    border-color: rgb(255 255 255 / 92%) rgb(255 255 255 / 72%) rgb(255 255 255 / 54%) !important;
     box-shadow:
       0 1px 2px rgb(0 0 0 / 4%),
-      0 8px 24px -2px rgb(15 23 42 / 10%),
-      0 20px 48px -6px rgb(15 23 42 / 8%),
-      inset 0 1.5px 1px 0 rgb(255 255 255 / 95%),
-      inset 0 -1.5px 1.5px 0 rgb(255 255 255 / 40%) !important;
-    -webkit-backdrop-filter: blur(0.5px) saturate(120%);
-    backdrop-filter: blur(0.5px) saturate(120%);
+      0 8px 24px -2px rgb(15 23 42 / 12%),
+      0 20px 48px -6px rgb(15 23 42 / 10%),
+      inset 0 1px 1px 0 rgb(255 255 255 / 92%),
+      inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
   }
 
   /* Horizontal layout when docked at top (default header position) */
@@ -1043,6 +980,7 @@ main#main-content {
     padding: var(--nav-slider-padding, 3px) 5px;
     gap: 3px;
     border-radius: 9999px;
+    overflow: hidden;
   }
 
   /* Docked header surface when un-scrolled at top and not dragging */
@@ -1061,21 +999,21 @@ main#main-content {
 
   /* Scrolled floating island when docked at top (translucent liquid glass) */
   .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
-    background: rgb(255 255 255 / 6%) !important;
-    border: 1px solid rgb(255 255 255 / 80%) !important;
-    border-color: rgb(255 255 255 / 95%) rgb(255 255 255 / 75%) rgb(255 255 255 / 60%) !important;
+    background: rgb(255 255 255 / 8%) !important;
+    border: 1px solid rgb(255 255 255 / 72%) !important;
+    border-color: rgb(255 255 255 / 92%) rgb(255 255 255 / 72%) rgb(255 255 255 / 54%) !important;
     box-shadow:
       0 1px 2px rgb(0 0 0 / 4%),
-      0 8px 24px -2px rgb(15 23 42 / 10%),
-      0 20px 48px -6px rgb(15 23 42 / 8%),
-      inset 0 1.5px 1px 0 rgb(255 255 255 / 95%),
-      inset 0 -1.5px 1.5px 0 rgb(255 255 255 / 40%) !important;
-    -webkit-backdrop-filter: blur(0.5px) saturate(120%);
-    backdrop-filter: blur(0.5px) saturate(120%);
+      0 8px 24px -2px rgb(15 23 42 / 12%),
+      0 20px 48px -6px rgb(15 23 42 / 10%),
+      inset 0 1px 1px 0 rgb(255 255 255 / 92%),
+      inset 0 -1px 1.5px 0 rgb(255 255 255 / 42%) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
   }
 
-  :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-center[data-dock="top"] .studio-nav-slider,
-  :root[data-liquid-refraction="true"]:not([data-adaptive-glyphs="true"]) .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
+  :root[data-liquid-refraction="true"] .studio-nav-center[data-dock="top"] .studio-nav-slider,
+  :root[data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-center[data-dock="top"] .studio-nav-slider {
     -webkit-backdrop-filter: url(#liquid-glass-slider) !important;
     backdrop-filter: url(#liquid-glass-slider) !important;
     animation: liveIslandBackdropSlider 2s linear infinite !important;
@@ -1190,6 +1128,7 @@ main#main-content {
     position: fixed;
     pointer-events: none;
     border-radius: 9999px;
+    overflow: hidden;
     border: 1.5px dashed rgba(255, 255, 255, 0.4);
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(8px);
@@ -1297,13 +1236,13 @@ main#main-content {
   }
 
   :root[data-adaptive-glyphs="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
-    opacity: 1;
+    opacity: 1 !important;
   }
 
   :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
-    -webkit-backdrop-filter: url(#liquid-glass-slider);
-    backdrop-filter: url(#liquid-glass-slider);
-    animation: liveIslandBackdropSlider 2s linear infinite;
+    -webkit-backdrop-filter: url(#liquid-glass-slider) !important;
+    backdrop-filter: url(#liquid-glass-slider) !important;
+    animation: liveIslandBackdropSlider 2s linear infinite !important;
   }
 
   /* Vertical Active Indicator (side docks) */
@@ -1318,6 +1257,7 @@ main#main-content {
     height: var(--indicator-h, 36px);
     transform: translateY(var(--indicator-y, 4px));
     border-radius: 9999px;
+    overflow: hidden;
     background: linear-gradient(180deg, rgb(255 255 255 / 86%), rgb(255 255 255 / 58%)) !important;
     border: 0.5px solid rgb(255 255 255 / 92%) !important;
     box-shadow: inset 0 1px 1px rgb(255 255 255 / 98%), inset 0 -1px 1px rgb(255 255 255 / 45%), 0 2px 8px rgb(15 23 42 / 10%) !important;
@@ -1858,8 +1798,8 @@ main#main-content {
 :root[data-resolved-theme="dark"] .studio-nav-header::before {
   background-color: rgba(18, 19, 22, 0.88);
   border-bottom-color: rgba(45, 49, 58, 0.75);
-  -webkit-backdrop-filter: blur(0.5px);
-  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
 }
 
 /* Static Mode: Center Capsule Slider */
@@ -2243,22 +2183,15 @@ main#main-content {
 }
 
 :root[data-theme="dark"] .nav-burger-popover,
-:root[data-resolved-theme="dark"] .nav-burger-popover,
-:root[data-theme="dark"] .studio-nav-header.is-scrolled .bubble-island,
-:root[data-resolved-theme="dark"] .studio-nav-header.is-scrolled .bubble-island {
-  background: rgba(22, 24, 31, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.30) rgba(255, 255, 255, 0.16) rgba(255, 255, 255, 0.08);
+:root[data-resolved-theme="dark"] .nav-burger-popover {
+  background: rgb(16 18 26 / 42%);
+  border-color: rgb(255 255 255 / 24%);
   box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.45),
-    0 12px 28px -2px rgba(0, 0, 0, 0.65),
-    0 28px 56px -6px rgba(0, 0, 0, 0.75),
-    inset 0 1.5px 0.5px rgba(255, 255, 255, 0.45),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.5),
-    inset 0 0 12px rgba(255, 255, 255, 0.06);
+    inset 0 1.25px 1px rgb(255 255 255 / 38%),
+    inset 0 -1.25px 1.25px rgb(255 255 255 / 14%),
+    0 8px 24px rgb(0 0 0 / 38%),
+    0 20px 44px rgb(0 0 0 / 28%);
   color: #f9fafb;
-  -webkit-backdrop-filter: blur(0.5px) saturate(130%);
-  backdrop-filter: blur(0.5px) saturate(130%);
 }
 
 :root[data-theme="dark"] .nav-burger-popover a,
@@ -2328,7 +2261,6 @@ main#main-content {
 :root[data-resolved-theme="dark"] .project-artist-label strong,
 :root[data-resolved-theme="dark"] .popover-action-row {
   color: #f9fafb;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 :root[data-theme="dark"] .popover-action-highlight,
@@ -2568,14 +2500,15 @@ main#main-content {
   background: none;
   filter: none;
   opacity: 0;
-  -webkit-backdrop-filter: blur(0.5px);
-  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   will-change: backdrop-filter, opacity;
   transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root[data-adaptive-glyphs="true"] .studio-nav-header.is-scrolled .bubble-island::before,
-:root[data-adaptive-glyphs="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island::before {
+:root[data-adaptive-glyphs="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .bubble-island::before,
+:root[data-adaptive-glyphs="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
   opacity: 1;
 }
 
@@ -2587,7 +2520,8 @@ main#main-content {
 }
 
 :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header.is-scrolled .studio-nav-slider::before,
-:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider::before {
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-header[data-artist-route="true"]:not(.is-scrolled) .studio-nav-slider::before,
+:root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .studio-nav-center:not([data-dock="top"]) .studio-nav-slider::before {
   -webkit-backdrop-filter: url(#liquid-glass-slider);
   backdrop-filter: url(#liquid-glass-slider);
   animation: liveIslandBackdropSlider 2s linear infinite;
@@ -2601,8 +2535,8 @@ main#main-content {
 }
 
 :root[data-adaptive-glyphs="true"][data-motion="reduced"] .bubble-island::before {
-  -webkit-backdrop-filter: blur(0.5px) !important;
-  backdrop-filter: blur(0.5px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  backdrop-filter: blur(16px) !important;
   animation: none !important;
 }
 
@@ -2695,8 +2629,8 @@ main#main-content {
   pointer-events: none;
   background: none;
   filter: none;
-  -webkit-backdrop-filter: blur(0.5px);
-  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 
 :root[data-adaptive-glyphs="true"][data-liquid-refraction="true"] .nav-burger-popover::before {
@@ -2709,8 +2643,8 @@ main#main-content {
 }
 
 :root[data-adaptive-glyphs="true"][data-motion="reduced"] .nav-burger-popover::before {
-  -webkit-backdrop-filter: blur(0.5px) !important;
-  backdrop-filter: blur(0.5px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  backdrop-filter: blur(18px) !important;
   animation: none !important;
 }
 

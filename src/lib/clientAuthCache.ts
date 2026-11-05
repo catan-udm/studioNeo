@@ -8,7 +8,14 @@
 export interface AuthSubscriber {
   id: number;
   email: string;
+  handle?: string;
+  displayName?: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
   is_verified: boolean;
+  systemRole?: 'user' | 'curator' | 'admin';
+  artistDistinction?: 'none' | 'artist' | 'featured' | 'partner';
+  role?: string;
   tier?: string;
   subscriptionStatus?: 'active' | 'canceled' | 'trialing';
   twoFactorActive: boolean;

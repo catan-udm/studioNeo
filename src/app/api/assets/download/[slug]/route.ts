@@ -1,24 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
-import { queryRow, CelRecord } from '@/lib/db';
-import { generatePerkSasUrl, generateCelSasUrl, getBlobData } from '@/lib/azure-storage';
+import { queryRow, execute, CelRecord, AccountRecord } from '@/lib/db';
+import { generateCelSasUrl, getBlobData } from '@/lib/azure-storage';
 import {
   ALL_GALLERY_WORKS,
   generateStandaloneSvg,
   isVaultSubscriberTier,
 } from '@/app/gallery/galleryData';
-
-interface PerkDownloadRecord {
-  id: number;
-  slug: string;
-  title: string;
-  storage_file_path: string;
-}
-
-interface SubscriberTierRecord {
-  id: number;
-  tier: string;
-}
+import { isPartnerHandle } from '@/data/artistRoles';
 
 export async function GET(
   request: NextRequest,
@@ -42,15 +31,43 @@ export async function GET(
       (w) => w.code.toLowerCase() === cleanSlug || w.id.toLowerCase() === cleanSlug
     );
 
-    // 3. Also check database for minted cels
+    // 3. Check BCNF database for minted artworks joined with accounts and assets
     const dbCel = !matchedWork
       ? await queryRow<CelRecord>(
-          'SELECT * FROM cels WHERE LOWER(code) = ? OR id = ? LIMIT 1',
+          `SELECT
+             a.id,
+             a.account_id,
+             a.code,
+             a.title,
+             a.description,
+             ac.display_name AS artist,
+             ac.handle AS artist_handle,
+             COALESCE(ac.avatar_url, UPPER(LEFT(ac.display_name, 2))) AS artist_avatar,
+             ac.artist_distinction,
+             a.category,
+             a.edition,
+             a.color,
+             a.price,
+             a.likes_count AS likes,
+             CASE WHEN gif.id IS NOT NULL THEN '4K' ELSE 'SVG' END AS format,
+             COALESCE(svg.storage_path, '') AS svg_storage_path,
+             svg.url AS svg_url,
+             gif.storage_path AS gif_storage_path,
+             gif.url AS gif_url,
+             a.is_vault,
+             a.created_at,
+             a.updated_at
+           FROM artworks a
+           INNER JOIN accounts ac ON ac.id = a.account_id
+           LEFT JOIN artwork_assets svg ON svg.artwork_id = a.id AND svg.asset_type = 'master_svg'
+           LEFT JOIN artwork_assets gif ON gif.artwork_id = a.id AND gif.asset_type = 'preview_gif'
+           WHERE LOWER(a.code) = ? OR a.id = ?
+           LIMIT 1`,
           [cleanSlug, isNaN(Number(cleanSlug)) ? -1 : Number(cleanSlug)]
         )
       : null;
 
-    // A. Viewing & Standard Web Exports (PNG / JPG preview) are automatically free for all community visitors
+    // A. Viewing & Standard Web Exports (PNG / JPG preview) are free for all community visitors
     const isFreeWebExport =
       requestedFormat === 'png' ||
       requestedFormat === 'jpg' ||
@@ -126,26 +143,42 @@ export async function GET(
       });
     }
 
-    // B. High-quality / original master assets (raw vector SVG master, 4K render, kinetic master GIF)
-    // and Curatorial Study cels require Featured artist authorization
+    // B. High-quality / original master assets require Partner / Featured authorization
     const session = await getSessionUser();
+    const accountId = session?.accountId ?? session?.subscriberId;
     let isAuthorized = false;
 
-    if (session && session.subscriberId) {
-      const subRecord = await queryRow<SubscriberTierRecord>(
-        'SELECT id, tier FROM subscribers WHERE id = ? LIMIT 1',
-        [session.subscriberId]
+    if (session && accountId) {
+      const account = await queryRow<AccountRecord>(
+        'SELECT id, system_role, artist_distinction FROM accounts WHERE id = ? LIMIT 1',
+        [accountId]
       );
-      isAuthorized = Boolean(subRecord && isVaultSubscriberTier(subRecord.tier));
+      isAuthorized = Boolean(
+        account &&
+          (account.artist_distinction === 'partner' ||
+            account.artist_distinction === 'featured' ||
+            account.system_role === 'curator' ||
+            account.system_role === 'admin' ||
+            (account.tier && isVaultSubscriberTier(account.tier)))
+      );
     }
 
     // Handle Gallery Work master downloads
     if (matchedWork) {
-      if ((matchedWork.isVault || requestedFormat === 'svg' || requestedFormat === 'gif' || requestedFormat === 'raw' || requestedFormat === '4k') && !isAuthorized) {
+      const workIsPartner = isPartnerHandle(matchedWork.artistHandle);
+      if (
+        (matchedWork.isVault ||
+          requestedFormat === 'svg' ||
+          requestedFormat === 'gif' ||
+          requestedFormat === 'raw' ||
+          requestedFormat === '4k') &&
+        !isAuthorized &&
+        !workIsPartner
+      ) {
         return NextResponse.json(
           {
             error:
-              "Artist Rights Reserved: studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist.",
+              "Artist Rights Reserved: studioNeo does not have the right to distribute illustrator works unless specified as an authorized 'Partner' or 'Featured' artist project.",
             slug: cleanSlug,
             requiresUpgrade: false,
           },
@@ -194,13 +227,20 @@ export async function GET(
       });
     }
 
-    // Handle DB Cel master downloads
+    // Handle DB Artwork master downloads
     if (dbCel) {
-      if ((dbCel.is_vault === 1 || requestedFormat === 'svg' || requestedFormat === 'gif') && !isAuthorized) {
+      const isPartnerWork =
+        dbCel.artist_distinction === 'partner' || isPartnerHandle(dbCel.artist_handle);
+
+      if (
+        (dbCel.is_vault === 1 || requestedFormat === 'svg' || requestedFormat === 'gif') &&
+        !isAuthorized &&
+        !isPartnerWork
+      ) {
         return NextResponse.json(
           {
             error:
-              "Artist Rights Reserved: studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist.",
+              "Artist Rights Reserved: studioNeo does not have the right to distribute illustrator works unless specified as an authorized 'Partner' or 'Featured' artist project.",
             slug: cleanSlug,
             requiresUpgrade: false,
           },
@@ -208,79 +248,56 @@ export async function GET(
         );
       }
 
-      if (requestedFormat === 'gif' && dbCel.gif_storage_path) {
-        const sasUrl = await generateCelSasUrl(dbCel.gif_storage_path, { expiresInMinutes: 15 });
-        return NextResponse.redirect(sasUrl, 302);
+      const targetPath =
+        requestedFormat === 'gif' && dbCel.gif_storage_path
+          ? dbCel.gif_storage_path
+          : dbCel.svg_storage_path;
+
+      const sasUrl = await generateCelSasUrl(targetPath, {
+        expiresInMinutes: 15,
+        contentDisposition: `attachment; filename="studioNeo-${dbCel.code}-master.${
+          requestedFormat === 'gif' && dbCel.gif_storage_path ? 'gif' : 'svg'
+        }"`,
+      });
+
+      // Record download audit in BCNF `artwork_downloads` table if user is logged in
+      if (accountId) {
+        try {
+          await execute(
+            'INSERT INTO artwork_downloads (account_id, artwork_id, asset_id, format, ip_address) VALUES (?, ?, ?, ?, ?)',
+            [
+              Number(accountId),
+              dbCel.id,
+              1,
+              requestedFormat || 'svg',
+              request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+            ]
+          );
+        } catch {
+          // Audit logging is non-blocking
+        }
       }
 
-      if (dbCel.svg_storage_path) {
-        const sasUrl = await generateCelSasUrl(dbCel.svg_storage_path, { expiresInMinutes: 15 });
-        return NextResponse.redirect(sasUrl, 302);
-      }
-    }
-
-    // C. Traditional perks downloads
-    if (!session || !session.subscriberId) {
-      return NextResponse.json(
-        { error: 'Unauthorized. You must be authenticated to download this asset.' },
-        { status: 401 }
-      );
-    }
-
-    let perk = await queryRow<PerkDownloadRecord>(
-      `SELECT p.id, p.slug, p.title, p.storage_file_path
-       FROM perks p
-       INNER JOIN perk_unlocks pu ON pu.perk_id = p.id
-       WHERE pu.subscriber_id = ? AND p.slug = ?
-       LIMIT 1`,
-      [session.subscriberId, cleanSlug]
-    );
-
-    if (!perk && isAuthorized) {
-      perk = await queryRow<PerkDownloadRecord>(
-        'SELECT id, slug, title, storage_file_path FROM perks WHERE slug = ? LIMIT 1',
-        [cleanSlug]
-      );
-    }
-
-    if (!perk) {
-      return NextResponse.json(
-        {
-          error:
-            'Access denied. This digital study file has not been authorized for your account.',
-          slug: cleanSlug,
-        },
-        { status: 403 }
-      );
-    }
-
-    const expiresInMinutes = 15;
-    const filename = perk.storage_file_path.split('/').pop() || `${cleanSlug}.dat`;
-    const contentDisposition = `attachment; filename="${filename}"`;
-
-    const sasUrl = await generatePerkSasUrl(perk.storage_file_path, {
-      expiresInMinutes,
-      contentDisposition,
-    });
-
-    if (wantsJson) {
-      return NextResponse.json(
-        {
+      if (wantsJson) {
+        return NextResponse.json({
           success: true,
-          perk: {
-            id: perk.id,
-            slug: perk.slug,
-            title: perk.title,
-          },
+          type: 'cel',
+          cel: dbCel,
           downloadUrl: sasUrl,
-          expiresInMinutes,
-          availableFormats: ['zip', 'pdf', 'tar.gz', 'json'],
-        },
-        { status: 200 }
-      );
+          expiresInMinutes: 15,
+        });
+      }
+
+      return NextResponse.redirect(sasUrl, 302);
     }
 
-    return NextResponse.redirect(sasUrl, 302);
+    return NextResponse.json(
+      {
+        error: 'Artwork or authorized asset not found.',
+        slug: cleanSlug,
+      },
+      { status: 404 }
+    );
   } catch (error: unknown) {
     console.error('[API /api/assets/download/[slug]] Error:', error);
     return NextResponse.json(

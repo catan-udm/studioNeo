@@ -122,15 +122,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid OAuth provider' }, { status: 400 });
     }
 
-    // Delete the linked account for this subscriber
+    // Delete the linked account for this account
     const result = await execute(
-      'DELETE FROM subscriber_oauth_accounts WHERE subscriber_id = ? AND provider = ?',
+      'DELETE FROM account_oauth_providers WHERE account_id = ? AND provider = ?',
       [session.subscriberId, provider]
     );
 
     if (result.affectedRows === 0) {
       return NextResponse.json(
-        { error: `No linked ${provider} account found on this subscriber record.` },
+        { error: `No linked ${provider} account found on this account record.` },
         { status: 404 }
       );
     }

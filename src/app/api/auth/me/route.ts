@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser, clearSessionCookie } from '@/lib/auth';
-import { queryRow, queryRows, transaction } from '@/lib/db';
+import { queryRow, queryRows, transaction, AccountRecord } from '@/lib/db';
 import { clearPasskeyChallenge } from '@/lib/webauthn';
 import { clearOAuthSessionCookie } from '@/lib/oauth';
 
@@ -18,61 +18,24 @@ function jsonWithNoCache(data: unknown, status = 200) {
 export async function GET() {
   try {
     const session = await getSessionUser();
-    if (!session || !session.subscriberId) {
-      return jsonWithNoCache({ authenticated: false, subscriber: null, perks: [] });
+    const accountId = session?.accountId ?? session?.subscriberId;
+    if (!session || !accountId) {
+      return jsonWithNoCache({ authenticated: false, subscriber: null, account: null, perks: [] });
     }
 
-    let subscriber = await queryRow<{
-      id: number;
-      email: string;
-      is_verified: number;
-      tier?: string;
-      subscription_status?: string;
-      created_at: string;
-    }>(
-      'SELECT id, email, is_verified, tier, subscription_status, created_at FROM subscribers WHERE id = ? LIMIT 1',
-      [session.subscriberId]
+    const account = await queryRow<AccountRecord>(
+      'SELECT id, email, handle, display_name, avatar_url, bio, website_url, is_verified, system_role, artist_distinction, created_at FROM accounts WHERE id = ? LIMIT 1',
+      [accountId]
     );
 
-    // Backward-compatibility fallback for legacy table schema without tier column
-    if (!subscriber) {
-      subscriber = await queryRow<{
-        id: number;
-        email: string;
-        is_verified: number;
-        tier?: string;
-        subscription_status?: string;
-        created_at: string;
-      }>(
-        'SELECT id, email, is_verified, created_at FROM subscribers WHERE id = ? LIMIT 1',
-        [session.subscriberId]
-      );
-    }
-
-    if (!subscriber) {
-      return jsonWithNoCache({ authenticated: false, subscriber: null, perks: [] });
+    if (!account) {
+      return jsonWithNoCache({ authenticated: false, subscriber: null, account: null, perks: [] });
     }
 
     // Check if 2FA is active
     const totp = await queryRow<{ is_active: number }>(
-      'SELECT is_active FROM totp_credentials WHERE subscriber_id = ? LIMIT 1',
-      [subscriber.id]
-    );
-
-    // Fetch unlocked perks for this subscriber
-    const unlockedPerks = await queryRows<{
-      id: number;
-      slug: string;
-      title: string;
-      description: string;
-      unlocked_at: string;
-    }>(
-      `SELECT p.id, p.slug, p.title, p.description, pu.unlocked_at
-       FROM perks p
-       INNER JOIN perk_unlocks pu ON pu.perk_id = p.id
-       WHERE pu.subscriber_id = ?
-       ORDER BY pu.unlocked_at DESC`,
-      [subscriber.id]
+      'SELECT is_active FROM totp_credentials WHERE account_id = ? LIMIT 1',
+      [account.id]
     );
 
     // Fetch linked OAuth providers
@@ -80,8 +43,8 @@ export async function GET() {
     let linkedAccounts: Array<{ provider: string; created_at: string }> = [];
     try {
       const oauthRows = await queryRows<{ provider: string; created_at: string }>(
-        'SELECT provider, created_at FROM subscriber_oauth_accounts WHERE subscriber_id = ?',
-        [subscriber.id]
+        'SELECT provider, created_at FROM account_oauth_providers WHERE account_id = ?',
+        [account.id]
       );
       linkedOAuth = oauthRows.map((r) => r.provider);
       linkedAccounts = oauthRows.map((r) => ({
@@ -96,29 +59,44 @@ export async function GET() {
     let passkeyCount = 0;
     try {
       const passkeyRows = await queryRows<{ cnt: number }>(
-        'SELECT COUNT(*) as cnt FROM webauthn_credentials WHERE subscriber_id = ?',
-        [subscriber.id]
+        'SELECT COUNT(*) as cnt FROM webauthn_credentials WHERE account_id = ?',
+        [account.id]
       );
       passkeyCount = Number(passkeyRows[0]?.cnt || 0);
     } catch {
       // Table may not exist yet
     }
 
+    const derivedRole =
+      account.artist_distinction !== 'none'
+        ? account.artist_distinction
+        : account.system_role;
+
+    const userPayload = {
+      id: account.id,
+      email: account.email,
+      handle: account.handle,
+      displayName: account.display_name,
+      avatarUrl: account.avatar_url,
+      bio: account.bio,
+      websiteUrl: account.website_url,
+      is_verified: account.is_verified === 1,
+      systemRole: account.system_role,
+      artistDistinction: account.artist_distinction,
+      role: derivedRole,
+      tier: derivedRole,
+      twoFactorActive: totp?.is_active === 1,
+      passkeyCount,
+      linkedOAuth,
+      linkedAccounts,
+      created_at: account.created_at,
+    };
+
     return jsonWithNoCache({
       authenticated: true,
-      subscriber: {
-        id: subscriber.id,
-        email: subscriber.email,
-        is_verified: subscriber.is_verified === 1,
-        tier: subscriber.tier || 'free',
-        subscriptionStatus: (subscriber.subscription_status || 'active') as 'active' | 'canceled' | 'trialing',
-        twoFactorActive: totp?.is_active === 1,
-        passkeyCount,
-        linkedOAuth,
-        linkedAccounts,
-        created_at: subscriber.created_at,
-      },
-      perks: unlockedPerks,
+      account: userPayload,
+      subscriber: userPayload,
+      perks: [],
     });
   } catch (error) {
     console.error('[API /api/auth/me] Error:', error);
@@ -136,7 +114,8 @@ export async function GET() {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getSessionUser();
-    if (!session || !session.subscriberId) {
+    const accountId = session?.accountId ?? session?.subscriberId;
+    if (!session || !accountId) {
       return NextResponse.json(
         { error: 'Unauthorized. You must be signed in to delete your account.' },
         { status: 401 }
@@ -160,12 +139,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Atomic transaction: delete subscriber (cascades to all child tables)
+    // Atomic transaction: delete account (cascades to all BCNF child tables)
     await transaction(async (conn) => {
-      // Delete subscriber record (foreign keys cascade to webauthn_credentials,
-      // subscriber_oauth_accounts, auth_magic_tokens, totp_credentials, totp_backup_codes,
-      // perk_unlocks, customer_addresses, submissions)
-      await conn.execute('DELETE FROM subscribers WHERE id = ?', [session.subscriberId]);
+      await conn.execute('DELETE FROM accounts WHERE id = ?', [accountId]);
     });
 
     // Clear session and challenge cookies

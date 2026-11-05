@@ -34,7 +34,7 @@ export async function GET() {
 
     // 4. Save pending secret in database with is_active = 0 until verified
     await execute(
-      `INSERT INTO totp_credentials (subscriber_id, totp_secret, is_active)
+      `INSERT INTO totp_credentials (account_id, totp_secret, is_active)
        VALUES (?, ?, 0)
        ON DUPLICATE KEY UPDATE totp_secret = VALUES(totp_secret), is_active = 0`,
       [session.subscriberId, secret]

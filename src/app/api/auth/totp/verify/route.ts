@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // 1. Fetch pending TOTP record
     const totpRecord = await queryRow<{ totp_secret: string; is_active: number }>(
-      'SELECT totp_secret, is_active FROM totp_credentials WHERE subscriber_id = ? LIMIT 1',
+      'SELECT totp_secret, is_active FROM totp_credentials WHERE account_id = ? LIMIT 1',
       [session.subscriberId]
     );
 

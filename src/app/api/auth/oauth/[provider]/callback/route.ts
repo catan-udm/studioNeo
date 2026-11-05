@@ -64,7 +64,7 @@ export async function GET(
     // 3. Fetch user profile from provider
     const profile = await fetchOAuthUserProfile(provider, accessToken);
 
-    // 4. Resolve or create subscriber and link account
+    // 4. Resolve or create account and link provider
     const result = await transaction(async (conn) => {
       // -------------------------------------------------------------
       // FLOW A: Account Linking (Authenticated User)
@@ -72,62 +72,56 @@ export async function GET(
       if (oauthSession.action === 'link') {
         const targetId = Number(oauthSession.subscriberId);
         const [targetRows] = await conn.query<RowDataPacket[]>(
-          'SELECT id, email, is_verified FROM subscribers WHERE id = ? LIMIT 1',
+          'SELECT id, email, is_verified FROM accounts WHERE id = ? LIMIT 1',
           [targetId]
         );
 
         if (!targetRows || targetRows.length === 0) {
           return {
-            redirectUrl: `/login?error=${encodeURIComponent('Authenticated subscriber account not found for linking.')}`,
+            redirectUrl: `/login?error=${encodeURIComponent('Authenticated account not found for linking.')}`,
             issueSession: false,
           };
         }
 
-        const targetSub = targetRows[0];
+        const targetAcc = targetRows[0];
 
         // Check if this external identity is already connected to an account
         const [existingOAuth] = await conn.query<RowDataPacket[]>(
-          'SELECT subscriber_id FROM subscriber_oauth_accounts WHERE provider = ? AND provider_user_id = ? LIMIT 1',
+          'SELECT account_id FROM account_oauth_providers WHERE provider = ? AND provider_user_id = ? LIMIT 1',
           [provider, profile.providerUserId]
         );
 
         if (existingOAuth && existingOAuth.length > 0) {
-          const prevOwnerId = existingOAuth[0].subscriber_id as number;
+          const prevOwnerId = existingOAuth[0].account_id as number;
           if (prevOwnerId !== targetId) {
-            // Re-assign to active account
             await conn.execute(
-              'UPDATE subscriber_oauth_accounts SET subscriber_id = ? WHERE provider = ? AND provider_user_id = ?',
+              'UPDATE account_oauth_providers SET account_id = ? WHERE provider = ? AND provider_user_id = ?',
               [targetId, provider, profile.providerUserId]
             );
 
-            // Clean up old stub if it has no perks or other credentials
+            // Clean up old stub if it has no other OAuth links
             const [otherOAuth] = await conn.query<RowDataPacket[]>(
-              'SELECT id FROM subscriber_oauth_accounts WHERE subscriber_id = ?',
+              'SELECT id FROM account_oauth_providers WHERE account_id = ?',
               [prevOwnerId]
             );
-            const [otherPerks] = await conn.query<RowDataPacket[]>(
-              'SELECT id FROM perk_unlocks WHERE subscriber_id = ?',
-              [prevOwnerId]
-            );
-            if ((!otherOAuth || otherOAuth.length === 0) && (!otherPerks || otherPerks.length === 0)) {
-              await conn.execute('DELETE FROM subscribers WHERE id = ?', [prevOwnerId]);
+            if (!otherOAuth || otherOAuth.length === 0) {
+              await conn.execute('DELETE FROM accounts WHERE id = ?', [prevOwnerId]);
             }
           }
         } else {
-          // Link OAuth account to target subscriber
           await conn.execute(
-            `INSERT INTO subscriber_oauth_accounts (subscriber_id, provider, provider_user_id)
+            `INSERT INTO account_oauth_providers (account_id, provider, provider_user_id)
              VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE subscriber_id = VALUES(subscriber_id)`,
+             ON DUPLICATE KEY UPDATE account_id = VALUES(account_id)`,
             [targetId, provider, profile.providerUserId]
           );
         }
 
-        await conn.execute('UPDATE subscribers SET is_verified = 1 WHERE id = ?', [targetId]);
+        await conn.execute('UPDATE accounts SET is_verified = 1 WHERE id = ?', [targetId]);
 
         return {
           subscriberId: targetId,
-          sessionEmail: targetSub.email as string,
+          sessionEmail: targetAcc.email as string,
           redirectUrl: `/?linked=${provider}`,
           issueSession: true,
         };
@@ -137,9 +131,8 @@ export async function GET(
       // FLOW B: Registration Mode (Explicit /register)
       // -------------------------------------------------------------
       if (oauthSession.action === 'register') {
-        // Strict check: Is this provider ID already registered?
         const [oauthRows] = await conn.query<RowDataPacket[]>(
-          'SELECT subscriber_id FROM subscriber_oauth_accounts WHERE provider = ? AND provider_user_id = ? LIMIT 1',
+          'SELECT account_id FROM account_oauth_providers WHERE provider = ? AND provider_user_id = ? LIMIT 1',
           [provider, profile.providerUserId]
         );
 
@@ -152,13 +145,12 @@ export async function GET(
           };
         }
 
-        // Strict check: Does an account already exist with this email?
-        const [subRows] = await conn.query<RowDataPacket[]>(
-          'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
+        const [accRows] = await conn.query<RowDataPacket[]>(
+          'SELECT id, email, is_verified FROM accounts WHERE email = ? LIMIT 1',
           [profile.email]
         );
 
-        if (subRows && subRows.length > 0 && (subRows[0].is_verified as number) === 1) {
+        if (accRows && accRows.length > 0 && (accRows[0].is_verified as number) === 1) {
           return {
             redirectUrl: `/login?error=${encodeURIComponent(
               'An account with this email address already exists. Please sign in instead.'
@@ -167,30 +159,31 @@ export async function GET(
           };
         }
 
-        let newSubId: number;
-        if (subRows && subRows.length > 0) {
-          // Verify previously pending registration
-          newSubId = subRows[0].id as number;
-          await conn.execute('UPDATE subscribers SET is_verified = 1 WHERE id = ?', [newSubId]);
+        let newAccId: number;
+        if (accRows && accRows.length > 0) {
+          newAccId = accRows[0].id as number;
+          await conn.execute('UPDATE accounts SET is_verified = 1 WHERE id = ?', [newAccId]);
         } else {
-          // Create new verified subscriber
+          const baseHandle = (profile.email.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_]/g, '_');
+          const uniqueHandle = `${baseHandle}_${Math.floor(1000 + Math.random() * 9000)}`;
+          const displayName = profile.email.split('@')[0] || 'Studio User';
+
           const [insertResult] = await conn.execute<ResultSetHeader>(
-            'INSERT INTO subscribers (email, is_verified) VALUES (?, 1)',
-            [profile.email]
+            'INSERT INTO accounts (email, handle, display_name, is_verified, system_role, artist_distinction) VALUES (?, ?, ?, ?, ?, ?)',
+            [profile.email, uniqueHandle, displayName, 1, 'user', 'none']
           );
-          newSubId = insertResult.insertId;
+          newAccId = insertResult.insertId;
         }
 
-        // Link OAuth account
         await conn.execute(
-          `INSERT INTO subscriber_oauth_accounts (subscriber_id, provider, provider_user_id)
+          `INSERT INTO account_oauth_providers (account_id, provider, provider_user_id)
            VALUES (?, ?, ?)
-           ON DUPLICATE KEY UPDATE subscriber_id = VALUES(subscriber_id)`,
-          [newSubId, provider, profile.providerUserId]
+           ON DUPLICATE KEY UPDATE account_id = VALUES(account_id)`,
+          [newAccId, provider, profile.providerUserId]
         );
 
         return {
-          subscriberId: newSubId,
+          subscriberId: newAccId,
           sessionEmail: profile.email,
           redirectUrl: '/',
           issueSession: true,
@@ -201,67 +194,65 @@ export async function GET(
       // FLOW C: Sign-In Mode (Explicit /login)
       // -------------------------------------------------------------
       const [oauthRows] = await conn.query<RowDataPacket[]>(
-        'SELECT subscriber_id FROM subscriber_oauth_accounts WHERE provider = ? AND provider_user_id = ? LIMIT 1',
+        'SELECT account_id FROM account_oauth_providers WHERE provider = ? AND provider_user_id = ? LIMIT 1',
         [provider, profile.providerUserId]
       );
 
       if (oauthRows && oauthRows.length > 0) {
-        const subId = oauthRows[0].subscriber_id as number;
-        const [subRows] = await conn.query<RowDataPacket[]>(
-          'SELECT id, email, is_verified FROM subscribers WHERE id = ? LIMIT 1',
-          [subId]
+        const accId = oauthRows[0].account_id as number;
+        const [accRows] = await conn.query<RowDataPacket[]>(
+          'SELECT id, email, is_verified FROM accounts WHERE id = ? LIMIT 1',
+          [accId]
         );
 
-        if (subRows && subRows.length > 0) {
-          if ((subRows[0].is_verified as number) !== 1) {
+        if (accRows && accRows.length > 0) {
+          if ((accRows[0].is_verified as number) !== 1) {
             return {
               redirectUrl: `/register?error=${encodeURIComponent(
                 'This account registration is pending verification. Please complete registration first.'
-              )}&email=${encodeURIComponent(subRows[0].email as string)}`,
+              )}&email=${encodeURIComponent(accRows[0].email as string)}`,
               issueSession: false,
             };
           }
 
           return {
-            subscriberId: subId,
-            sessionEmail: subRows[0].email as string,
+            subscriberId: accId,
+            sessionEmail: accRows[0].email as string,
             redirectUrl: '/',
             issueSession: true,
           };
         }
       }
 
-      // Check if subscriber exists with this email for auto-linking on sign-in
-      const [subRows] = await conn.query<RowDataPacket[]>(
-        'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
+      // Check if account exists with this email for auto-linking on sign-in
+      const [accRows] = await conn.query<RowDataPacket[]>(
+        'SELECT id, email, is_verified FROM accounts WHERE email = ? LIMIT 1',
         [profile.email]
       );
 
-      if (subRows && subRows.length > 0) {
-        const subId = subRows[0].id;
-        const email = subRows[0].email;
+      if (accRows && accRows.length > 0) {
+        const accId = accRows[0].id as number;
+        const email = accRows[0].email as string;
 
-        // Auto-link provider to existing verified subscriber
-        await conn.execute('UPDATE subscribers SET is_verified = 1 WHERE id = ?', [subId]);
+        await conn.execute('UPDATE accounts SET is_verified = 1 WHERE id = ?', [accId]);
         await conn.execute(
-          `INSERT INTO subscriber_oauth_accounts (subscriber_id, provider, provider_user_id)
+          `INSERT INTO account_oauth_providers (account_id, provider, provider_user_id)
            VALUES (?, ?, ?)
-           ON DUPLICATE KEY UPDATE subscriber_id = VALUES(subscriber_id)`,
-          [subId, provider, profile.providerUserId]
+           ON DUPLICATE KEY UPDATE account_id = VALUES(account_id)`,
+          [accId, provider, profile.providerUserId]
         );
 
         return {
-          subscriberId: subId,
+          subscriberId: accId,
           sessionEmail: email,
           redirectUrl: '/',
           issueSession: true,
         };
       }
 
-      // Strict Check: No account exists -> redirect to register
       return {
         redirectUrl: `/register?error=${encodeURIComponent(
-          `No account found for ${profile.email}. Please register as a subscriber first.`
+          `No account found for ${profile.email}. Please register an account first.`
         )}&email=${encodeURIComponent(profile.email)}`,
         issueSession: false,
       };
@@ -270,9 +261,9 @@ export async function GET(
     await clearOAuthSessionCookie();
 
     if (result.issueSession && result.subscriberId && result.sessionEmail) {
-      // 5. Issue session cookie
       const token = createSessionToken({
         subscriberId: result.subscriberId,
+        accountId: result.subscriberId,
         email: result.sessionEmail,
         isVerified: true,
       });
@@ -280,7 +271,6 @@ export async function GET(
       await setSessionCookie(token);
     }
 
-    // Redirect to destination
     return NextResponse.redirect(new URL(result.redirectUrl, baseUrl));
   } catch (error: unknown) {
     console.error('[API /api/auth/oauth/[provider]/callback] Error:', error);

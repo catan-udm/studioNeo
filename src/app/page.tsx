@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import LandingClient from './LandingClient';
 
 export const metadata: Metadata = {
-  title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
+  title: 'Home • studioNeo • Creative Code, Kinetic Motion & Artist Archive',
   description:
     'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
   alternates: {
     canonical: 'https://studioneo.tech',
   },
   openGraph: {
-    title: 'studioNeo • Creative Code, Kinetic Motion & Artist Archive',
+    title: 'Home • studioNeo • Creative Code, Kinetic Motion & Artist Archive',
     description:
       'Minimalist creative code atelier crafting algorithmic kinetic motion art, lossless SVG vector stems, and biometric WebAuthn passkey identity alongside curated tribute archives.',
     url: 'https://studioneo.tech',

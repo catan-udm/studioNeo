@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     let existingCredentials: Array<{ credential_id: string; transports?: string }> = [];
     try {
       existingCredentials = await queryRows<{ credential_id: string; transports?: string }>(
-        'SELECT credential_id, transports FROM webauthn_credentials WHERE subscriber_id = ?',
+        'SELECT credential_id, transports FROM webauthn_credentials WHERE account_id = ?',
         [session.subscriberId]
       );
     } catch (err: unknown) {

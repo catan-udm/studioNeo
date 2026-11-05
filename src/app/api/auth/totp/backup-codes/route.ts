@@ -16,7 +16,7 @@ export async function POST() {
     }
 
     const totpRecord = await queryRow<{ is_active: number }>(
-      'SELECT is_active FROM totp_credentials WHERE subscriber_id = ? AND is_active = 1 LIMIT 1',
+      'SELECT is_active FROM totp_credentials WHERE account_id = ? AND is_active = 1 LIMIT 1',
       [session.subscriberId]
     );
 

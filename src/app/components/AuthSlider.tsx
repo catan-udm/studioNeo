@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import '../landing.css';
 import '../auth.css';
 import { startAuthentication } from '@simplewebauthn/browser';
+import { invalidateAuthCache } from '@/lib/clientAuthCache';
 
 interface AuthSliderProps {
   initialMode?: 'login' | 'register';
@@ -132,14 +133,15 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
   }, [step, resendCountdown]);
 
   // Execute Email Dispatch (Shared by direct submit and terms modal acceptance)
-  const executeEmailSubmit = async (cleanEmail: string) => {
+  const executeEmailSubmit = async (cleanEmail: string, targetModeOverride?: 'login' | 'register') => {
     setLoading(true);
     setErrorMsg(null);
     setInfoMsg(null);
     setAccountNotFound(false);
     setAccountExists(false);
 
-    const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+    const activeMode = targetModeOverride || mode;
+    const endpoint = activeMode === 'login' ? '/api/auth/login' : '/api/auth/register';
 
     try {
       const res = await fetch(endpoint, {
@@ -151,10 +153,15 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        if (mode === 'login' && (res.status === 404 || data.code === 'ACCOUNT_NOT_FOUND')) {
+        if (activeMode === 'login' && (res.status === 403 || data.code === 'ACCOUNT_UNVERIFIED')) {
+          setMode('register');
+          await executeEmailSubmit(cleanEmail, 'register');
+          return;
+        }
+        if (activeMode === 'login' && (res.status === 404 || data.code === 'ACCOUNT_NOT_FOUND')) {
           setAccountNotFound(true);
         }
-        if (mode === 'register' && (res.status === 409 || data.code === 'ACCOUNT_ALREADY_EXISTS')) {
+        if (activeMode === 'register' && (res.status === 409 || data.code === 'ACCOUNT_ALREADY_EXISTS')) {
           setAccountExists(true);
         }
         throw new Error(data.error || 'Request failed. Please try again.');
@@ -162,8 +169,13 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
 
       setStep('otp');
       setResendCountdown(30);
-      setOtp('');
-      setInfoMsg(data.message || 'A 6-digit verification code has been dispatched to your email.');
+      setOtp(data.devOtp ? String(data.devOtp) : '');
+      const baseMsg = data.message || 'A 6-digit verification code has been dispatched to your email.';
+      setInfoMsg(
+        data.devOtp
+          ? `${baseMsg} (Dev Code: ${data.devOtp})`
+          : baseMsg
+      );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An error occurred.';
       setErrorMsg(message);
@@ -172,17 +184,18 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
     }
   };
 
-  // Step 1: Submit Email
+  // Step 1: Submit Email / Register Action
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail) return;
 
-    // Show Terms & Privacy notice popup before dispatching register OTP
+    // In Register mode, pressing Register immediately triggers the Terms & Privacy Notice prompt card
     if (mode === 'register') {
       setShowTermsModal(true);
       return;
     }
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) return;
 
     await executeEmailSubmit(cleanEmail);
   };
@@ -190,7 +203,16 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
   // Handler for accepting terms inside the popup card
   const handleAgreeAndRegister = async () => {
     setShowTermsModal(false);
-    await executeEmailSubmit(email.trim().toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setInfoMsg('Please enter your email address to receive your 6-digit verification code.');
+      const inputEl = document.getElementById('auth-email');
+      if (inputEl) {
+        inputEl.focus();
+      }
+      return;
+    }
+    await executeEmailSubmit(cleanEmail);
   };
 
   // Resend OTP
@@ -214,7 +236,14 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
       }
 
       setResendCountdown(30);
-      setInfoMsg('A fresh verification code has been dispatched to your email.');
+      if (data.devOtp) {
+        setOtp(String(data.devOtp));
+      }
+      setInfoMsg(
+        data.devOtp
+          ? `A fresh verification code has been dispatched. (Dev Code: ${data.devOtp})`
+          : 'A fresh verification code has been dispatched to your email.'
+      );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to resend code.';
       setErrorMsg(message);
@@ -269,6 +298,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
         return;
       }
 
+      invalidateAuthCache();
       setActionSuccess(true);
       setInfoMsg(
         mode === 'login'
@@ -321,6 +351,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
         throw new Error(verifyData.error || 'Passkey verification failed.');
       }
 
+      invalidateAuthCache();
       setPasskeyLoading(false);
       setActionSuccess(true);
       setInfoMsg('Passkey verified successfully! Redirecting...');
@@ -464,7 +495,7 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                       <button
                         type="submit"
                         className="auth-btn auth-btn-primary auth-swap-text"
-                        disabled={loading || !email.trim()}
+                        disabled={loading || (mode === 'login' && !email.trim())}
                       >
                         {loading
                           ? 'Sending Code...'
@@ -590,6 +621,39 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
                       )}
                     </div>
                   </div>
+
+                  {/* Registration Privacy Notice Card */}
+                  {mode === 'register' && (
+                    <div className="register-privacy-card">
+                      <div className="register-privacy-card-header">
+                        <span className="privacy-badge-pill">🔒 Privacy Notice</span>
+                        <span className="privacy-card-subtitle">Zero-Knowledge &amp; Artist Sovereignty</span>
+                      </div>
+                      <p className="register-privacy-lead">
+                        studioNeo operates as a 100% free digital atelier with strict cryptographic privacy and zero subscriptions:
+                      </p>
+                      <ul className="register-privacy-list">
+                        <li>
+                          <strong>Zero-Knowledge Biometrics:</strong> FIDO2 / WebAuthn passkeys execute inside your device&apos;s Secure Enclave. Biometric data never touches our servers.
+                        </li>
+                        <li>
+                          <strong>Minimal Data Collected:</strong> We collect only your email address for 10-minute numeric verification codes and passkey public credentials.
+                        </li>
+                        <li>
+                          <strong>Strict AI/ML Protection:</strong> All artworks are protected against generative AI / diffusion model training and unauthorized harvesting.
+                        </li>
+                      </ul>
+                      <div className="register-privacy-actions">
+                        <button
+                          type="button"
+                          onClick={() => setShowTermsModal(true)}
+                          className="btn-privacy-inspect"
+                        >
+                          Review Complete Terms &amp; Privacy Notice Prompt &rarr;
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -837,8 +901,12 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
           <div className="terms-card">
             <div className="terms-header">
               <div>
-                <h2 id="terms-modal-title">Terms &amp; Privacy Notice</h2>
-                <p>Terms of Service and privacy policy for studioNeo</p>
+                <div className="terms-badge-row">
+                  <span className="privacy-badge-pill">🔒 Privacy Notice</span>
+                  <span className="privacy-badge-sub">v3.2 • Nov 2026</span>
+                </div>
+                <h2 id="terms-modal-title">Terms &amp; Privacy Notice Prompt</h2>
+                <p>Governing agreements, artist sovereignty, and cryptographic privacy principles for studioNeo</p>
               </div>
               <button
                 type="button"
@@ -852,56 +920,79 @@ export function AuthSliderContent({ initialMode = 'login' }: AuthSliderProps) {
 
             <div className="terms-body">
               <section className="terms-section">
-                <h3>1. Terms of Service</h3>
+                <h3>1. Terms of Service &amp; Artist Sovereignty</h3>
                 <p>
-                  Welcome to studioNeo. By registering an account, you agree to comply with
-                  these Terms of Service:
+                  studioNeo operates as a 100% free, artist-focused digital atelier and curatorial archive with zero subscription fees:
                 </p>
                 <ul>
                   <li>
-                    <strong>Account Access:</strong> Registration grants you personalized, passwordless
-                    WebAuthn identity, device theme synchronization, and saved curatorial bookmarks.
+                    <strong>Creator Sovereignty:</strong> Every individual artist retains 100% of their intellectual property rights. studioNeo does not own, claim copyright over, or distribute illustrator works unless designated as an authorized Partner artist collaboration.
                   </li>
                   <li>
-                    <strong>Account Integrity:</strong> You are responsible for safeguarding your email inbox,
-                    FIDO2 passkey hardware, and biometric credentials used for authentication.
+                    <strong>Partner vs. Resident Deliverables:</strong> Downloadable master cels and production stems are strictly limited to authorized Partner artist releases (e.g. certified sankobite master cels). All other works are exhibited solely for curatorial appreciation and direct portfolio discovery.
                   </li>
                   <li>
-                    <strong>Artist Rights &amp; Distribution Policy:</strong> Each individual artist reserves the
-                    right on how their content is used. studioNeo does not have the right to distribute illustrator
-                    works unless specified as a &apos;Featured&apos; artist. Accounts are provided solely for personal
-                    bookmarks and passwordless authentication.
+                    <strong>Prohibition of AI / ML Training:</strong> Scraping, harvesting, downloading, or caching artworks from studioNeo to train generative artificial intelligence, machine learning models, or diffusion algorithms is strictly prohibited without direct written authorization from the individual creator.
                   </li>
                   <li>
-                    <strong>Service Availability:</strong> We strive for continuous availability but reserve the
-                    right to modify or discontinue features with appropriate notice.
+                    <strong>Feed &amp; Story Interactions:</strong> Feed browsing, ephemeral story viewing, and double-tap likes are provided for creator appreciation. Automated bot crawling, extraction scripts, and like count manipulation are prohibited.
+                  </li>
+                  <li>
+                    <strong>Creator Studio Gating:</strong> Art uploads and gallery management via `/api/studio/upload` are strictly restricted to verified artist accounts and curators.
+                  </li>
+                </ul>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                  Read our complete{' '}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ textDecoration: 'underline', color: 'var(--text-primary)', fontWeight: 600 }}
+                  >
+                    Terms of Service
+                  </a>
+                  .
+                </p>
+              </section>
+
+              <section className="terms-section">
+                <h3>2. Privacy Notice &amp; Cryptographic Security</h3>
+                <p>
+                  We are committed to privacy-first, zero-knowledge data protection under global standards (GDPR, CCPA/CPRA):
+                </p>
+                <ul>
+                  <li>
+                    <strong>Zero-Knowledge Biometrics:</strong> FIDO2 / WebAuthn Level 3 authentication (Touch ID, Face ID, Windows Hello, YubiKey) executes exclusively within your device&apos;s hardware Secure Enclave. Biometric data never touches our servers.
+                  </li>
+                  <li>
+                    <strong>Minimal Data Collected:</strong> We collect only your verified email address (for 10-minute numeric OTP challenges and security alerts), passkey public credentials, AES-256-GCM encrypted TOTP secrets, and SHA-256 hashed single-use recovery codes.
+                  </li>
+                  <li>
+                    <strong>Local-First Preferences &amp; Session Security:</strong> Navigation dock state, theme settings, and client auth state are stored in browser `localStorage`. Active sessions use encrypted, HTTP-only, `SameSite=Lax` cookies with HMAC verification.
+                  </li>
+                  <li>
+                    <strong>Zero Tracking &amp; No Data Brokerage:</strong> We never deploy third-party advertising beacons, cross-site trackers, or sell/broker user data to any commercial third party.
                   </li>
                 </ul>
               </section>
 
               <section className="terms-section">
-                <h3>2. Privacy Notice &amp; Data Protection</h3>
+                <h3>3. Data Subject Rights &amp; Account Erasure (GDPR / CCPA)</h3>
                 <p>
-                  We are committed to privacy-first, minimal data collection practices under global standards:
+                  You retain full sovereign control over your identity. You may at any time export your account manifest, revoke authentication passkeys, unlink external OAuth providers, or permanently erase your account data (&ldquo;Forget Me&rdquo;) with immediate cryptographic purge.
                 </p>
-                <ul>
-                  <li>
-                    <strong>Information We Collect:</strong> We collect only your email address, authentication
-                    timestamps, and cryptographic public keys (for WebAuthn passkey biometrics).
-                  </li>
-                  <li>
-                    <strong>Cryptographic Security:</strong> Authentication OTP tokens and session cookies are
-                    hashed and signed with HMAC-SHA256. Passkey biometric data never leaves your physical device.
-                  </li>
-                  <li>
-                    <strong>No Tracking or Sale of Data:</strong> We never sell, rent, or trade your personal
-                    information to third-party ad networks or brokers.
-                  </li>
-                  <li>
-                    <strong>User Control:</strong> You have the right to review your data, unlink external
-                    OAuth providers (Google, Microsoft), and delete registered passkeys at any time.
-                  </li>
-                </ul>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                  Read our complete{' '}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ textDecoration: 'underline', color: 'var(--text-primary)', fontWeight: 600 }}
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
               </section>
             </div>
 

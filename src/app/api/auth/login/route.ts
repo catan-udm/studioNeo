@@ -20,13 +20,13 @@ export async function POST(request: NextRequest) {
 
     const email = rawEmail.trim().toLowerCase();
 
-    // 1. Validate subscriber existence
-    const subscriber = await queryRow<{ id: number; email: string; is_verified: number }>(
-      'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
+    // 1. Validate account existence
+    const account = await queryRow<{ id: number; email: string; is_verified: number }>(
+      'SELECT id, email, is_verified FROM accounts WHERE email = ? LIMIT 1',
       [email]
     );
 
-    if (!subscriber) {
+    if (!account) {
       return NextResponse.json(
         {
           error: 'No account found with this email address. Please register first.',
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (subscriber.is_verified !== 1) {
+    if (account.is_verified !== 1) {
       return NextResponse.json(
         {
           error: 'This account registration is pending verification. Please complete registration first.',
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Issue and dispatch 6-digit OTP
-    const { dispatch: dispatchResult } = await issueAndDispatchOTP(subscriber.id, email);
+    const { otp, dispatch: dispatchResult } = await issueAndDispatchOTP(account.id, email);
 
     return NextResponse.json(
       {
@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
         email,
         expiresInMinutes: OTP_TTL_MINUTES,
         dispatchChannel: dispatchResult.channel,
+        devOtp:
+          process.env.NODE_ENV !== 'production' || dispatchResult.channel === 'console'
+            ? otp
+            : undefined,
       },
       { status: 200 }
     );

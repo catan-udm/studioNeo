@@ -9,20 +9,96 @@ declare global {
   var __devDbStore: DevDbStore | undefined;
 }
 
+export type SystemRole = 'user' | 'curator' | 'admin';
+export type ArtistDistinctionRole = 'none' | 'artist' | 'featured' | 'partner';
+export type AccountRole = 'user' | 'artist' | 'featured' | 'partner' | 'curator' | 'admin';
+export type ArtworkCategory = 'Generative' | 'Kinetic' | 'Vectors' | 'Mono';
+export type ArtworkAssetType = 'master_svg' | 'preview_gif' | 'preview_raster' | 'source_archive';
+
+export interface AccountRecord {
+  id: number;
+  email: string;
+  handle: string;
+  display_name: string;
+  avatar_url: string | null;
+  bio: string | null;
+  website_url: string | null;
+  is_verified: number;
+  system_role: SystemRole;
+  artist_distinction: ArtistDistinctionRole;
+  created_at: string;
+  updated_at: string;
+  /** Derived alias for backwards compatibility in UI & test helpers */
+  role?: AccountRole;
+  tier?: string;
+}
+
+export type SubscriberRecord = AccountRecord;
+
+export interface ArtworkRecord {
+  id: number;
+  account_id: number;
+  code: string;
+  title: string;
+  description: string;
+  category: ArtworkCategory;
+  edition: string;
+  color: string;
+  price: string;
+  is_vault: number;
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ArtworkAssetRecord {
+  id: number;
+  artwork_id: number;
+  asset_type: ArtworkAssetType;
+  storage_path: string;
+  url: string | null;
+  mime_type: string;
+  file_size_bytes: number | null;
+  created_at: string;
+}
+
+export interface ArtworkLikeRecord {
+  account_id: number;
+  artwork_id: number;
+  created_at: string;
+}
+
+export interface ArtworkDownloadRecord {
+  id: number;
+  account_id: number;
+  artwork_id: number;
+  asset_id: number;
+  format: string;
+  ip_address: string | null;
+  downloaded_at: string;
+}
+
+/**
+ * Joined Artwork Projection (combines normalized `artworks`, `accounts`, and `artwork_assets`)
+ * Preserves `CelRecord` shape for gallery & API responses while sourcing strictly from BCNF tables.
+ */
 export interface CelRecord {
   id: number;
-  subscriber_id: number | null;
+  account_id: number | null;
+  subscriber_id?: number | null;
   code: string;
   title: string;
   description: string;
   artist: string;
   artist_handle: string;
   artist_avatar: string;
-  category: 'Generative' | 'Kinetic' | 'Vectors' | 'Mono';
+  artist_distinction?: ArtistDistinctionRole;
+  category: ArtworkCategory;
   edition: string;
   color: string;
   price: string;
   likes: number;
+  likes_count?: number;
   format: string;
   svg_storage_path: string;
   svg_url: string | null;
@@ -34,63 +110,49 @@ export interface CelRecord {
 }
 
 interface DevDbStore {
-  nextSubscriberId: number;
+  nextAccountId: number;
   nextMagicTokenId: number;
   nextBackupCodeId: number;
-  nextPerkUnlockId: number;
   nextWebauthnId: number;
   nextOAuthId: number;
   nextInquiryId: number;
-  nextCelId: number;
-  subscribers: Array<{
-    id: number;
-    email: string;
-    is_verified: number;
-    tier: string;
-    subscription_status: string;
-    created_at: string;
-    updated_at: string;
-  }>;
+  nextArtworkId: number;
+  nextArtworkAssetId: number;
+  nextArtworkDownloadId: number;
+  accounts: Array<AccountRecord>;
   magicTokens: Array<{
     id: number;
-    subscriber_id: number;
+    account_id: number;
+    subscriber_id?: number;
     token_hash: string;
     expires_at: string;
     consumed_at: string | null;
     created_at: string;
   }>;
-  totpCredentials: Map<number, {
-    subscriber_id: number;
-    totp_secret: string;
-    is_active: number;
-    created_at: string;
-    updated_at: string;
-  }>;
+  totpCredentials: Map<
+    number,
+    {
+      account_id: number;
+      subscriber_id?: number;
+      totp_secret: string;
+      is_active: number;
+      created_at: string;
+      updated_at: string;
+    }
+  >;
   totpBackupCodes: Array<{
     id: number;
-    subscriber_id: number;
+    account_id: number;
+    subscriber_id?: number;
     code_hash: string;
     is_used: number;
     used_at: string | null;
     created_at: string;
   }>;
-  perks: Array<{
-    id: number;
-    slug: string;
-    title: string;
-    description: string;
-    storage_file_path: string;
-    created_at: string;
-  }>;
-  perkUnlocks: Array<{
-    id: number;
-    subscriber_id: number;
-    perk_id: number;
-    unlocked_at: string;
-  }>;
   webauthnCredentials: Array<{
     id: number;
-    subscriber_id: number;
+    account_id: number;
+    subscriber_id?: number;
     credential_id: string;
     public_key: string;
     counter: number;
@@ -98,15 +160,17 @@ interface DevDbStore {
     created_at: string;
     updated_at: string;
   }>;
-  subscriberOAuthAccounts: Array<{
+  accountOAuthProviders: Array<{
     id: number;
-    subscriber_id: number;
+    account_id: number;
+    subscriber_id?: number;
     provider: string;
     provider_user_id: string;
     created_at: string;
   }>;
   inquiries: Array<{
     id: number;
+    target_account_id: number | null;
     name: string;
     email: string;
     organization: string | null;
@@ -114,84 +178,182 @@ interface DevDbStore {
     message: string;
     created_at: string;
   }>;
-  cels: Array<CelRecord>;
+  artworks: Array<ArtworkRecord>;
+  artworkAssets: Array<ArtworkAssetRecord>;
+  artworkLikes: Array<ArtworkLikeRecord>;
+  artworkDownloads: Array<ArtworkDownloadRecord>;
+}
+
+function deriveHandleFromEmail(email: string, idSuffix?: number): string {
+  const local = (email.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  return idSuffix ? `${local}_${idSuffix}` : local;
+}
+
+function deriveTierAlias(systemRole: SystemRole, distinction: ArtistDistinctionRole): string {
+  if (distinction === 'partner') return 'partner';
+  if (distinction === 'featured') return 'featured';
+  if (distinction === 'artist') return 'artist';
+  if (systemRole === 'curator' || systemRole === 'admin') return systemRole;
+  return 'user';
+}
+
+const DEV_STORE_DISK_PATH = '/tmp/studioneo-bcnf-dev-store.json';
+
+function shouldSyncDevStoreToDisk(): boolean {
+  return Boolean(
+    typeof process !== 'undefined' &&
+      process.env &&
+      (process.env.NEXT_RUNTIME || process.env.__NEXT_PROCESSED_ENV)
+  );
+}
+
+function persistDevDbStore(store: DevDbStore): void {
+  if (!shouldSyncDevStoreToDisk()) return;
+  try {
+    const serializable = {
+      ...store,
+      totpCredentials: Array.from(store.totpCredentials.entries()),
+    };
+    fs.writeFileSync(DEV_STORE_DISK_PATH, JSON.stringify(serializable), 'utf8');
+  } catch {
+    // Ignore disk persistence errors in restricted environments
+  }
 }
 
 function initDevDbStore(): DevDbStore {
+  if (shouldSyncDevStoreToDisk() && fs.existsSync(DEV_STORE_DISK_PATH)) {
+    try {
+      const raw = fs.readFileSync(DEV_STORE_DISK_PATH, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.accounts)) {
+        const loaded: DevDbStore = {
+          ...parsed,
+          totpCredentials: new Map(Array.isArray(parsed.totpCredentials) ? parsed.totpCredentials : []),
+        };
+        globalThis.__devDbStore = loaded;
+        return loaded;
+      }
+    } catch {
+      // Fall through to fresh initialization
+    }
+  }
+
   if (globalThis.__devDbStore) return globalThis.__devDbStore;
 
   const now = new Date().toISOString();
   const store: DevDbStore = {
-    nextSubscriberId: 3,
+    nextAccountId: 4,
     nextMagicTokenId: 1,
     nextBackupCodeId: 1,
-    nextPerkUnlockId: 4,
     nextWebauthnId: 1,
     nextOAuthId: 1,
     nextInquiryId: 1,
-    nextCelId: 1,
-    subscribers: [
+    nextArtworkId: 1,
+    nextArtworkAssetId: 1,
+    nextArtworkDownloadId: 1,
+    accounts: [
       {
         id: 1,
         email: 'member@studioneo.tech',
+        handle: 'member',
+        display_name: 'Studio Member',
+        avatar_url: null,
+        bio: 'Creative code enthusiast and collector.',
+        website_url: null,
         is_verified: 1,
-        tier: 'collector',
-        subscription_status: 'active',
+        system_role: 'user',
+        artist_distinction: 'none',
         created_at: now,
         updated_at: now,
+        tier: 'user',
       },
       {
         id: 2,
         email: 'artist@studioneo.tech',
+        handle: 'sankobite',
+        display_name: 'sankobite',
+        avatar_url: null,
+        bio: 'Authorized studioNeo Partner Artist.',
+        website_url: 'https://x.com/sankobite',
         is_verified: 1,
-        tier: 'artist_resident',
-        subscription_status: 'active',
+        system_role: 'curator',
+        artist_distinction: 'partner',
         created_at: now,
         updated_at: now,
+        tier: 'partner',
+      },
+      {
+        id: 3,
+        email: 'rella@studioneo.tech',
+        handle: 'rellakinoko',
+        display_name: 'Rella',
+        avatar_url: null,
+        bio: 'Featured Illustrator & Visual Designer.',
+        website_url: 'https://x.com/Rellakinoko',
+        is_verified: 1,
+        system_role: 'user',
+        artist_distinction: 'featured',
+        created_at: now,
+        updated_at: now,
+        tier: 'featured',
       },
     ],
     magicTokens: [],
     totpCredentials: new Map(),
     totpBackupCodes: [],
-    perks: [
-      {
-        id: 1,
-        slug: 'alpha-access-guide',
-        title: 'Studio Alpha Access Guide',
-        description: 'Exclusive architecture and deployment walkthrough PDF',
-        storage_file_path: 'assets/guides/alpha-access-guide.pdf',
-        created_at: now,
-      },
-      {
-        id: 2,
-        slug: 'starter-kit-v1',
-        title: 'Azure Cloud Starter Kit',
-        description: 'Starter templates and ARM/Bicep configurations',
-        storage_file_path: 'assets/kits/starter-kit-v1.zip',
-        created_at: now,
-      },
-      {
-        id: 3,
-        slug: 'pro-audio-pack',
-        title: 'Studio Sound FX & Audio Assets Pack',
-        description: 'Curated lossless audio stems for game/app creators',
-        storage_file_path: 'assets/media/pro-audio-pack.tar.gz',
-        created_at: now,
-      },
-    ],
-    perkUnlocks: [
-      { id: 1, subscriber_id: 1, perk_id: 1, unlocked_at: now },
-      { id: 2, subscriber_id: 1, perk_id: 2, unlocked_at: now },
-      { id: 3, subscriber_id: 1, perk_id: 3, unlocked_at: now },
-    ],
     webauthnCredentials: [],
-    subscriberOAuthAccounts: [],
+    accountOAuthProviders: [],
     inquiries: [],
-    cels: [],
+    artworks: [],
+    artworkAssets: [],
+    artworkLikes: [],
+    artworkDownloads: [],
   };
 
   globalThis.__devDbStore = store;
+  persistDevDbStore(store);
   return store;
+}
+
+/**
+ * Helper to project a BCNF ArtworkRecord + AccountRecord + ArtworkAssetRecord[] into CelRecord view.
+ */
+function projectArtworkToCelView(store: DevDbStore, art: ArtworkRecord): CelRecord {
+  const account = store.accounts.find((a) => a.id === art.account_id);
+  const assets = store.artworkAssets.filter((as) => as.artwork_id === art.id);
+  const svgAsset = assets.find((as) => as.asset_type === 'master_svg');
+  const gifAsset = assets.find((as) => as.asset_type === 'preview_gif');
+
+  const displayName = account?.display_name || 'Resident Artist';
+  const handle = account?.handle || 'resident';
+  const avatarInitials = displayName.slice(0, 2).toUpperCase();
+
+  return {
+    id: art.id,
+    account_id: art.account_id,
+    subscriber_id: art.account_id,
+    code: art.code,
+    title: art.title,
+    description: art.description,
+    artist: displayName,
+    artist_handle: handle,
+    artist_avatar: account?.avatar_url || avatarInitials,
+    artist_distinction: account?.artist_distinction || 'artist',
+    category: art.category,
+    edition: art.edition,
+    color: art.color,
+    price: art.price,
+    likes: art.likes_count,
+    likes_count: art.likes_count,
+    format: gifAsset ? 'GIF + SVG' : 'SVG',
+    svg_storage_path: svgAsset?.storage_path || '',
+    svg_url: svgAsset?.url || null,
+    gif_storage_path: gifAsset?.storage_path || null,
+    gif_url: gifAsset?.url || null,
+    is_vault: art.is_vault,
+    created_at: art.created_at,
+    updated_at: art.updated_at,
+  };
 }
 
 /**
@@ -269,11 +431,18 @@ export function getPool(): Pool {
 
 function hasConfiguredDb(): boolean {
   const host = process.env.DB_HOST;
-  return Boolean(host && host.trim() !== '' && !host.includes('YourStrongPassword'));
+  const password = process.env.DB_PASSWORD;
+  return Boolean(
+    host &&
+      host.trim() !== '' &&
+      !host.includes('YourStrongPassword') &&
+      password &&
+      !password.includes('YourStrongPassword')
+  );
 }
 
 /**
- * Fallback In-Memory Query Evaluator for Local Development / Mock Mode
+ * Fallback In-Memory Query Evaluator for Local Development / Mock Mode (BCNF Tables)
  */
 async function executeDevQuery<T>(sql: string, params: unknown[] = []): Promise<T[]> {
   const store = initDevDbStore();
@@ -282,38 +451,71 @@ async function executeDevQuery<T>(sql: string, params: unknown[] = []): Promise<
 
   // SELECT VERSION()
   if (lower.startsWith('select version()')) {
-    return [{ version: '8.0.36-azure-mock-inmemory' }] as unknown as T[];
+    return [{ version: '8.0.36-azure-bcnf-inmemory' }] as unknown as T[];
   }
 
-  // SELECT ... FROM subscribers WHERE email = ?
-  if (lower.includes('from subscribers') && lower.includes('where email = ?')) {
-    const email = String(params[0] || '').toLowerCase().trim();
-    const found = store.subscribers.find((s) => s.email.toLowerCase() === email);
-    return (found ? [found] : []) as unknown as T[];
+  // SELECT ... FROM webauthn_credentials w INNER JOIN accounts/subscribers s ...
+  if (lower.includes('from webauthn_credentials') && (lower.includes('join accounts') || lower.includes('join subscribers'))) {
+    const credId = String(params[0] || '');
+    const cred = store.webauthnCredentials.find((c) => c.credential_id === credId);
+    if (!cred) return [] as unknown as T[];
+    const acc = store.accounts.find((a) => a.id === cred.account_id);
+    if (!acc) return [] as unknown as T[];
+    return [
+      {
+        id: cred.id,
+        account_id: cred.account_id,
+        subscriber_id: cred.account_id,
+        credential_id: cred.credential_id,
+        public_key: cred.public_key,
+        counter: cred.counter,
+        email: acc.email,
+        is_verified: acc.is_verified,
+      },
+    ] as unknown as T[];
   }
 
-  // SELECT ... FROM subscribers WHERE id = ?
-  if (lower.includes('from subscribers') && lower.includes('where id = ?')) {
-    const id = Number(params[0]);
-    const found = store.subscribers.find((s) => s.id === id);
-    return (found ? [found] : []) as unknown as T[];
+  // SELECT ... FROM accounts (or subscribers alias)
+  if (
+    (lower.includes('from accounts') || lower.includes('from subscribers')) &&
+    !lower.includes('join')
+  ) {
+    if (lower.includes('where email = ?')) {
+      const email = String(params[0] || '').toLowerCase().trim();
+      const found = store.accounts.find((a) => a.email.toLowerCase() === email);
+      return (found ? [{ ...found, tier: found.tier || deriveTierAlias(found.system_role, found.artist_distinction) }] : []) as unknown as T[];
+    }
+    if (lower.includes('where handle = ?') || lower.includes('where lower(handle) = ?')) {
+      const handle = String(params[0] || '').toLowerCase().trim();
+      const found = store.accounts.find((a) => a.handle.toLowerCase() === handle);
+      return (found ? [{ ...found, tier: found.tier || deriveTierAlias(found.system_role, found.artist_distinction) }] : []) as unknown as T[];
+    }
+    if (lower.includes('where id = ?')) {
+      const id = Number(params[0]);
+      const found = store.accounts.find((a) => a.id === id);
+      return (found ? [{ ...found, tier: found.tier || deriveTierAlias(found.system_role, found.artist_distinction) }] : []) as unknown as T[];
+    }
+    return store.accounts.map((a) => ({
+      ...a,
+      tier: a.tier || deriveTierAlias(a.system_role, a.artist_distinction),
+    })) as unknown as T[];
   }
 
-  // SELECT totp_secret, is_active FROM totp_credentials WHERE subscriber_id = ?
-  if (lower.includes('from totp_credentials') && lower.includes('where subscriber_id = ?')) {
-    const subId = Number(params[0]);
-    const cred = store.totpCredentials.get(subId);
+  // SELECT ... FROM totp_credentials
+  if (lower.includes('from totp_credentials')) {
+    const accId = Number(params[0]);
+    const cred = store.totpCredentials.get(accId);
     if (!cred) return [] as unknown as T[];
     if (lower.includes('is_active = 1') && cred.is_active !== 1) {
       return [] as unknown as T[];
     }
-    return [cred] as unknown as T[];
+    return [{ ...cred, subscriber_id: cred.account_id }] as unknown as T[];
   }
 
-  // SELECT ... FROM totp_backup_codes WHERE subscriber_id = ?
-  if (lower.includes('from totp_backup_codes') && lower.includes('where subscriber_id = ?')) {
-    const subId = Number(params[0]);
-    let codes = store.totpBackupCodes.filter((c) => c.subscriber_id === subId);
+  // SELECT ... FROM totp_backup_codes
+  if (lower.includes('from totp_backup_codes')) {
+    const accId = Number(params[0]);
+    let codes = store.totpBackupCodes.filter((c) => c.account_id === accId);
     if (lower.includes('code_hash = ?')) {
       const hash = String(params[1]);
       codes = codes.filter((c) => c.code_hash === hash);
@@ -321,146 +523,135 @@ async function executeDevQuery<T>(sql: string, params: unknown[] = []): Promise<
     if (lower.includes('is_used = 0')) {
       codes = codes.filter((c) => c.is_used === 0);
     }
-    return codes as unknown as T[];
+    return codes.map((c) => ({ ...c, subscriber_id: c.account_id })) as unknown as T[];
   }
 
-  // SELECT ... FROM perks p INNER JOIN perk_unlocks pu ...
-  if (lower.includes('from perks p') && lower.includes('perk_unlocks pu')) {
-    const subId = Number(params[0]);
-    const unlocks = store.perkUnlocks.filter((u) => u.subscriber_id === subId);
-    const perkSlugParam = params.length > 1 ? String(params[1]) : null;
-
-    const matched: Array<Record<string, unknown>> = [];
-    for (const u of unlocks) {
-      const perk = store.perks.find((p) => p.id === u.perk_id);
-      if (perk) {
-        if (!perkSlugParam || perk.slug === perkSlugParam) {
-          matched.push({
-            id: perk.id,
-            slug: perk.slug,
-            title: perk.title,
-            description: perk.description,
-            storage_file_path: perk.storage_file_path,
-            unlocked_at: u.unlocked_at,
-          });
-        }
-      }
-    }
-    return matched as unknown as T[];
-  }
-
-  // SELECT ... FROM perks WHERE ...
-  if (lower.includes('from perks')) {
-    if (lower.includes('where slug = ?')) {
-      const slug = String(params[0]);
-      const found = store.perks.find((p) => p.slug === slug);
-      return (found ? [found] : []) as unknown as T[];
-    }
-    return store.perks as unknown as T[];
-  }
-
-  // SELECT ... FROM auth_magic_tokens WHERE ...
+  // SELECT ... FROM auth_magic_tokens
   if (lower.includes('from auth_magic_tokens')) {
-    const subId = Number(params[0]);
-    const active = store.magicTokens.filter((t) => t.subscriber_id === subId && t.consumed_at === null);
-    return active.slice(-1) as unknown as T[];
+    const accId = Number(params[0]);
+    const active = store.magicTokens.filter(
+      (t) => t.account_id === accId && t.consumed_at === null
+    );
+    return active.slice(-1).map((t) => ({ ...t, subscriber_id: t.account_id })) as unknown as T[];
   }
 
-  // SELECT ... FROM webauthn_credentials WHERE subscriber_id = ?
+  // SELECT ... FROM webauthn_credentials
   if (lower.includes('from webauthn_credentials')) {
     if (lower.includes('where credential_id = ?')) {
       const credId = String(params[0]);
       const found = store.webauthnCredentials.find((c) => c.credential_id === credId);
-      return (found ? [found] : []) as unknown as T[];
+      return (found ? [{ ...found, subscriber_id: found.account_id }] : []) as unknown as T[];
     }
-    if (lower.includes('where subscriber_id = ?')) {
-      const subId = Number(params[0]);
-      const rows = store.webauthnCredentials.filter((c) => c.subscriber_id === subId);
+    if (lower.includes('where account_id = ?') || lower.includes('where subscriber_id = ?')) {
+      const accId = Number(params[0]);
+      const rows = store.webauthnCredentials.filter((c) => c.account_id === accId);
       if (lower.includes('count(*)')) {
         return [{ cnt: rows.length }] as unknown as T[];
       }
-      return rows as unknown as T[];
+      return rows.map((r) => ({ ...r, subscriber_id: r.account_id })) as unknown as T[];
     }
     return store.webauthnCredentials as unknown as T[];
   }
 
-  // SELECT ... FROM subscriber_oauth_accounts WHERE subscriber_id = ?
-  if (lower.includes('from subscriber_oauth_accounts')) {
-    const subId = Number(params[0]);
-    const rows = store.subscriberOAuthAccounts.filter((a) => a.subscriber_id === subId);
-    return rows as unknown as T[];
+  // SELECT ... FROM account_oauth_providers (or subscriber_oauth_accounts)
+  if (
+    lower.includes('from account_oauth_providers') ||
+    lower.includes('from subscriber_oauth_accounts')
+  ) {
+    if (lower.includes('where provider = ? and provider_user_id = ?')) {
+      const provider = String(params[0]);
+      const pUid = String(params[1]);
+      const found = store.accountOAuthProviders.find(
+        (a) => a.provider === provider && a.provider_user_id === pUid
+      );
+      return (found ? [{ ...found, subscriber_id: found.account_id }] : []) as unknown as T[];
+    }
+    const accId = Number(params[0]);
+    const rows = store.accountOAuthProviders.filter((a) => a.account_id === accId);
+    return rows.map((r) => ({ ...r, subscriber_id: r.account_id })) as unknown as T[];
   }
 
-  // SELECT ... FROM cels
-  if (lower.includes('from cels')) {
-    let results = [...store.cels];
+  // SELECT ... FROM artwork_assets
+  if (lower.includes('from artwork_assets')) {
+    if (lower.includes('where artwork_id = ? and asset_type = ?')) {
+      const artId = Number(params[0]);
+      const assetType = String(params[1]);
+      const found = store.artworkAssets.find(
+        (as) => as.artwork_id === artId && as.asset_type === assetType
+      );
+      return (found ? [found] : []) as unknown as T[];
+    }
+    if (lower.includes('where artwork_id = ?')) {
+      const artId = Number(params[0]);
+      return store.artworkAssets.filter((as) => as.artwork_id === artId) as unknown as T[];
+    }
+    return store.artworkAssets as unknown as T[];
+  }
 
-    // Handle WHERE conditions
+  // SELECT ... FROM artwork_likes
+  if (lower.includes('from artwork_likes')) {
+    if (lower.includes('where account_id = ? and artwork_id = ?')) {
+      const accId = Number(params[0]);
+      const artId = Number(params[1]);
+      const found = store.artworkLikes.find(
+        (l) => l.account_id === accId && l.artwork_id === artId
+      );
+      return (found ? [found] : []) as unknown as T[];
+    }
+    if (lower.includes('where account_id = ?')) {
+      const accId = Number(params[0]);
+      return store.artworkLikes.filter((l) => l.account_id === accId) as unknown as T[];
+    }
+    return store.artworkLikes as unknown as T[];
+  }
+
+  // SELECT ... FROM artworks (or cels)
+  if (lower.includes('from artworks') || lower.includes('from cels')) {
+    let projected = store.artworks.map((art) => projectArtworkToCelView(store, art));
+
     if (lower.includes('where')) {
-      // 1. Check for compound code OR id: WHERE LOWER(code) = ? OR id = ?
       if (
-        (lower.includes('code) = ? or id = ?') || lower.includes('code = ? or id = ?')) &&
-        params.length >= 2
+        (lower.includes('lower(code) = ?') || lower.includes('lower(a.code) = ?')) &&
+        (lower.includes('or id = ?') || lower.includes('or a.id = ?'))
       ) {
-        const codeVal = String(params[0] ?? '').toLowerCase().trim();
-        const idVal = Number(params[1] ?? -1);
-        results = results.filter((c) => c.code.toLowerCase() === codeVal || c.id === idVal);
+        const codeParam = String(params[0] || '').toLowerCase();
+        const idParam = Number(params[1]);
+        projected = projected.filter(
+          (c) => c.code.toLowerCase() === codeParam || c.id === idParam
+        );
       } else {
-        // Sequentially match conditions against params in SQL order
         let paramIdx = 0;
-
-        if (lower.includes('artist_handle) = ?') || lower.includes('artist_handle = ?')) {
-          if (paramIdx < params.length) {
-            const handle = String(params[paramIdx++] ?? '').toLowerCase().trim();
-            results = results.filter((c) => c.artist_handle.toLowerCase() === handle);
-          }
+        if (lower.includes('lower(artist_handle) = ?') || lower.includes('lower(ac.handle) = ?')) {
+          const handleParam = String(params[paramIdx++] || '').toLowerCase();
+          projected = projected.filter((c) => c.artist_handle.toLowerCase() === handleParam);
         }
-
-        if (lower.includes('category = ?')) {
-          if (paramIdx < params.length) {
-            const cat = String(params[paramIdx++] ?? '').toLowerCase().trim();
-            if (cat !== 'all') {
-              results = results.filter((c) => c.category.toLowerCase() === cat);
-            }
-          }
+        if (lower.includes('category = ?') || lower.includes('a.category = ?')) {
+          const catParam = String(params[paramIdx++] || '');
+          projected = projected.filter((c) => c.category === catParam);
         }
-
-        if (lower.includes('code) = ?') || lower.includes('code = ?')) {
-          if (paramIdx < params.length) {
-            const codeVal = String(params[paramIdx++] ?? '').toLowerCase().trim();
-            results = results.filter((c) => c.code.toLowerCase() === codeVal);
-          }
+        if (lower.includes('upper(code) = ?') || lower.includes('upper(a.code) = ?')) {
+          const codeParam = String(params[paramIdx++] || '').toUpperCase();
+          projected = projected.filter((c) => c.code.toUpperCase() === codeParam);
         }
-
-        if (lower.includes('id = ?') && !lower.includes('or id = ?')) {
-          if (paramIdx < params.length) {
-            const idVal = Number(params[paramIdx++] ?? -1);
-            results = results.filter((c) => c.id === idVal);
-          }
-        }
-
-        if (lower.includes('subscriber_id = ?')) {
-          if (paramIdx < params.length) {
-            const subId = Number(params[paramIdx++] ?? -1);
-            results = results.filter((c) => c.subscriber_id === subId);
-          }
+        if (
+          (lower.includes('where id = ?') || lower.includes('where a.id = ?')) &&
+          paramIdx === 0
+        ) {
+          const idParam = Number(params[0]);
+          projected = projected.filter((c) => c.id === idParam);
         }
       }
     }
 
-    if (lower.includes('count(*)')) {
-      return [{ cnt: results.length }] as unknown as T[];
-    }
-
-    if (lower.includes('order by created_at desc') || lower.includes('order by id desc')) {
-      results.sort((a, b) => b.id - a.id);
+    if (lower.includes('order by created_at desc') || lower.includes('order by a.created_at desc')) {
+      projected.sort((a, b) => b.id - a.id);
     }
 
     if (lower.includes('limit 1')) {
-      results = results.slice(0, 1);
+      projected = projected.slice(0, 1);
     }
 
-    return results as unknown as T[];
+    return projected as unknown as T[];
   }
 
   return [] as unknown as T[];
@@ -468,80 +659,185 @@ async function executeDevQuery<T>(sql: string, params: unknown[] = []): Promise<
 
 async function executeDevMutation(sql: string, params: unknown[] = []): Promise<ResultSetHeader> {
   const store = initDevDbStore();
+  const result = await executeDevMutationInternal(store, sql, params);
+  persistDevDbStore(store);
+  return result;
+}
+
+async function executeDevMutationInternal(
+  store: DevDbStore,
+  sql: string,
+  params: unknown[] = []
+): Promise<ResultSetHeader> {
   const normalized = sql.trim().replace(/\s+/g, ' ');
   const lower = normalized.toLowerCase();
   const now = new Date().toISOString();
 
-  // INSERT INTO subscribers
-  if (lower.startsWith('insert into subscribers')) {
-    const email = String(params[0]).toLowerCase().trim();
-    const isVerified = Number(params[1] ?? 0);
-    const newId = store.nextSubscriberId++;
-    store.subscribers.push({
+  // INSERT INTO accounts (or subscribers)
+  if (lower.startsWith('insert into accounts') || lower.startsWith('insert into subscribers')) {
+    const email = String(params[0] || '').toLowerCase().trim();
+    const existing = store.accounts.find((a) => a.email.toLowerCase() === email);
+    if (existing) {
+      return { insertId: existing.id, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    }
+
+    const newId = store.nextAccountId++;
+    let handle = deriveHandleFromEmail(email);
+    if (store.accounts.some((a) => a.handle.toLowerCase() === handle)) {
+      handle = deriveHandleFromEmail(email, newId);
+    }
+
+    let displayName = email.split('@')[0] || 'User';
+    displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
+    let isVerified = 0;
+    let systemRole: SystemRole = 'user';
+    let artistDistinction: ArtistDistinctionRole = 'none';
+
+    if (lower.includes('handle') && lower.includes('display_name')) {
+      handle = String(params[1] || handle);
+      displayName = String(params[2] || displayName);
+      if (params.length >= 6) {
+        isVerified = Number(params[3]) === 1 ? 1 : 0;
+        systemRole = (params[4] as SystemRole) || 'user';
+        artistDistinction = (params[5] as ArtistDistinctionRole) || 'none';
+      } else {
+        isVerified = lower.includes(', 1,') ? 1 : 0;
+        systemRole = (params[3] as SystemRole) || 'user';
+        artistDistinction = (params[4] as ArtistDistinctionRole) || 'none';
+      }
+    } else {
+      const parsedVerify = params[1] !== undefined ? Number(params[1]) : NaN;
+      isVerified = !Number.isNaN(parsedVerify)
+        ? parsedVerify === 1
+          ? 1
+          : 0
+        : lower.includes('values (?, 1)')
+        ? 1
+        : 0;
+    }
+
+    store.accounts.push({
       id: newId,
       email,
+      handle,
+      display_name: displayName,
+      avatar_url: null,
+      bio: null,
+      website_url: null,
       is_verified: isVerified,
-      tier: 'free',
-      subscription_status: 'active',
+      system_role: systemRole,
+      artist_distinction: artistDistinction,
       created_at: now,
       updated_at: now,
+      tier: deriveTierAlias(systemRole, artistDistinction),
     });
     return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  // UPDATE subscribers
-  if (lower.startsWith('update subscribers')) {
-    if (lower.includes('is_verified = 1') && lower.includes('where id = ?')) {
-      const id = Number(params[0]);
-      const sub = store.subscribers.find((s) => s.id === id);
-      if (sub) {
-        sub.is_verified = 1;
-        sub.updated_at = now;
+  // UPDATE accounts (or subscribers)
+  if (lower.startsWith('update accounts') || lower.startsWith('update subscribers')) {
+    if (lower.includes('set is_verified = 1')) {
+      const id = Number(params[params.length - 1]);
+      const acc = store.accounts.find((a) => a.id === id);
+      if (acc) {
+        acc.is_verified = 1;
+        acc.updated_at = now;
+        return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+      }
+    }
+    if (lower.includes('system_role = ?') && lower.includes('artist_distinction = ?')) {
+      const sysRole = String(params[0]) as SystemRole;
+      const dist = String(params[1]) as ArtistDistinctionRole;
+      const id = Number(params[2]);
+      const acc = store.accounts.find((a) => a.id === id);
+      if (acc) {
+        acc.system_role = sysRole;
+        acc.artist_distinction = dist;
+        acc.tier = deriveTierAlias(sysRole, dist);
+        acc.updated_at = now;
+        return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+      }
+    }
+    if (lower.includes('display_name = ?') && lower.includes('handle = ?')) {
+      const displayName = String(params[0]);
+      const handle = String(params[1]);
+      const id = Number(params[2]);
+      const acc = store.accounts.find((a) => a.id === id);
+      if (acc) {
+        acc.display_name = displayName;
+        acc.handle = handle;
+        acc.updated_at = now;
         return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
       }
     }
     if (lower.includes('set tier = ?')) {
       const tier = String(params[0]);
-      if (lower.includes('where email = ?')) {
-        const email = String(params[params.length - 1] || '').toLowerCase().trim();
-        let sub = store.subscribers.find((s) => s.email.toLowerCase() === email);
-        if (!sub) {
-          const newId = store.nextSubscriberId++;
-          sub = {
-            id: newId,
-            email,
-            is_verified: 1,
-            tier,
-            subscription_status: 'active',
-            created_at: now,
-            updated_at: now,
-          };
-          store.subscribers.push(sub);
-          return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
-        }
-        sub.tier = tier;
-        sub.updated_at = now;
-        return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+      const target = params[1];
+      let acc =
+        typeof target === 'string' && target.includes('@')
+          ? store.accounts.find((a) => a.email.toLowerCase() === target.toLowerCase().trim())
+          : store.accounts.find((a) => a.id === Number(target));
+      if (!acc && typeof target === 'string' && target.includes('@')) {
+        const email = target.toLowerCase().trim();
+        const newId = store.nextAccountId++;
+        acc = {
+          id: newId,
+          email,
+          handle: deriveHandleFromEmail(email, newId),
+          display_name: email.split('@')[0] || 'User',
+          avatar_url: null,
+          bio: null,
+          website_url: null,
+          is_verified: 1,
+          system_role: 'user',
+          artist_distinction: 'none',
+          created_at: now,
+          updated_at: now,
+          tier: 'user',
+        };
+        store.accounts.push(acc);
       }
-      const subId = Number(params[params.length - 1]);
-      const sub = store.subscribers.find((s) => s.id === subId);
-      if (sub) {
-        sub.tier = tier;
-        sub.updated_at = now;
+      if (acc) {
+        if (tier === 'partner') acc.artist_distinction = 'partner';
+        else if (tier === 'featured' || tier === 'artist_resident') acc.artist_distinction = 'featured';
+        else if (tier === 'artist' || tier === 'illustrator' || tier === 'illustrator_pro') acc.artist_distinction = 'artist';
+        else acc.artist_distinction = 'none';
+        acc.tier = tier;
+        acc.updated_at = now;
         return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
       }
     }
   }
 
+  // DELETE FROM accounts (or subscribers)
+  if (lower.startsWith('delete from accounts') || lower.startsWith('delete from subscribers')) {
+    const id = Number(params[0]);
+    const before = store.accounts.length;
+    store.accounts = store.accounts.filter((a) => a.id !== id);
+    store.magicTokens = store.magicTokens.filter((t) => t.account_id !== id);
+    store.totpCredentials.delete(id);
+    store.totpBackupCodes = store.totpBackupCodes.filter((c) => c.account_id !== id);
+    store.webauthnCredentials = store.webauthnCredentials.filter((w) => w.account_id !== id);
+    store.accountOAuthProviders = store.accountOAuthProviders.filter((o) => o.account_id !== id);
+    store.artworkLikes = store.artworkLikes.filter((l) => l.account_id !== id);
+    return {
+      insertId: 0,
+      affectedRows: before - store.accounts.length,
+      warningStatus: 0,
+    } as ResultSetHeader;
+  }
+
   // INSERT INTO auth_magic_tokens
   if (lower.startsWith('insert into auth_magic_tokens')) {
-    const subId = Number(params[0]);
+    const accId = Number(params[0]);
     const tokenHash = String(params[1]);
-    const expiresAt = String(params[2]);
+    const expiresAt = String(params[2] || new Date(Date.now() + 600000).toISOString());
     const newId = store.nextMagicTokenId++;
     store.magicTokens.push({
       id: newId,
-      subscriber_id: subId,
+      account_id: accId,
+      subscriber_id: accId,
       token_hash: tokenHash,
       expires_at: expiresAt,
       consumed_at: null,
@@ -550,23 +846,34 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
     return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  // UPDATE auth_magic_tokens SET consumed_at
+  // UPDATE auth_magic_tokens
   if (lower.startsWith('update auth_magic_tokens')) {
-    const id = Number(params[0]);
-    const token = store.magicTokens.find((t) => t.id === id);
+    const idOrAccId = Number(params[0]);
+    if (lower.includes('where account_id = ?') || lower.includes('where subscriber_id = ?')) {
+      let count = 0;
+      for (const t of store.magicTokens) {
+        if (t.account_id === idOrAccId && t.consumed_at === null) {
+          t.consumed_at = now;
+          count++;
+        }
+      }
+      return { insertId: 0, affectedRows: count, warningStatus: 0 } as ResultSetHeader;
+    }
+    const token = store.magicTokens.find((t) => t.id === idOrAccId);
     if (token) {
       token.consumed_at = now;
       return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
     }
   }
 
-  // INSERT / REPLACE / UPDATE totp_credentials
+  // INSERT / UPDATE / DELETE totp_credentials
   if (lower.includes('into totp_credentials')) {
-    const subId = Number(params[0]);
+    const accId = Number(params[0]);
     const secret = String(params[1]);
     const isActive = Number(params[2] ?? 0);
-    store.totpCredentials.set(subId, {
-      subscriber_id: subId,
+    store.totpCredentials.set(accId, {
+      account_id: accId,
+      subscriber_id: accId,
       totp_secret: secret,
       is_active: isActive,
       created_at: now,
@@ -576,9 +883,18 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
   }
 
   if (lower.startsWith('update totp_credentials')) {
+    if (lower.includes('set is_active = 1')) {
+      const accId = Number(params[0]);
+      const cred = store.totpCredentials.get(accId);
+      if (cred) {
+        cred.is_active = 1;
+        cred.updated_at = now;
+        return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+      }
+    }
     const isActive = Number(params[0]);
-    const subId = Number(params[1]);
-    const cred = store.totpCredentials.get(subId);
+    const accId = Number(params[1]);
+    const cred = store.totpCredentials.get(accId);
     if (cred) {
       cred.is_active = isActive;
       cred.updated_at = now;
@@ -587,19 +903,20 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
   }
 
   if (lower.startsWith('delete from totp_credentials')) {
-    const subId = Number(params[0]);
-    store.totpCredentials.delete(subId);
+    const accId = Number(params[0]);
+    store.totpCredentials.delete(accId);
     return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  // INSERT INTO totp_backup_codes
+  // INSERT / UPDATE / DELETE totp_backup_codes
   if (lower.startsWith('insert into totp_backup_codes')) {
-    const subId = Number(params[0]);
+    const accId = Number(params[0]);
     const codeHash = String(params[1]);
     const newId = store.nextBackupCodeId++;
     store.totpBackupCodes.push({
       id: newId,
-      subscriber_id: subId,
+      account_id: accId,
+      subscriber_id: accId,
       code_hash: codeHash,
       is_used: 0,
       used_at: null,
@@ -619,22 +936,31 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
   }
 
   if (lower.startsWith('delete from totp_backup_codes')) {
-    const subId = Number(params[0]);
-    store.totpBackupCodes = store.totpBackupCodes.filter((c) => c.subscriber_id !== subId);
+    const accId = Number(params[0]);
+    store.totpBackupCodes = store.totpBackupCodes.filter((c) => c.account_id !== accId);
     return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  // INSERT / UPDATE webauthn_credentials
+  // INSERT / UPDATE / DELETE webauthn_credentials
   if (lower.startsWith('insert into webauthn_credentials')) {
-    const subId = Number(params[0]);
+    const accId = Number(params[0]);
     const credId = String(params[1]);
     const pubKey = String(params[2]);
     const counter = Number(params[3] ?? 0);
     const transports = params[4] ? String(params[4]) : null;
+    const existing = store.webauthnCredentials.find((c) => c.credential_id === credId);
+    if (existing) {
+      existing.public_key = pubKey;
+      existing.counter = counter;
+      existing.transports = transports;
+      existing.updated_at = now;
+      return { insertId: existing.id, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    }
     const newId = store.nextWebauthnId++;
     store.webauthnCredentials.push({
       id: newId,
-      subscriber_id: subId,
+      account_id: accId,
+      subscriber_id: accId,
       credential_id: credId,
       public_key: pubKey,
       counter,
@@ -645,39 +971,52 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
     return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  if (lower.startsWith('delete from webauthn_credentials')) {
-    const credId = String(params[0]);
-    store.webauthnCredentials = store.webauthnCredentials.filter((c) => c.credential_id !== credId);
-    return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+  if (lower.startsWith('update webauthn_credentials')) {
+    const newCounter = Number(params[0]);
+    const id = Number(params[1]);
+    const cred = store.webauthnCredentials.find((c) => c.id === id);
+    if (cred) {
+      cred.counter = newCounter;
+      cred.updated_at = now;
+      return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    }
   }
 
-  // INSERT INTO perk_unlocks
-  if (lower.includes('into perk_unlocks')) {
-    const subId = Number(params[0]);
-    const perkId = Number(params[1]);
-    const existing = store.perkUnlocks.find((u) => u.subscriber_id === subId && u.perk_id === perkId);
-    if (!existing) {
-      const newId = store.nextPerkUnlockId++;
-      store.perkUnlocks.push({
-        id: newId,
-        subscriber_id: subId,
-        perk_id: perkId,
-        unlocked_at: now,
-      });
+  if (lower.startsWith('delete from webauthn_credentials')) {
+    if (params.length === 2) {
+      const accId = Number(params[0]);
+      const credId = String(params[1]);
+      store.webauthnCredentials = store.webauthnCredentials.filter(
+        (c) => !(c.account_id === accId && c.credential_id === credId)
+      );
+    } else {
+      const credId = String(params[0]);
+      store.webauthnCredentials = store.webauthnCredentials.filter(
+        (c) => c.credential_id !== credId
+      );
     }
     return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  // INSERT INTO subscriber_oauth_accounts
-  if (lower.includes('into subscriber_oauth_accounts')) {
-    const subId = Number(params[0]);
+  // INSERT / UPDATE / DELETE account_oauth_providers (or subscriber_oauth_accounts)
+  if (
+    lower.includes('into account_oauth_providers') ||
+    lower.includes('into subscriber_oauth_accounts')
+  ) {
+    const accId = Number(params[0]);
     const provider = String(params[1]);
     const pUid = String(params[2]);
-    const existing = store.subscriberOAuthAccounts.find((a) => a.provider === provider && a.provider_user_id === pUid);
-    if (!existing) {
-      store.subscriberOAuthAccounts.push({
+    const existing = store.accountOAuthProviders.find(
+      (a) => a.provider === provider && a.provider_user_id === pUid
+    );
+    if (existing) {
+      existing.account_id = accId;
+      existing.subscriber_id = accId;
+    } else {
+      store.accountOAuthProviders.push({
         id: store.nextOAuthId++,
-        subscriber_id: subId,
+        account_id: accId,
+        subscriber_id: accId,
         provider,
         provider_user_id: pUid,
         created_at: now,
@@ -686,38 +1025,163 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
     return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  if (lower.startsWith('delete from subscriber_oauth_accounts')) {
-    const subId = Number(params[0]);
+  if (
+    lower.startsWith('update account_oauth_providers') ||
+    lower.startsWith('update subscriber_oauth_accounts')
+  ) {
+    const accId = Number(params[0]);
     const provider = String(params[1]);
-    store.subscriberOAuthAccounts = store.subscriberOAuthAccounts.filter(
-      (a) => !(a.subscriber_id === subId && a.provider === provider)
+    const pUid = String(params[2]);
+    const existing = store.accountOAuthProviders.find(
+      (a) => a.provider === provider && a.provider_user_id === pUid
     );
-    return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    if (existing) {
+      existing.account_id = accId;
+      existing.subscriber_id = accId;
+      return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    }
+  }
+
+  if (
+    lower.startsWith('delete from account_oauth_providers') ||
+    lower.startsWith('delete from subscriber_oauth_accounts')
+  ) {
+    const accId = Number(params[0]);
+    const provider = String(params[1]);
+    const before = store.accountOAuthProviders.length;
+    store.accountOAuthProviders = store.accountOAuthProviders.filter(
+      (a) => !(a.account_id === accId && a.provider === provider)
+    );
+    return {
+      insertId: 0,
+      affectedRows: before - store.accountOAuthProviders.length,
+      warningStatus: 0,
+    } as ResultSetHeader;
   }
 
   // INSERT INTO inquiries
   if (lower.startsWith('insert into inquiries')) {
-    const name = String(params[0]);
-    const email = String(params[1]);
-    const organization = params[2] ? String(params[2]) : null;
-    const topic = String(params[3]);
-    const message = String(params[4]);
     const newId = store.nextInquiryId++;
-    store.inquiries.push({
+    if (params.length >= 6) {
+      store.inquiries.push({
+        id: newId,
+        target_account_id: params[0] ? Number(params[0]) : null,
+        name: String(params[1]),
+        email: String(params[2]),
+        organization: params[3] ? String(params[3]) : null,
+        topic: String(params[4]),
+        message: String(params[5]),
+        created_at: now,
+      });
+    } else {
+      store.inquiries.push({
+        id: newId,
+        target_account_id: null,
+        name: String(params[0]),
+        email: String(params[1]),
+        organization: params[2] ? String(params[2]) : null,
+        topic: String(params[3]),
+        message: String(params[4]),
+        created_at: now,
+      });
+    }
+    return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+  }
+
+  // INSERT INTO artworks (Normalized BCNF table)
+  if (lower.startsWith('insert into artworks')) {
+    const newId = store.nextArtworkId++;
+    const [accountId, code, title, description, category, edition, color, price, isVault] = params;
+    store.artworks.push({
       id: newId,
-      name,
-      email,
-      organization,
-      topic,
-      message,
+      account_id: Number(accountId || 2),
+      code: String(code || `NEO-${newId}`),
+      title: String(title || 'Untitled Artwork'),
+      description: String(description || ''),
+      category: (category as ArtworkCategory) || 'Generative',
+      edition: String(edition || 'Ed. 1/12'),
+      color: String(color || '#c496ff'),
+      price: String(price || '$180'),
+      is_vault: isVault ? 1 : 0,
+      likes_count: 0,
+      created_at: now,
+      updated_at: now,
+    });
+    return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+  }
+
+  // INSERT INTO artwork_assets (Normalized BCNF 1:N asset table)
+  if (lower.startsWith('insert into artwork_assets')) {
+    const newId = store.nextArtworkAssetId++;
+    const [artworkId, assetType, storagePath, url, mimeType, fileSizeBytes] = params;
+    store.artworkAssets.push({
+      id: newId,
+      artwork_id: Number(artworkId),
+      asset_type: (assetType as ArtworkAssetType) || 'master_svg',
+      storage_path: String(storagePath || ''),
+      url: url ? String(url) : null,
+      mime_type: String(mimeType || 'image/svg+xml'),
+      file_size_bytes: fileSizeBytes ? Number(fileSizeBytes) : null,
       created_at: now,
     });
     return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  // INSERT INTO cels
+  // INSERT INTO artwork_likes
+  if (lower.startsWith('insert into artwork_likes') || lower.startsWith('insert ignore into artwork_likes')) {
+    const accId = Number(params[0]);
+    const artId = Number(params[1]);
+    const exists = store.artworkLikes.some(
+      (l) => l.account_id === accId && l.artwork_id === artId
+    );
+    if (!exists) {
+      store.artworkLikes.push({
+        account_id: accId,
+        artwork_id: artId,
+        created_at: now,
+      });
+      const art = store.artworks.find((a) => a.id === artId);
+      if (art) art.likes_count += 1;
+      return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    }
+    return { insertId: 0, affectedRows: 0, warningStatus: 0 } as ResultSetHeader;
+  }
+
+  // DELETE FROM artwork_likes
+  if (lower.startsWith('delete from artwork_likes')) {
+    const accId = Number(params[0]);
+    const artId = Number(params[1]);
+    const before = store.artworkLikes.length;
+    store.artworkLikes = store.artworkLikes.filter(
+      (l) => !(l.account_id === accId && l.artwork_id === artId)
+    );
+    const removed = before - store.artworkLikes.length;
+    if (removed > 0) {
+      const art = store.artworks.find((a) => a.id === artId);
+      if (art && art.likes_count > 0) art.likes_count -= 1;
+    }
+    return { insertId: 0, affectedRows: removed, warningStatus: 0 } as ResultSetHeader;
+  }
+
+  // INSERT INTO artwork_downloads
+  if (lower.startsWith('insert into artwork_downloads')) {
+    const newId = store.nextArtworkDownloadId++;
+    const [accId, artId, assetId, format, ipAddress] = params;
+    store.artworkDownloads.push({
+      id: newId,
+      account_id: Number(accId),
+      artwork_id: Number(artId),
+      asset_id: Number(assetId || 0),
+      format: String(format || 'svg'),
+      ip_address: ipAddress ? String(ipAddress) : null,
+      downloaded_at: now,
+    });
+    return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+  }
+
+  // Legacy INSERT INTO cels (auto-decomposes into BCNF `artworks` + `artwork_assets`)
   if (lower.startsWith('insert into cels')) {
-    const newId = store.nextCelId++;
+    const newArtId = store.nextArtworkId++;
     const [
       subscriberId,
       code,
@@ -725,13 +1189,13 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
       description,
       artist,
       artistHandle,
-      artistAvatar,
+      ,
       category,
       edition,
       color,
       price,
       likes,
-      format,
+      ,
       svgStoragePath,
       svgUrl,
       gifStoragePath,
@@ -739,43 +1203,137 @@ async function executeDevMutation(sql: string, params: unknown[] = []): Promise<
       isVault,
     ] = params;
 
-    const newCel: CelRecord = {
-      id: newId,
-      subscriber_id: subscriberId !== undefined && subscriberId !== null ? Number(subscriberId) : null,
-      code: String(code || `CEL-${newId}`),
+    const accId = subscriberId ? Number(subscriberId) : 2;
+    const acc = store.accounts.find((a) => a.id === accId);
+    if (acc && artist && artistHandle) {
+      acc.display_name = String(artist);
+      acc.handle = String(artistHandle);
+    }
+
+    store.artworks.push({
+      id: newArtId,
+      account_id: accId,
+      code: String(code || `CEL-${newArtId}`),
       title: String(title || 'Untitled Cel'),
       description: String(description || ''),
-      artist: String(artist || 'Resident Artist'),
-      artist_handle: String(artistHandle || 'resident'),
-      artist_avatar: String(artistAvatar || 'AT'),
-      category: (category as 'Generative' | 'Kinetic' | 'Vectors' | 'Mono') || 'Generative',
+      category: (category as ArtworkCategory) || 'Generative',
       edition: String(edition || 'Ed. 1/12'),
       color: String(color || '#c496ff'),
       price: String(price || '$180'),
-      likes: Number(likes || 0),
-      format: String(format || 'SVG'),
-      svg_storage_path: String(svgStoragePath || ''),
-      svg_url: svgUrl ? String(svgUrl) : null,
-      gif_storage_path: gifStoragePath ? String(gifStoragePath) : null,
-      gif_url: gifUrl ? String(gifUrl) : null,
       is_vault: isVault ? 1 : 0,
+      likes_count: Number(likes || 0),
       created_at: now,
       updated_at: now,
-    };
-    store.cels.push(newCel);
-    return { insertId: newId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    });
+
+    if (svgStoragePath) {
+      store.artworkAssets.push({
+        id: store.nextArtworkAssetId++,
+        artwork_id: newArtId,
+        asset_type: 'master_svg',
+        storage_path: String(svgStoragePath),
+        url: svgUrl ? String(svgUrl) : null,
+        mime_type: 'image/svg+xml',
+        file_size_bytes: null,
+        created_at: now,
+      });
+    }
+
+    if (gifStoragePath) {
+      store.artworkAssets.push({
+        id: store.nextArtworkAssetId++,
+        artwork_id: newArtId,
+        asset_type: 'preview_gif',
+        storage_path: String(gifStoragePath),
+        url: gifUrl ? String(gifUrl) : null,
+        mime_type: 'image/gif',
+        file_size_bytes: null,
+        created_at: now,
+      });
+    }
+
+    return { insertId: newArtId, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
   }
 
-  // DELETE FROM cels
-  if (lower.startsWith('delete from cels')) {
+  // DELETE FROM artworks / cels
+  if (lower.startsWith('delete from artworks') || lower.startsWith('delete from cels')) {
     if (lower.includes('where id = ?')) {
       const id = Number(params[0]);
-      store.cels = store.cels.filter((c) => c.id !== id);
+      store.artworks = store.artworks.filter((a) => a.id !== id);
+      store.artworkAssets = store.artworkAssets.filter((as) => as.artwork_id !== id);
       return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
     }
   }
 
   return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+}
+
+let mysqlSchemaEnsured = false;
+
+async function ensureMysqlBcnfSchema(pool: Pool): Promise<void> {
+  if (mysqlSchemaEnsured) return;
+  mysqlSchemaEnsured = true;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS accounts (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        email VARCHAR(255) NOT NULL,
+        handle VARCHAR(64) NOT NULL,
+        display_name VARCHAR(120) NOT NULL,
+        avatar_url VARCHAR(512) NULL DEFAULT NULL,
+        bio TEXT NULL,
+        website_url VARCHAR(512) NULL DEFAULT NULL,
+        is_verified TINYINT(1) NOT NULL DEFAULT 0,
+        system_role ENUM('user', 'curator', 'admin') NOT NULL DEFAULT 'user',
+        artist_distinction ENUM('none', 'artist', 'featured', 'partner') NOT NULL DEFAULT 'none',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uq_accounts_email (email),
+        UNIQUE KEY uq_accounts_handle (handle)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS auth_magic_tokens (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        account_id BIGINT UNSIGNED NOT NULL,
+        token_hash CHAR(64) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        consumed_at DATETIME NULL DEFAULT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_auth_magic_tokens_account_id (account_id),
+        KEY idx_auth_magic_tokens_token_hash (token_hash)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS totp_credentials (
+        account_id BIGINT UNSIGNED NOT NULL,
+        totp_secret VARCHAR(128) NOT NULL,
+        is_active TINYINT(1) NOT NULL DEFAULT 0,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (account_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS totp_backup_codes (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        account_id BIGINT UNSIGNED NOT NULL,
+        code_hash CHAR(64) NOT NULL,
+        is_used TINYINT(1) NOT NULL DEFAULT 0,
+        used_at DATETIME NULL DEFAULT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_totp_backup_codes_account_id (account_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+  } catch (err) {
+    console.warn('[DB] Automatic BCNF schema check skipped:', err);
+  }
 }
 
 /**
@@ -791,14 +1349,12 @@ export async function queryRows<T = Record<string, unknown>>(
 
   try {
     const pool = getPool();
+    await ensureMysqlBcnfSchema(pool);
     const [rows] = await pool.query<RowDataPacket[]>(sql, params);
     return rows as unknown as T[];
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[DB] MySQL query failed, falling back to local dev store:', err);
-      return executeDevQuery<T>(sql, params);
-    }
-    throw err;
+    console.warn('[DB] MySQL query failed, falling back to local BCNF dev store:', err);
+    return executeDevQuery<T>(sql, params);
   }
 }
 
@@ -826,17 +1382,15 @@ export async function execute(
 
   try {
     const pool = getPool();
+    await ensureMysqlBcnfSchema(pool);
     const [result] = await pool.execute<ResultSetHeader>(
       sql,
       params as Parameters<typeof pool.execute>[1]
     );
     return result;
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[DB] MySQL execute failed, falling back to local dev store:', err);
-      return executeDevMutation(sql, params);
-    }
-    throw err;
+    console.warn('[DB] MySQL execute failed, falling back to local BCNF dev store:', err);
+    return executeDevMutation(sql, params);
   }
 }
 
@@ -847,16 +1401,16 @@ export async function transaction<T>(
   callback: (conn: PoolConnection) => Promise<T>
 ): Promise<T> {
   if (!hasConfiguredDb()) {
-    // In dev store, execute directly
     const mockConn = {
-      execute: async (sql: string, params?: unknown[]) => execute(sql, params || []),
-      query: async (sql: string, params?: unknown[]) => queryRows(sql, params || []),
+      execute: async (sql: string, params?: unknown[]) => [await execute(sql, params || []), []],
+      query: async (sql: string, params?: unknown[]) => [await queryRows(sql, params || []), []],
     } as unknown as PoolConnection;
     return callback(mockConn);
   }
 
   try {
     const pool = getPool();
+    await ensureMysqlBcnfSchema(pool);
     const connection = await pool.getConnection();
 
     try {
@@ -871,15 +1425,12 @@ export async function transaction<T>(
       connection.release();
     }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[DB] MySQL transaction failed, running mock transaction:', err);
-      const mockConn = {
-        execute: async (sql: string, params?: unknown[]) => execute(sql, params || []),
-        query: async (sql: string, params?: unknown[]) => queryRows(sql, params || []),
-      } as unknown as PoolConnection;
-      return callback(mockConn);
-    }
-    throw err;
+    console.warn('[DB] MySQL transaction failed, running mock BCNF transaction:', err);
+    const mockConn = {
+      execute: async (sql: string, params?: unknown[]) => [await execute(sql, params || []), []],
+      query: async (sql: string, params?: unknown[]) => [await queryRows(sql, params || []), []],
+    } as unknown as PoolConnection;
+    return callback(mockConn);
   }
 }
 

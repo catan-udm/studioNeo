@@ -17,7 +17,7 @@ export async function GET() {
         transports: string | null;
         created_at: string;
       }>(
-        'SELECT id, credential_id, counter, transports, created_at FROM webauthn_credentials WHERE subscriber_id = ? ORDER BY id DESC',
+        'SELECT id, credential_id, counter, transports, created_at FROM webauthn_credentials WHERE account_id = ? ORDER BY id DESC',
         [session.subscriberId]
       );
 
@@ -48,7 +48,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await execute(
-      'DELETE FROM webauthn_credentials WHERE subscriber_id = ? AND credential_id = ?',
+      'DELETE FROM webauthn_credentials WHERE account_id = ? AND credential_id = ?',
       [session.subscriberId, credentialId]
     );
 

@@ -41,15 +41,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Fetch subscriber
-    const subscriber = await queryRow<{ id: number; email: string; is_verified: number }>(
-      'SELECT id, email, is_verified FROM subscribers WHERE email = ? LIMIT 1',
+    // 1. Fetch account
+    const account = await queryRow<{ id: number; email: string; is_verified: number }>(
+      'SELECT id, email, is_verified FROM accounts WHERE email = ? LIMIT 1',
       [email]
     );
 
-    if (!subscriber) {
+    if (!account) {
       return NextResponse.json(
-        { error: 'No subscriber record found for this email address.' },
+        { error: 'No account record found for this email address.' },
         { status: 404 }
       );
     }
@@ -62,12 +62,12 @@ export async function POST(request: NextRequest) {
     }>(
       `SELECT id, token_hash, expires_at 
        FROM auth_magic_tokens 
-       WHERE subscriber_id = ? 
+       WHERE account_id = ? 
          AND consumed_at IS NULL 
          AND expires_at >= NOW()
        ORDER BY id DESC 
        LIMIT 1`,
-      [subscriber.id]
+      [account.id]
     );
 
     if (!magicToken) {
@@ -88,12 +88,12 @@ export async function POST(request: NextRequest) {
 
     // 4. TOTP 2FA Verification (if active on the account)
     const totpRecord = await queryRow<{ totp_secret: string; is_active: number }>(
-      'SELECT totp_secret, is_active FROM totp_credentials WHERE subscriber_id = ? AND is_active = 1 LIMIT 1',
-      [subscriber.id]
+      'SELECT totp_secret, is_active FROM totp_credentials WHERE account_id = ? AND is_active = 1 LIMIT 1',
+      [account.id]
     );
 
     if (totpRecord && totpRecord.is_active === 1) {
-      // 2FA is required for this subscriber
+      // 2FA is required for this account
       if (!totpCode && !backupCode) {
         return NextResponse.json(
           {
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
 
       const supplied2faCode = (totpCode || backupCode || '').trim();
       const is2faValid = await verifyTotpOrBackupCode(
-        subscriber.id,
+        account.id,
         totpRecord.totp_secret,
         supplied2faCode,
         true
@@ -120,22 +120,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. Atomic state update: consume OTP token and mark subscriber verified
+    // 5. Atomic state update: consume OTP token and mark account verified
     await transaction(async (conn) => {
       await conn.execute(
         'UPDATE auth_magic_tokens SET consumed_at = NOW() WHERE id = ?',
         [magicToken.id]
       );
       await conn.execute(
-        'UPDATE subscribers SET is_verified = 1 WHERE id = ?',
-        [subscriber.id]
+        'UPDATE accounts SET is_verified = 1 WHERE id = ?',
+        [account.id]
       );
     });
 
     // 6. Issue secure httpOnly, SameSite=Lax session token
     const sessionToken = createSessionToken({
-      subscriberId: subscriber.id,
-      email: subscriber.email,
+      subscriberId: account.id,
+      accountId: account.id,
+      email: account.email,
       isVerified: true,
     });
 
@@ -146,8 +147,13 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Authentication successful.',
         subscriber: {
-          id: subscriber.id,
-          email: subscriber.email,
+          id: account.id,
+          email: account.email,
+          is_verified: 1,
+        },
+        account: {
+          id: account.id,
+          email: account.email,
           is_verified: 1,
         },
       },

@@ -1,0 +1,598 @@
+/* ========================================================================
+   studioNeo • Instagram-Style Artist Story Viewer Modal (Mobile Optimized)
+   ======================================================================== */
+
+.sn-story-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 100000;
+  background: #07070a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+  touch-action: none;
+  animation: snStoryFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes snStoryFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Ambient glow behind story card matching artist artwork palette */
+.sn-story-ambient-glow {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(140px);
+  opacity: 0.28;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  transition: background 0.4s ease, opacity 0.4s ease;
+}
+
+/* Desktop Chevron Navigation */
+.sn-story-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100005;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sn-story-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.sn-story-nav-btn:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.sn-story-nav-btn:disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+.sn-story-nav-btn.is-prev {
+  left: max(24px, calc(50vw - 290px));
+}
+
+.sn-story-nav-btn.is-next {
+  right: max(24px, calc(50vw - 290px));
+}
+
+@media (max-width: 640px) {
+  .sn-story-nav-btn {
+    display: none;
+  }
+}
+
+/* Story Card Container (9:16 vertical ratio) */
+.sn-story-stage {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  height: min(92vh, 840px);
+  border-radius: 26px;
+  background: #0c0c10;
+  overflow: hidden;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (max-width: 520px) {
+  .sn-story-stage {
+    max-width: 100vw;
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Media Layer & Smart Dynamic Fit */
+.sn-story-media-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+}
+
+/* Ambient blurred background duplicate for landscape / square artworks */
+.sn-story-media-ambient {
+  position: absolute;
+  inset: -15%;
+  width: 130%;
+  height: 130%;
+  object-fit: cover;
+  filter: blur(40px) brightness(0.4);
+  transform: scale(1.2);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Main Artwork Image */
+.sn-story-media-main {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sn-story-media-main.is-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.sn-story-media-main.is-contain {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* Paused State Dimming / Overlay */
+.sn-story-stage.is-paused .sn-story-media-main {
+  transform: scale(0.985);
+}
+
+/* Top & Bottom Gradient Scrims for Legibility */
+.sn-story-scrim-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(max(18px, env(safe-area-inset-top, 0px)) + 120px);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.4) 65%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.sn-story-scrim-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(max(24px, env(safe-area-inset-bottom, 0px)) + 210px);
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.65) 65%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Segmented Progress Bar (Pushed safely below mobile URL bar & notch) */
+.sn-story-progress-bar {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 0px));
+  left: 14px;
+  right: 14px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+}
+
+.sn-story-progress-seg {
+  flex: 1;
+  height: 2.5px;
+  background: rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.sn-story-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 999px;
+  transition: width 0.05s linear;
+}
+
+.sn-story-progress-seg.is-viewed .sn-story-progress-fill {
+  width: 100%;
+}
+
+.sn-story-progress-seg.is-unviewed .sn-story-progress-fill {
+  width: 0%;
+}
+
+/* Story Header (Offset below progress bar) */
+.sn-story-header {
+  position: absolute;
+  top: calc(max(16px, env(safe-area-inset-top, 0px)) + 14px);
+  left: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  color: #ffffff;
+}
+
+.sn-story-artist-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sn-story-header-avatar-ring {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sn-story-header-avatar-ring.is-partner {
+  background: linear-gradient(135deg, #10b981, #06b6d4, #3b82f6);
+}
+
+.sn-story-header-avatar-ring.is-featured {
+  background: linear-gradient(135deg, #f43f5e, #d946ef, #6366f1);
+}
+
+.sn-story-header-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #111116;
+}
+
+.sn-story-header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sn-story-header-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sn-story-header-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.sn-story-header-badge {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.sn-story-header-badge.is-partner {
+  background: rgba(16, 185, 129, 0.28);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+}
+
+.sn-story-header-badge.is-featured {
+  background: rgba(217, 70, 239, 0.28);
+  color: #e879f9;
+  border: 1px solid rgba(217, 70, 239, 0.45);
+}
+
+.sn-story-header-time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.sn-story-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sn-story-header-btn {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+.sn-story-header-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: scale(1.06);
+}
+
+/* Double-Tap Heart Burst Animation */
+.sn-story-heart-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  pointer-events: none;
+  animation: snHeartPop 0.85s cubic-bezier(0.17, 0.89, 0.32, 1.28) forwards;
+}
+
+@keyframes snHeartPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+  75% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+}
+
+.sn-story-heart-burst svg {
+  width: 96px;
+  height: 96px;
+  filter: drop-shadow(0 12px 30px rgba(244, 63, 94, 0.7));
+  color: #f43f5e;
+}
+
+/* Story Bottom Content Layer */
+.sn-story-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 16px max(20px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+  z-index: 10;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sn-story-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sn-story-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sn-story-work-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.sn-story-work-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.sn-story-caption {
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.sn-story-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.sn-story-tag-pill {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Actions Row (View in Feed, Archive, Like, Download, Share) */
+.sn-story-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sn-story-btn-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0b0b0e;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+.sn-story-btn-primary:hover {
+  background: #f1f1f5;
+  transform: translateY(-1px);
+}
+
+.sn-story-btn-primary:active {
+  transform: translateY(1px);
+}
+
+.sn-story-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sn-story-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.sn-story-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sn-story-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.06);
+}
+
+.sn-story-icon-btn.is-liked {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: rgba(244, 63, 94, 0.5);
+  color: #f43f5e;
+}
+
+.sn-story-icon-btn.is-download {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #34d399;
+}
+
+.sn-story-icon-btn.is-download:hover {
+  background: rgba(16, 185, 129, 0.32);
+  transform: scale(1.06);
+}
+
+.sn-story-toast-copied,
+.sn-story-toast-download {
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(17, 17, 22, 0.95);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  pointer-events: none;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  animation: snFadeUp 0.2s ease;
+}
+
+.sn-story-toast-download {
+  background: rgba(16, 185, 129, 0.95);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes snFadeUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

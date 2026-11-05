@@ -6,7 +6,8 @@ import { getRPConfig, getPasskeyChallenge, clearPasskeyChallenge } from '@/lib/w
 
 interface CredentialRow {
   id: number;
-  subscriber_id: number;
+  account_id: number;
+  subscriber_id?: number;
   credential_id: string;
   public_key: string;
   counter: string | number;
@@ -36,9 +37,9 @@ export async function POST(request: NextRequest) {
 
     // Lookup matching credential in database
     const credRecord = await queryRow<CredentialRow>(
-      `SELECT w.id, w.subscriber_id, w.credential_id, w.public_key, w.counter, s.email, s.is_verified
+      `SELECT w.id, w.account_id, w.credential_id, w.public_key, w.counter, s.email, s.is_verified
        FROM webauthn_credentials w
-       INNER JOIN subscribers s ON s.id = w.subscriber_id
+       INNER JOIN accounts s ON s.id = w.account_id
        WHERE w.credential_id = ?
        LIMIT 1`,
       [credentialId]
@@ -61,12 +62,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const ownerId = credRecord.account_id ?? credRecord.subscriber_id;
+
     if (
       challengePayload.subscriberId &&
-      Number(challengePayload.subscriberId) !== Number(credRecord.subscriber_id)
+      Number(challengePayload.subscriberId) !== Number(ownerId)
     ) {
       return NextResponse.json(
-        { error: 'The provided passkey does not match the requested subscriber account.' },
+        { error: 'The provided passkey does not match the requested account.' },
         { status: 403 }
       );
     }
@@ -103,14 +106,13 @@ export async function POST(request: NextRequest) {
       credRecord.id,
     ]);
 
-    // Ensure subscriber is marked verified
-    await execute('UPDATE subscribers SET is_verified = 1 WHERE id = ?', [
-      credRecord.subscriber_id,
-    ]);
+    // Ensure account is marked verified
+    await execute('UPDATE accounts SET is_verified = 1 WHERE id = ?', [ownerId]);
 
     // Issue unified session cookie
     const token = createSessionToken({
-      subscriberId: credRecord.subscriber_id,
+      subscriberId: Number(ownerId),
+      accountId: Number(ownerId),
       email: credRecord.email,
       isVerified: true,
     });
@@ -123,7 +125,11 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Passkey authentication successful.',
         subscriber: {
-          id: credRecord.subscriber_id,
+          id: ownerId,
+          email: credRecord.email,
+        },
+        account: {
+          id: ownerId,
           email: credRecord.email,
         },
       },

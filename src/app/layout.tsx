@@ -5,7 +5,6 @@ import './nav.css';
 import StudioNav from './components/StudioNav';
 import { PageTransitionProvider, PageTransitionContent } from './components/PageTransition';
 import { SettingsProvider } from './components/SettingsProvider';
-import { LiquidGlassProvider } from '@/components/LiquidGlassProvider';
 import ServiceWorkerRegister from './components/ServiceWorkerRegister';
 
 const poppins = Poppins({
@@ -203,12 +202,10 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <SettingsProvider>
           <PageTransitionProvider>
-            <LiquidGlassProvider>
-              <StudioNav />
-              <PageTransitionContent>
-                <div className="page-wrapper">{children}</div>
-              </PageTransitionContent>
-            </LiquidGlassProvider>
+            <StudioNav />
+            <PageTransitionContent>
+              <div className="page-wrapper">{children}</div>
+            </PageTransitionContent>
           </PageTransitionProvider>
         </SettingsProvider>
       </body>

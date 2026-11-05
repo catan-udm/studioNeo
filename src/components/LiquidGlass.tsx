@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useLayoutEffect, useState } from "react";
-import { LiquidGlass } from "simple-liquid-glass";
 
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -152,11 +151,16 @@ export function buildRefractionMapDataUri(
   return uri;
 }
 
-function makeCapsuleSpec(id: string, width: number, height: number): GlassFilterSpec {
+function makeCapsuleSpec(
+  id: string,
+  width: number,
+  height: number,
+  allowFill = true,
+): GlassFilterSpec {
   const w = Math.max(24, Math.ceil(width));
   const h = Math.max(24, Math.ceil(height));
   const radius = Math.min(w, h) / 2;
-  const fill = w / h >= FILL_ASPECT;
+  const fill = allowFill && w / h >= FILL_ASPECT;
   // Compact islands keep the bezel in the outer rim (~12-13px). Elongated pills
   // widen it to span the full half-thickness so the lens fills the element.
   const bezel = fill
@@ -207,23 +211,10 @@ function makeInitialSpecs(): GlassFilterSpec[] {
   });
   return [
     neutral(makeCapsuleSpec("liquid-glass-left", 46, 46)),
-    neutral(makeCapsuleSpec("liquid-glass-slider", 258, 46)),
+    neutral({ ...makeCapsuleSpec("liquid-glass-slider", 258, 46, false), res: 1 }),
     neutral(makeCapsuleSpec("liquid-glass-burger", 42, 42)),
     neutral(makePopoverSpec("liquid-glass-popover", 238, 326)),
   ];
-}
-
-export function isWebKitEngine(): boolean {
-  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  const isIOS =
-    /iPad|iPhone|iPod/.test(ua) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const isMacSafari =
-    /Safari\//.test(ua) &&
-    !/Chrome\/|Chromium\/|Edg\//.test(ua) &&
-    !/Firefox\//.test(ua);
-  return isIOS || isMacSafari;
 }
 
 /**
@@ -256,12 +247,6 @@ export function useLiquidRefraction(refs: {
       document.documentElement.setAttribute("data-liquid-refraction", "true");
     } else {
       document.documentElement.removeAttribute("data-liquid-refraction");
-    }
-
-    if (isWebKitEngine()) {
-      document.documentElement.setAttribute("data-webkit-liquid", "true");
-    } else {
-      document.documentElement.removeAttribute("data-webkit-liquid");
     }
   }, []);
 
@@ -307,15 +292,16 @@ export function useLiquidRefraction(refs: {
       const popH = popEl ? popEl.offsetHeight || 326 : 326;
 
       // Firefox applies the filter via `filter:` on ::before (CSS px space).
-      // Chromium's backdrop-filter path resolves the filter in device pixels on
-      // real hardware (desktop and phones alike), so scale by devicePixelRatio.
-      const res = isMozSupported ? 1 : window.devicePixelRatio || 1;
+      // Chromium's backdrop-filter path resolves small bubble islands in device pixels,
+      // while the wide center slider matches 1:1 in CSS px to prevent overflow.
+      const dpr = isMozSupported ? 1 : (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1);
+
       const next: GlassFilterSpec[] = [
-        makeCapsuleSpec("liquid-glass-left", leftRect?.width || 46, leftRect?.height || 46),
-        makeCapsuleSpec("liquid-glass-slider", sliderRect?.width || 258, sliderRect?.height || 46),
-        makeCapsuleSpec("liquid-glass-burger", burgerRect?.width || 42, burgerRect?.height || 42),
-        makePopoverSpec("liquid-glass-popover", popW, popH),
-      ].map((spec) => ({ ...spec, res }));
+        { ...makeCapsuleSpec("liquid-glass-left", leftRect?.width || 46, leftRect?.height || 46), res: dpr },
+        { ...makeCapsuleSpec("liquid-glass-slider", sliderRect?.width || 258, sliderRect?.height || 46, false), res: 1 },
+        { ...makeCapsuleSpec("liquid-glass-burger", burgerRect?.width || 42, burgerRect?.height || 42), res: dpr },
+        { ...makePopoverSpec("liquid-glass-popover", popW, popH), res: dpr },
+      ];
 
       setSpecs((prev) => {
         const unchanged =
@@ -323,8 +309,8 @@ export function useLiquidRefraction(refs: {
           prev.every(
             (p, idx) =>
               (p.res ?? 1) === (next[idx].res ?? 1) &&
-              Math.abs(p.width - next[idx].width) < 1 &&
-              Math.abs(p.height - next[idx].height) < 1 &&
+              Math.abs(p.width - next[idx].width) < 2 &&
+              Math.abs(p.height - next[idx].height) < 2 &&
               p.href === next[idx].href &&
               p.href !== "" &&
               p.href !== NEUTRAL_REFRACTION_MAP,
@@ -335,11 +321,6 @@ export function useLiquidRefraction(refs: {
     };
 
     syncSpecs();
-    if (typeof document !== "undefined" && "fonts" in document) {
-      document.fonts.ready.then(() => {
-        syncSpecs();
-      });
-    }
     const rafSync = requestAnimationFrame(syncSpecs);
     const tSync1 = setTimeout(syncSpecs, 60);
     const tSync2 = setTimeout(syncSpecs, 180);
@@ -374,18 +355,22 @@ export function useLiquidRefraction(refs: {
       window.addEventListener("scroll", syncOffsets, { passive: true });
     }
     window.addEventListener("resize", syncSpecs);
+
     // Re-sync whenever devicePixelRatio changes (zoom, moving between screens).
     let dprMql: MediaQueryList | null = null;
     const watchDpr = () => {
       dprMql?.removeEventListener("change", onDprChange);
-      dprMql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-      dprMql.addEventListener("change", onDprChange);
+      if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+        dprMql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+        dprMql.addEventListener("change", onDprChange);
+      }
     };
     function onDprChange() {
       syncSpecs();
       watchDpr();
     }
     watchDpr();
+
     return () => {
       cancelAnimationFrame(rafSync);
       clearTimeout(tSync1);
@@ -479,60 +464,3 @@ export function LiquidGlassDefs({ specs }: { specs: GlassFilterSpec[] }) {
     </svg>
   );
 }
-
-/**
- * Optical WebGL refraction underlay lens for WebKit/iOS devices.
- * Sits at z-index: 0 beneath the island content with pointer-events: none.
- * On Chromium and Firefox, it returns null to preserve native high-fps filter pipelines.
- * On iOS/iPadOS/macOS WebKit, it mounts a hardware-accelerated WebGL refraction canvas
- * that dynamically samples #main-content and renders true optical distortion.
- */
-export function LiquidGlassLens({
-  radius = 23,
-  scale = 24,
-  className = '',
-}: {
-  radius?: number;
-  scale?: number;
-  className?: string;
-}) {
-  const [mounted, setMounted] = useState(false);
-  const [isWebKit, setIsWebKit] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setIsWebKit(isWebKitEngine());
-  }, []);
-
-  if (!mounted || !isWebKit) return null;
-
-  return (
-    <LiquidGlass
-      className={`liquid-glass-optical-lens ${className}`}
-      radius={radius}
-      material="clear"
-      blur={0.5}
-      iosMinBlur={0.5}
-      iosBlurMode="off"
-      displacementScale={scale}
-      frost={0}
-      saturation={115}
-      aberrationIntensity={0.08}
-      glassColor="rgba(255, 255, 255, 0.05)"
-      borderColor="rgba(255, 255, 255, 0.4)"
-      backdropSelector="#main-content"
-      renderer="webgl"
-      style={{
-        position: 'absolute',
-        inset: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 0,
-        borderRadius: 'inherit',
-        overflow: 'hidden',
-      }}
-    />
-  );
-}
-

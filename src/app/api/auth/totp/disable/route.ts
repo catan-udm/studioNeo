@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Check if TOTP is currently active
     const totpRecord = await queryRow<{ totp_secret: string; is_active: number }>(
-      'SELECT totp_secret, is_active FROM totp_credentials WHERE subscriber_id = ? LIMIT 1',
+      'SELECT totp_secret, is_active FROM totp_credentials WHERE account_id = ? LIMIT 1',
       [session.subscriberId]
     );
 
@@ -54,11 +54,11 @@ export async function POST(request: NextRequest) {
     // Atomic transaction: disable credential and purge recovery codes
     await transaction(async (conn) => {
       await conn.execute(
-        'DELETE FROM totp_credentials WHERE subscriber_id = ?',
+        'DELETE FROM totp_credentials WHERE account_id = ?',
         [session.subscriberId]
       );
       await conn.execute(
-        'DELETE FROM totp_backup_codes WHERE subscriber_id = ?',
+        'DELETE FROM totp_backup_codes WHERE account_id = ?',
         [session.subscriberId]
       );
     });

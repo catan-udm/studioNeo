@@ -24,29 +24,29 @@ export async function POST(request: NextRequest) {
     let subscriberId: number | undefined = undefined;
 
     if (email) {
-      const subscriber = await queryRow<{ id: number; is_verified: number }>(
-        'SELECT id, is_verified FROM subscribers WHERE email = ? LIMIT 1',
+      const account = await queryRow<{ id: number; is_verified: number }>(
+        'SELECT id, is_verified FROM accounts WHERE email = ? LIMIT 1',
         [email]
       );
 
-      if (!subscriber) {
+      if (!account) {
         return NextResponse.json(
           { error: 'No account found with this email address. Please register first.' },
           { status: 404 }
         );
       }
 
-      if (subscriber.is_verified !== 1) {
+      if (account.is_verified !== 1) {
         return NextResponse.json(
           { error: 'This account has not completed registration verification. Please complete registration first.' },
           { status: 403 }
         );
       }
 
-      subscriberId = subscriber.id;
+      subscriberId = account.id;
       const creds = await queryRows<{ credential_id: string; transports?: string }>(
-        'SELECT credential_id, transports FROM webauthn_credentials WHERE subscriber_id = ?',
-        [subscriber.id]
+        'SELECT credential_id, transports FROM webauthn_credentials WHERE account_id = ?',
+        [account.id]
       );
 
       if (creds.length === 0) {

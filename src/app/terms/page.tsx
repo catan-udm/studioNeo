@@ -7,14 +7,14 @@ import './terms.css';
 export const metadata: Metadata = {
   title: 'Terms of Service • studioNeo',
   description:
-    'Terms of Service, artist intellectual property reservations, passkey authentication guidelines, and curatorial standards for studioNeo.',
+    'Terms of Service, creator intellectual property sovereignty, feed and story interactions, passkey security, and curatorial standards for studioNeo.',
   alternates: {
     canonical: 'https://studioneo.tech/terms',
   },
   openGraph: {
     title: 'Terms of Service • studioNeo',
     description:
-      'Terms of Service, artist intellectual property reservations, passkey authentication guidelines, and curatorial standards for studioNeo.',
+      'Terms of Service, creator intellectual property sovereignty, feed and story interactions, passkey security, and curatorial standards for studioNeo.',
     url: 'https://studioneo.tech/terms',
     type: 'website',
     locale: 'en_US',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Terms of Service • studioNeo',
     description:
-      'Terms of Service, artist intellectual property reservations, passkey authentication guidelines, and curatorial standards for studioNeo.',
+      'Terms of Service, creator intellectual property sovereignty, feed and story interactions, passkey security, and curatorial standards for studioNeo.',
   },
 };
 
@@ -37,7 +37,7 @@ const termsStructuredData = {
       url: 'https://studioneo.tech/terms',
       name: 'Terms of Service • studioNeo',
       description:
-        'Terms of Service, artist intellectual property reservations, passkey authentication guidelines, and curatorial standards for studioNeo.',
+        'Terms of Service, creator intellectual property sovereignty, feed and story interactions, passkey security, and curatorial standards for studioNeo.',
       inLanguage: 'en-US',
       isPartOf: {
         '@id': 'https://studioneo.tech/#website',
@@ -79,15 +79,17 @@ export default function TermsPage() {
             Terms of Service
           </h1>
           <p className="terms-lead">
-            Governing agreements for accessing the studioNeo digital archive, respecting individual artist content rights,
-            and utilizing passwordless WebAuthn cryptographic credentials.
+            Governing agreements for accessing the studioNeo artist atelier, creator intellectual property sovereignty,
+            feed and story interactions, and zero-knowledge cryptographic authentication.
           </p>
           <div className="terms-meta-badge">
             <span>
-              EFFECTIVE: <time dateTime="2026-03-01">MARCH 2026</time>
+              EFFECTIVE: <time dateTime="2026-11-01">NOVEMBER 2026</time>
             </span>
             <span>&bull;</span>
-            <span>VERSION 3.0</span>
+            <span>VERSION 3.2</span>
+            <span>&bull;</span>
+            <span>ARTIST-FIRST ATELIER</span>
           </div>
         </section>
 
@@ -98,17 +100,18 @@ export default function TermsPage() {
             <div className="terms-article-section">
               <div className="terms-section-header">
                 <span className="terms-section-num">01</span>
-                <h2 className="terms-section-title">Acceptance of Terms</h2>
+                <h2 className="terms-section-title">Acceptance of Terms &amp; Platform Model</h2>
               </div>
               <p>
-                By accessing, browsing, or interacting with the studioNeo digital archive (&ldquo;the Atelier&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;), you acknowledge that
-                you have read, understood, and agreed to be bound by these Terms of Service, along with our{' '}
+                By accessing, browsing, or interacting with the studioNeo digital atelier (&ldquo;studioNeo&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;the platform&rdquo;),
+                you acknowledge that you have read, understood, and agreed to be bound by these Terms of Service, along with our{' '}
                 <Link href="/privacy" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>Privacy Policy</Link> and{' '}
                 <Link href="/licensing" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>Content Rights &amp; Distribution Policy</Link>.
               </p>
               <p>
-                If you are accepting these Terms on behalf of an agency, studio, or corporate entity, you represent
-                and warrant that you possess full legal authority to bind that entity to these commitments.
+                studioNeo operates as a 100% free, artist-focused digital atelier and curatorial archive. We do not charge subscription fees,
+                maintain paywalled memberships, or solicit recurring dues. If you access the platform on behalf of an agency, studio, or corporate entity,
+                you represent and warrant that you hold full legal authority to bind that entity to these terms.
               </p>
             </div>
 
@@ -116,20 +119,34 @@ export default function TermsPage() {
             <div className="terms-article-section">
               <div className="terms-section-header">
                 <span className="terms-section-num">02</span>
-                <h2 className="terms-section-title">Artist Intellectual Property &amp; Distribution Restrictions</h2>
+                <h2 className="terms-section-title">Artist Sovereignty &amp; Content Rights Reservations</h2>
               </div>
               <p>
-                {"Each individual artist reserves the right on how their content is used. studioNeo does not have the right to distribute illustrator works unless specified as a 'Featured' artist."}
+                Every artist retains absolute sovereignty and control over their creative works:
               </p>
+              <div className="terms-highlight-box">
+                <strong>Core Creator Covenant:</strong> Each individual artist reserves all rights regarding how their content is used,
+                referenced, or exhibited. studioNeo does not own, claim copyright over, or possess the right to distribute illustrator works
+                unless explicitly authorized as a designated &ldquo;Partner&rdquo; artist collaboration.
+              </div>
               <ul>
                 <li>
-                  <strong>Exclusive Creator Sovereignty:</strong> All visual artworks, illustrations, character designs, and vector stems referenced or exhibited on this platform remain the exclusive intellectual property of their respective individual artists.
+                  <strong>Exclusive Creator Ownership:</strong> All visual artworks, illustrations, character designs, background concepts,
+                  and production stems exhibited on studioNeo remain the exclusive intellectual property of their respective creators.
                 </li>
                 <li>
-                  <strong>Distribution Restrictions:</strong> Master files and downloadable stems are restricted solely to designated &ldquo;Featured&rdquo; artist collaborations with explicit creator authorization.
+                  <strong>Distribution Boundaries:</strong> Downloadable master cels, production assets, and vector stems are strictly
+                  restricted to verified &ldquo;Partner&rdquo; artist works (such as certified sankobite master cels) with explicit written creator clearance.
+                  All other works are exhibited solely for curatorial study, appreciation, and direct portfolio discovery.
                 </li>
                 <li>
-                  <strong>Attribution &amp; Integrity:</strong> Visitors must respect all embedded artist signatures, copyright notices, and official portfolio attributions. Commercial reproduction or derivative exploitation without direct clearance from the individual artist is strictly prohibited.
+                  <strong>Prohibition of Generative AI / ML Training:</strong> Scraping, harvesting, downloading, or caching any artwork,
+                  story, or visual asset from studioNeo for the purpose of training generative artificial intelligence, machine learning models,
+                  or diffusion algorithms is strictly prohibited without direct, express, written clearance from the individual artist.
+                </li>
+                <li>
+                  <strong>Attribution &amp; Signature Integrity:</strong> Visitors must preserve all embedded artist signatures, copyright stamps,
+                  and links to official creator channels. Commercial exploitation, unauthorized derivative works, or re-hosting without direct creator consent is strictly forbidden.
                 </li>
               </ul>
             </div>
@@ -138,61 +155,104 @@ export default function TermsPage() {
             <div className="terms-article-section">
               <div className="terms-section-header">
                 <span className="terms-section-num">03</span>
-                <h2 className="terms-section-title">Curatorial Exhibition &amp; User Accounts</h2>
+                <h2 className="terms-section-title">Community Feeds, Stories &amp; Interactions</h2>
               </div>
               <p>
-                User accounts on studioNeo are provided at no cost solely for personal cryptographic identity verification, hardware-backed passkey security, device theme synchronization, and saving personal curatorial bookmarks.
+                studioNeo provides an interactive Home feed (`/`) and dynamic Story viewers showcasing recent releases from featured and partner creators:
               </p>
-              <div className="terms-highlight-box">
-                <strong>No Distribution Rights Conveyed:</strong> Registering or signing into a studioNeo account conveys no license or right to copy, distribute, download, or commercially exploit illustrator works. All works are exhibited for curatorial study and cultural appreciation.
-              </div>
-              <p>
-                Automated scraping, unauthorized extraction of artworks, or attempting to circumvent curatorial access controls is strictly prohibited and constitutes immediate grounds for account revocation.
-              </p>
+              <ul>
+                <li>
+                  <strong>Feed &amp; Story Appreciation:</strong> Users may view ephemeral story reels, navigate through featured post feeds, and register likes
+                  (via single-tap or double-tap) to express community appreciation and curate personal bookmark collections.
+                </li>
+                <li>
+                  <strong>Master Cel Downloads:</strong> Download options within the story viewer or feed are strictly limited to authorized Partner artworks.
+                  Attempting to bypass access gates or reverse-engineer private blob storage endpoints constitutes a violation of these Terms.
+                </li>
+                <li>
+                  <strong>Automated Access &amp; Scraping Prohibitions:</strong> You agree not to deploy automated crawlers, bots, headless scrapers,
+                  or high-frequency scripts to harvest feed contents, manipulate like counts, or degrade service performance for other visitors.
+                </li>
+              </ul>
             </div>
 
             {/* Section 4 */}
             <div className="terms-article-section">
               <div className="terms-section-header">
                 <span className="terms-section-num">04</span>
-                <h2 className="terms-section-title">FIDO2 Passkeys &amp; Cryptographic Identity</h2>
+                <h2 className="terms-section-title">Cryptographic User Accounts &amp; Access Controls</h2>
               </div>
               <p>
-                studioNeo operates a zero-knowledge, passwordless authentication pipeline. Your biometric indicators (such as
-                fingerprints or facial scans) remain encrypted inside your hardware security enclave and are never accessible
-                to or stored on our servers.
+                User accounts on studioNeo are provided at zero cost solely for personal cryptographic identity verification, hardware-backed passkey management,
+                display preference synchronization, and curating personal bookmarks.
               </p>
-              <p>
-                You are responsible for maintaining control of registered authenticators. We encourage linking at least two
-                passkeys (e.g., mobile device and desktop security key) to safeguard persistent access.
-              </p>
+              <ul>
+                <li>
+                  <strong>Zero License Conveyed:</strong> Registering or signing into a studioNeo account conveys no intellectual property license,
+                  reproduction permit, or distribution right over exhibited creator works.
+                </li>
+                <li>
+                  <strong>Creator &amp; Curator Studio Gating:</strong> Uploading artworks or managing gallery metadata via the Creator Studio
+                  (`/api/studio/upload`) is strictly reserved for verified artists and atelier curators. Attempting to spoof curatorial roles or bypass tier gates
+                  will result in immediate credential revocation.
+                </li>
+                <li>
+                  <strong>Account Custody:</strong> You are solely responsible for maintaining control of your registered authenticators, email access,
+                  and emergency backup recovery codes.
+                </li>
+              </ul>
             </div>
 
             {/* Section 5 */}
             <div className="terms-article-section">
               <div className="terms-section-header">
                 <span className="terms-section-num">05</span>
-                <h2 className="terms-section-title">Authorized Featured Deliverables &amp; Finality</h2>
+                <h2 className="terms-section-title">Passwordless Authentication &amp; Multi-Factor Security</h2>
               </div>
               <p>
-                Where a designated &ldquo;Featured&rdquo; artist has explicitly authorized downloadable study stems or cryptographic certificates of authenticity on studioNeo, such files are provided as-is under the creator&apos;s specified terms.
+                studioNeo operates a modern, password-free security architecture:
               </p>
-              <p>
-                In the rare event of technical file corruption or broken attribution links, our curatorial desk will
-                promptly update or restore the record upon notification.
-              </p>
+              <ul>
+                <li>
+                  <strong>FIDO2 / WebAuthn Biometric Passkeys:</strong> When authenticating via Touch ID, Face ID, or hardware security keys,
+                  your biometric credentials remain encrypted inside your hardware security enclave and are never transmitted to or stored on our servers.
+                </li>
+                <li>
+                  <strong>Email One-Time Passwords (OTP):</strong> Cryptographic 6-digit numeric verification tokens delivered via email expire automatically
+                  after 10 minutes and are hashed with SHA-256 before verification.
+                </li>
+                <li>
+                  <strong>Two-Factor Authentication (TOTP):</strong> Users may activate rolling 6-digit TOTP verification apps along with single-use
+                  recovery backup codes to protect account recovery.
+                </li>
+              </ul>
             </div>
 
             {/* Section 6 */}
             <div className="terms-article-section">
               <div className="terms-section-header">
                 <span className="terms-section-num">06</span>
-                <h2 className="terms-section-title">Governing Law &amp; Curatorial Inquiries</h2>
+                <h2 className="terms-section-title">Service Availability &amp; Deliverables</h2>
               </div>
               <p>
-                These Terms shall be interpreted and governed by international digital copyright conventions and standards.
-                For artist takedown requests, attribution updates, or curatorial inquiries, please direct communications
-                to our curatorial desk at{' '}
+                studioNeo is provided on an &ldquo;as-is&rdquo; and &ldquo;as-available&rdquo; basis. While we strive for 99.9% uptime and high-performance
+                client-side rendering, we do not warrant uninterrupted operation or that archived portfolio links will remain permanently online if an artist
+                requests modifications or unpublishing.
+              </p>
+            </div>
+
+            {/* Section 7 */}
+            <div className="terms-article-section">
+              <div className="terms-section-header">
+                <span className="terms-section-num">07</span>
+                <h2 className="terms-section-title">Notice, Takedown &amp; Curatorial Inquiries</h2>
+              </div>
+              <p>
+                studioNeo respects copyright law and the moral rights of creators worldwide. If you are an artist or legal representative and believe
+                an artwork is exhibited without authorization or requires attribution correction, please contact our curatorial desk immediately.
+              </p>
+              <p>
+                Direct all takedown notices, attribution amendments, and curatorial partnership inquiries to{' '}
                 <Link href="/contact" style={{ textDecoration: 'underline', color: 'var(--text-primary)' }}>curator@studioneo.tech</Link>.
               </p>
             </div>
