@@ -8,6 +8,7 @@ import {
   isVaultSubscriberTier,
 } from '@/app/gallery/galleryData';
 import { isPartnerHandle } from '@/data/artistRoles';
+import { getSankobiteGifUrl } from '@/lib/featuredFeedData';
 
 export async function GET(
   request: NextRequest,
@@ -28,8 +29,53 @@ export async function GET(
 
     // 2. Check if the slug corresponds to a Gallery Artwork (e.g. neo-01, axis-04, etc.)
     const matchedWork = ALL_GALLERY_WORKS.find(
-      (w) => w.code.toLowerCase() === cleanSlug || w.id.toLowerCase() === cleanSlug
+      (w) =>
+        w.code.toLowerCase() === cleanSlug ||
+        w.id.toLowerCase() === cleanSlug ||
+        (w.slug && w.slug.toLowerCase() === cleanSlug) ||
+        (cleanSlug.startsWith('sankobite-') &&
+          (w.id.toLowerCase() === cleanSlug.replace('sankobite-', '') ||
+            (w.slug && w.slug.toLowerCase() === cleanSlug.replace('sankobite-', ''))))
     );
+
+    // If requested asset is a Sankobite artwork, stream the actual animated GIF directly
+    const sankobiteGif =
+      getSankobiteGifUrl(cleanSlug) ||
+      (matchedWork?.artistHandle === 'sankobite' ? matchedWork.gifSrc : undefined);
+
+    if (sankobiteGif) {
+      if (wantsJson) {
+        return NextResponse.json({
+          success: true,
+          type: 'artwork',
+          artist: 'sankobite',
+          slug: cleanSlug,
+          gifUrl: sankobiteGif,
+          availableFormats: ['gif'],
+        });
+      }
+
+      try {
+        const gifRes = await fetch(sankobiteGif);
+        if (gifRes.ok) {
+          const arrayBuffer = await gifRes.arrayBuffer();
+          const filename = `sankobite-${matchedWork?.slug || cleanSlug}.gif`;
+
+          return new NextResponse(arrayBuffer, {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/gif',
+              'Content-Disposition': `attachment; filename="${filename}"`,
+              'Cache-Control': 'public, max-age=86400',
+            },
+          });
+        }
+      } catch (err) {
+        console.error('[API /api/assets/download] Failed to stream sankobite GIF:', err);
+      }
+
+      return NextResponse.redirect(sankobiteGif, 302);
+    }
 
     // 3. Check BCNF database for minted artworks joined with accounts and assets
     const dbCel = !matchedWork
@@ -208,7 +254,22 @@ export async function GET(
 
       if (requestedFormat === 'gif') {
         if (matchedWork.gifSrc) {
-          return NextResponse.redirect(matchedWork.gifSrc, 302);
+          try {
+            const gifRes = await fetch(matchedWork.gifSrc);
+            if (gifRes.ok) {
+              const arrayBuffer = await gifRes.arrayBuffer();
+              return new NextResponse(arrayBuffer, {
+                status: 200,
+                headers: {
+                  'Content-Type': 'image/gif',
+                  'Content-Disposition': `attachment; filename="studioNeo-${matchedWork.code || matchedWork.id}.gif"`,
+                  'Cache-Control': 'public, max-age=86400',
+                },
+              });
+            }
+          } catch {
+            return NextResponse.redirect(matchedWork.gifSrc, 302);
+          }
         }
         return NextResponse.json(
           { error: 'Kinetic animated GIF is only available for kinetic motion works.' },

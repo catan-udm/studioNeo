@@ -16,6 +16,8 @@ export interface FeedItem {
   id: string;
   dbId?: number;
   code: string;
+  slug?: string;
+  gifSrc?: string;
   title: string;
   subtitle?: string;
   caption: string;
@@ -141,6 +143,42 @@ export function getFeaturedAndPartnerArtists(): FeaturedStoryArtist[] {
 }
 
 /**
+ * Verified direct 1:1 mapping of Sankobite kinetic animation loops to actual CDN animated GIFs.
+ */
+export const SANKOBITE_GIF_MAP: Record<string, string> = {
+  pokemiku: 'https://bikkostudio.blob.core.windows.net/gifs/2nan.gif',
+  'rabbit-hole': encodeURI('https://bikkostudio.blob.core.windows.net/gifs/ラビットホール.gif'),
+  hero: 'https://bikkostudio.blob.core.windows.net/gifs/HERO.gif',
+  'devil-3': encodeURI('https://bikkostudio.blob.core.windows.net/gifs/3デビルじゃないもん.gif'),
+  'devil-2': encodeURI('https://bikkostudio.blob.core.windows.net/gifs/2デビルじゃないもん.gif'),
+  'devil-1': encodeURI('https://bikkostudio.blob.core.windows.net/gifs/1デビルじゃないもん.gif'),
+  zombie: encodeURI('https://bikkostudio.blob.core.windows.net/gifs/ゾンビ.gif'),
+  parasite: encodeURI('https://bikkostudio.blob.core.windows.net/gifs/パラサイト.gif'),
+  vampire: encodeURI('https://bikkostudio.blob.core.windows.net/gifs/ヴァンパイア.gif'),
+  'otome-kaibou': encodeURI('https://bikkostudio.blob.core.windows.net/gifs/乙女解剖.gif'),
+  hibana: encodeURI('https://bikkostudio.blob.core.windows.net/gifs/ヒバナ.gif'),
+  animal: encodeURI('https://bikkostudio.blob.core.windows.net/gifs/アニマル.gif'),
+  cinderella: encodeURI('https://bikkostudio.blob.core.windows.net/gifs/シンデレラ.gif'),
+  salamander: encodeURI('https://bikkostudio.blob.core.windows.net/gifs/サラマンダー.gif'),
+};
+
+export function getSankobiteGifUrl(slugOrIdOrCode: string): string | undefined {
+  const s = slugOrIdOrCode.toLowerCase().replace(/^sankobite-/, '');
+  if (SANKOBITE_GIF_MAP[s]) return SANKOBITE_GIF_MAP[s];
+
+  const match = sankobiteArtworks.find(
+    (a, idx) =>
+      a.slug.toLowerCase() === s ||
+      a.id.toLowerCase() === s ||
+      `snk-${String(idx + 1).padStart(2, '0')}`.toLowerCase() === s
+  );
+  if (match && SANKOBITE_GIF_MAP[match.slug]) {
+    return SANKOBITE_GIF_MAP[match.slug];
+  }
+  return undefined;
+}
+
+/**
  * Generates the interleaved feed of Partner and Featured artist works.
  * Normal artists are strictly excluded.
  */
@@ -156,6 +194,8 @@ export function buildCuratedFeedItems(): FeedItem[] {
   const partnerPosts: FeedItem[] = sankobiteArtworks.map((a, idx) => ({
     id: `sankobite-${a.id}`,
     code: `SNK-${String(idx + 1).padStart(2, '0')}`,
+    slug: a.slug,
+    gifSrc: SANKOBITE_GIF_MAP[a.slug],
     title: `${a.titleJp} — ${a.titleEn}`,
     subtitle: a.songBy,
     caption: a.note,

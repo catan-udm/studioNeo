@@ -299,16 +299,6 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
     return (name.slice(0, 2) || 'SN').toUpperCase();
   }, [currentUser]);
 
-  const userRoleBadge = useMemo(() => {
-    if (!currentUser) return 'Collector';
-    if (currentUser.artistDistinction && currentUser.artistDistinction !== 'none') {
-      return currentUser.artistDistinction === 'partner' ? 'Partner Artist' : 'Featured Artist';
-    }
-    if (currentUser.systemRole === 'admin') return 'System Administrator';
-    if (currentUser.systemRole === 'curator') return 'Curator';
-    return 'Archival Collector';
-  }, [currentUser]);
-
   const userDistinctionClass = useMemo(() => {
     if (!currentUser) return 'collector';
     if (currentUser.artistDistinction && currentUser.artistDistinction !== 'none') {
@@ -378,9 +368,6 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
                 </div>
                 <span className="sn-profile-handle">
                   @{currentUser?.handle || (currentUser?.email ? currentUser.email.split('@')[0] : 'collector')}
-                </span>
-                <span className={`sn-profile-badge is-${userDistinctionClass}`}>
-                  {userRoleBadge}
                 </span>
               </div>
             </div>
@@ -520,9 +507,6 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
                   ) : (
                     <span className="sn-story-avatar">{artist.avatar}</span>
                   )}
-                  <span className={`sn-story-badge-dot is-${artist.distinction}`}>
-                    {artist.distinction === 'partner' ? 'P' : 'F'}
-                  </span>
                 </button>
                 <button
                   type="button"
@@ -615,9 +599,6 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
                   <div className="sn-post-author-meta">
                     <div className="sn-post-author-row">
                       <span className="sn-post-author-name">{item.artistName}</span>
-                      <span className={`sn-post-distinction-badge is-${item.distinction}`}>
-                        {item.badge}
-                      </span>
                     </div>
                     <span className="sn-post-subline">
                       @{item.artistHandle}
@@ -642,10 +623,6 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
                   className="sn-post-media-img"
                   loading="lazy"
                 />
-                <span className="sn-post-code-chip">{item.code}</span>
-                {item.mediaKind === 'animated' && (
-                  <span className="sn-post-loop-chip">Kinetic Loop</span>
-                )}
 
                 {isBursting && (
                   <div className="sn-heart-burst" aria-hidden="true">
@@ -704,12 +681,13 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
                   </button>
                 </div>
 
-                {/* Partner Licensing vs Featured Artist Sovereignty */}
-                {item.canDownloadMaster ? (
+                {/* Direct GIF Download for Sankobite Partner Animations */}
+                {item.canDownloadMaster && item.artistHandle === 'sankobite' && (
                   <a
-                    href={`/api/assets/download/${encodeURIComponent(item.code.toLowerCase())}?format=svg`}
+                    href={`/api/assets/download/${encodeURIComponent((item.slug || item.code).toLowerCase())}?format=gif`}
+                    download={`sankobite-${item.slug || item.code}.gif`}
                     className="sn-sovereignty-pill is-partner"
-                    title="Authorized Partner Project — Master Asset Download Available"
+                    title={`Download animated GIF for ${item.title}`}
                   >
                     <svg
                       width="14"
@@ -723,15 +701,8 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    Partner Master
+                    Download GIF
                   </a>
-                ) : (
-                  <span
-                    className="sn-sovereignty-pill is-reserved"
-                    title="Each individual artist reserves the right on how their content is used."
-                  >
-                    Rights Reserved
-                  </span>
                 )}
               </div>
 

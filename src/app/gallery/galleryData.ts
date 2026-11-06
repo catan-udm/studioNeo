@@ -1,10 +1,12 @@
 import { artworks as sankobiteArtworks } from '@/data';
 import { rellaArtworks } from '@/rellaData';
 import { works as tamimoonArtworks } from '@/tamimoonData';
+import { SANKOBITE_GIF_MAP } from '@/lib/featuredFeedData';
 
 export interface GalleryWork {
   id: string;
   code: string;
+  slug?: string;
   title: string;
   artist: string;
   artistHandle: string;
@@ -295,12 +297,13 @@ export function generateGalleryArchive(): GalleryWork[] {
     works.push({
       id: a.id,
       code: `SNK-${String(idx + 1).padStart(2, '0')}`,
+      slug: a.slug,
       title: `${a.titleJp} (${a.titleEn})`,
       artist: 'sankobite',
       artistHandle: 'sankobite',
       artistAvatar: 'SB',
       color: a.accent,
-      gifSrc: KINETIC_GIF_URLS[idx % KINETIC_GIF_URLS.length],
+      gifSrc: SANKOBITE_GIF_MAP[a.slug] || KINETIC_GIF_URLS[idx % KINETIC_GIF_URLS.length],
       svgSrc: a.src,
       likes: 200 + a.frames * 4,
       edition: `${a.frames}f Loop`,
