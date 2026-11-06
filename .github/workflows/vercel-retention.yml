@@ -1,0 +1,31 @@
+name: Vercel 3-Deployment Retention Policy
+
+on:
+  push:
+    branches:
+      - production
+  workflow_dispatch:
+
+jobs:
+  prune-deployments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run Retention Pruner
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || 'prj_6UIfStMQ5VllGfCB05CAJChmA7at' }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID || 'team_ys2LrykyP6IqMl3wsiDE5VBm' }}
+          RETAIN_PROD_COUNT: 3
+        run: |
+          # Grace period to allow current Vercel production build to finalize registration
+          echo "Waiting 45 seconds for current deployment to finalize..."
+          sleep 45
+          node scripts/prune-vercel-deployments.mjs --confirm

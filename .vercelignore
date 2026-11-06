@@ -1,0 +1,12 @@
+# Test artifacts & local benchmark outputs
+test-artifacts/
+test-e2e-production.mjs
+scripts/
+
+# Documentation & study notes (not needed in runtime deployment)
+*.md
+!README.md
+
+# Local environment & build caches
+.env*.local
+.turbo
