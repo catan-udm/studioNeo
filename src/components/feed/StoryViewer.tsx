@@ -589,9 +589,11 @@ export default function StoryViewer({
             <div className="sn-story-header-info">
               <div className="sn-story-header-name-row">
                 <span className="sn-story-header-name">{currentStory.artistName}</span>
-                <span className={`sn-story-header-badge is-${currentStory.distinction}`}>
-                  {currentStory.badge}
-                </span>
+                {currentStory.distinction === 'partner' && (
+                  <span className="sn-story-header-badge is-partner">
+                    {currentStory.badge}
+                  </span>
+                )}
               </div>
               <span className="sn-story-header-time">
                 Latest work • {currentStory.dateLabel}

@@ -313,12 +313,6 @@
   border: 1px solid rgba(16, 185, 129, 0.45);
 }
 
-.sn-story-header-badge.is-featured {
-  background: rgba(217, 70, 239, 0.28);
-  color: #e879f9;
-  border: 1px solid rgba(217, 70, 239, 0.45);
-}
-
 .sn-story-header-time {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.72);

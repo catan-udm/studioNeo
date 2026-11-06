@@ -196,6 +196,19 @@ CREATE TABLE IF NOT EXISTS `artwork_likes` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 9b. User Social Likes (Normalized Multi-Catalog User Engagement)
+-- Candidate Key: {account_id, target_id}
+CREATE TABLE IF NOT EXISTS `user_likes` (
+  `account_id` BIGINT UNSIGNED NOT NULL,
+  `target_id` VARCHAR(128) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`account_id`, `target_id`),
+  KEY `idx_user_likes_account` (`account_id`),
+  CONSTRAINT `fk_user_likes_account`
+    FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 10. Artwork Downloads (Audit Trail & Partner Licensing Enforcement)
 -- Candidate Key: {id}
 CREATE TABLE IF NOT EXISTS `artwork_downloads` (

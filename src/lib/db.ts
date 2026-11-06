@@ -182,6 +182,7 @@ interface DevDbStore {
   artworkAssets: Array<ArtworkAssetRecord>;
   artworkLikes: Array<ArtworkLikeRecord>;
   artworkDownloads: Array<ArtworkDownloadRecord>;
+  userLikes: Array<{ account_id: number; target_id: string; created_at: string }>;
 }
 
 function deriveHandleFromEmail(email: string, idSuffix?: number): string {
@@ -229,6 +230,7 @@ function initDevDbStore(): DevDbStore {
         const loaded: DevDbStore = {
           ...parsed,
           totpCredentials: new Map(Array.isArray(parsed.totpCredentials) ? parsed.totpCredentials : []),
+          userLikes: Array.isArray(parsed.userLikes) ? parsed.userLikes : [],
         };
         globalThis.__devDbStore = loaded;
         return loaded;
@@ -308,6 +310,7 @@ function initDevDbStore(): DevDbStore {
     artworkAssets: [],
     artworkLikes: [],
     artworkDownloads: [],
+    userLikes: [],
   };
 
   globalThis.__devDbStore = store;
@@ -603,6 +606,24 @@ async function executeDevQuery<T>(sql: string, params: unknown[] = []): Promise<
       return store.artworkLikes.filter((l) => l.account_id === accId) as unknown as T[];
     }
     return store.artworkLikes as unknown as T[];
+  }
+
+  // SELECT ... FROM user_likes
+  if (lower.includes('from user_likes')) {
+    if (!store.userLikes) store.userLikes = [];
+    if (lower.includes('where account_id = ? and target_id = ?')) {
+      const accId = Number(params[0]);
+      const targetId = String(params[1]);
+      const found = store.userLikes.find(
+        (l) => l.account_id === accId && l.target_id === targetId
+      );
+      return (found ? [found] : []) as unknown as T[];
+    }
+    if (lower.includes('where account_id = ?')) {
+      const accId = Number(params[0]);
+      return store.userLikes.filter((l) => l.account_id === accId) as unknown as T[];
+    }
+    return store.userLikes as unknown as T[];
   }
 
   // SELECT ... FROM artworks (or cels)
@@ -1163,6 +1184,38 @@ async function executeDevMutationInternal(
     return { insertId: 0, affectedRows: removed, warningStatus: 0 } as ResultSetHeader;
   }
 
+  // INSERT INTO user_likes
+  if (lower.startsWith('insert into user_likes') || lower.startsWith('insert ignore into user_likes')) {
+    if (!store.userLikes) store.userLikes = [];
+    const accId = Number(params[0]);
+    const targetId = String(params[1]);
+    const exists = store.userLikes.some(
+      (l) => l.account_id === accId && l.target_id === targetId
+    );
+    if (!exists) {
+      store.userLikes.push({
+        account_id: accId,
+        target_id: targetId,
+        created_at: now,
+      });
+      return { insertId: 0, affectedRows: 1, warningStatus: 0 } as ResultSetHeader;
+    }
+    return { insertId: 0, affectedRows: 0, warningStatus: 0 } as ResultSetHeader;
+  }
+
+  // DELETE FROM user_likes
+  if (lower.startsWith('delete from user_likes')) {
+    if (!store.userLikes) store.userLikes = [];
+    const accId = Number(params[0]);
+    const targetId = String(params[1]);
+    const before = store.userLikes.length;
+    store.userLikes = store.userLikes.filter(
+      (l) => !(l.account_id === accId && l.target_id === targetId)
+    );
+    const removed = before - store.userLikes.length;
+    return { insertId: 0, affectedRows: removed, warningStatus: 0 } as ResultSetHeader;
+  }
+
   // INSERT INTO artwork_downloads
   if (lower.startsWith('insert into artwork_downloads')) {
     const newId = store.nextArtworkDownloadId++;
@@ -1329,6 +1382,19 @@ async function ensureMysqlBcnfSchema(pool: Pool): Promise<void> {
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY idx_totp_backup_codes_account_id (account_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_likes (
+        account_id BIGINT UNSIGNED NOT NULL,
+        target_id VARCHAR(128) NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (account_id, target_id),
+        KEY idx_user_likes_account_id (account_id),
+        CONSTRAINT fk_user_likes_account
+          FOREIGN KEY (account_id) REFERENCES accounts (id)
+          ON DELETE CASCADE ON UPDATE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
   } catch (err) {

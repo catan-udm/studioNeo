@@ -27,8 +27,18 @@ export default function CollectionClient() {
   useEffect(() => {
     getAuthenticatedSession()
       .then((session) => {
-        if (session.authenticated && session.subscriber && isVaultSubscriberTier(session.subscriber.tier)) {
-          setIsFeaturedAuthorized(true);
+        if (session.authenticated && session.subscriber) {
+          if (isVaultSubscriberTier(session.subscriber.tier)) {
+            setIsFeaturedAuthorized(true);
+          }
+          fetch('/api/cels/like')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (data?.authenticated && Array.isArray(data.likedIds)) {
+                setLikedIds((prev) => Array.from(new Set([...prev, ...data.likedIds])));
+              }
+            })
+            .catch(() => {});
         }
       })
       .catch(() => {});
@@ -91,6 +101,13 @@ export default function CollectionClient() {
     } catch {
       // Storage error
     }
+
+    // Persist to database per user
+    fetch('/api/cels/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetId: workId }),
+    }).catch(() => {});
   };
 
   // Clear all saved

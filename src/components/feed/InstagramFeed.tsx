@@ -59,6 +59,12 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  // User-scoped storage key to ensure likes never bleed across accounts
+  const userStorageKey = useMemo(() => {
+    const uid = currentUser?.id || currentUser?.handle || currentUser?.email;
+    return uid ? `studioNeo_user_likes_${uid}` : 'studioNeo_user_likes_guest';
+  }, [currentUser]);
+
   // Load any database-minted works from Partner & Featured artists
   useEffect(() => {
     let active = true;
@@ -82,25 +88,59 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
     };
   }, []);
 
-  // Load persisted likes from BCNF `artwork_likes`
+  // Load persisted likes: instant hydration from user-scoped localStorage + reconcile with server database
   useEffect(() => {
     let active = true;
+
+    // Instant read from user-scoped storage
+    try {
+      const cached = localStorage.getItem(userStorageKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLikedIds(new Set(parsed));
+        } else {
+          setLikedIds(new Set());
+        }
+      } else {
+        setLikedIds(new Set());
+      }
+    } catch {
+      setLikedIds(new Set());
+    }
+
+    // Sync from server-side database
     fetch('/api/cels/like')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (!active || !Array.isArray(data?.likedArtworkIds)) return;
-        const initialSet = new Set<string>();
-        for (const id of data.likedArtworkIds) {
-          initialSet.add(`db-artwork-${id}`);
+        if (!active || !data) return;
+        const setFromApi = new Set<string>();
+
+        if (Array.isArray(data.likedIds)) {
+          for (const id of data.likedIds) {
+            setFromApi.add(String(id));
+          }
         }
-        setLikedIds((prev) => new Set([...prev, ...initialSet]));
+        if (Array.isArray(data.likedArtworkIds)) {
+          for (const id of data.likedArtworkIds) {
+            setFromApi.add(`db-artwork-${id}`);
+            setFromApi.add(String(id));
+          }
+        }
+
+        if (data.authenticated) {
+          setLikedIds(setFromApi);
+          try {
+            localStorage.setItem(userStorageKey, JSON.stringify(Array.from(setFromApi)));
+          } catch {}
+        }
       })
       .catch(() => {});
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [userStorageKey]);
 
   // Merge DB works + curated works, strictly filtering out any non-featured/non-partner artists
   const allFilteredPool = useMemo(() => {
@@ -188,18 +228,28 @@ export default function InstagramFeed({ currentUser, onSwitchToAtelier }: Instag
           [item.id]: nowLiked ? 1 : 0,
         }));
 
-        if (item.dbId) {
-          fetch('/api/cels/like', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ artworkId: item.dbId }),
-          }).catch(() => {});
-        }
+        // Persist to user-scoped localStorage immediately
+        try {
+          localStorage.setItem(userStorageKey, JSON.stringify(Array.from(next)));
+        } catch {}
+
+        // Persist to database per user via API
+        fetch('/api/cels/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            targetId: item.id,
+            artworkId: item.dbId,
+            code: item.code,
+          }),
+        }).catch((err) => {
+          console.warn('[Feed] Failed to persist like to server:', err);
+        });
 
         return next;
       });
     },
-    []
+    [userStorageKey]
   );
 
   const handleDoubleTap = useCallback(

@@ -55,8 +55,19 @@ export default function GalleryClient() {
       }
 
       getAuthenticatedSession().then((session) => {
-        if (session.authenticated && session.subscriber && isVaultSubscriberTier(session.subscriber.tier)) {
-          setIsFeaturedAuthorized(true);
+        if (session.authenticated && session.subscriber) {
+          if (isVaultSubscriberTier(session.subscriber.tier)) {
+            setIsFeaturedAuthorized(true);
+          }
+          // Fetch authenticated user likes from database
+          fetch('/api/cels/like')
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (data?.authenticated && Array.isArray(data.likedIds)) {
+                setLikedWorkIds((prev) => new Set([...prev, ...data.likedIds]));
+              }
+            })
+            .catch(() => {});
         }
       }).catch(() => {});
 
@@ -181,12 +192,24 @@ export default function GalleryClient() {
       }
       return next;
     });
+
+    // Persist to database per user
+    fetch('/api/cels/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetId: workId }),
+    }).catch(() => {});
   }, []);
 
   // Double click on media for Instagram-style heart burst
   const handleMediaDoubleClick = useCallback((work: GalleryWork) => {
     if (!likedWorkIds.has(work.id)) {
       setLikedWorkIds((prev) => new Set(prev).add(work.id));
+      fetch('/api/cels/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetId: work.id }),
+      }).catch(() => {});
     }
     setBurstHeartId(work.id);
     setTimeout(() => setBurstHeartId(null), 850);
